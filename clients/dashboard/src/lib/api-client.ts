@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { tokenStore } from "@/auth/token-store";
+import i18n from "@/i18n";
 import { decodeJwt } from "@/auth/jwt";
 
 export type ApiError = {
@@ -157,6 +158,9 @@ export async function apiFetch<T = unknown>(
   const { skipAuth, headers, timeoutMs = DEFAULT_TIMEOUT_MS, signal, ...rest } = init;
 
   const mergedHeaders = new Headers(headers);
+  if (!mergedHeaders.has("Accept-Language")) {
+    mergedHeaders.set("Accept-Language", i18n.language || "en-US");
+  }
   if (!mergedHeaders.has("Content-Type") && rest.body && typeof rest.body === "string") {
     mergedHeaders.set("Content-Type", "application/json");
   }

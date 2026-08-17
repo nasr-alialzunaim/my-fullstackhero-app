@@ -21,6 +21,7 @@ using FSH.Framework.Web.RateLimiting;
 using FSH.Framework.Web.Realtime;
 using FSH.Framework.Web.Security;
 using FSH.Framework.Web.Versioning;
+using FSH.Framework.Web.Localization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Distributed;
@@ -63,6 +64,7 @@ public static class Extensions
         }
 
         builder.Services.AddHttpContextAccessor();
+        builder.AddHeroLocalization();
         builder.Services.AddHeroDatabaseOptions(builder.Configuration);
         builder.Services.AddHeroRateLimiting(builder.Configuration);
 
@@ -177,6 +179,7 @@ public static class Extensions
 
         app.UseHeroJobDashboard(app.Configuration);
         app.UseRouting();
+        app.UseHeroLocalization();
 
         if (openApiEnabled)
         {

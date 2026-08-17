@@ -1,0 +1,17 @@
+{
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "arabic": "Arabic",
+    "changed": "Language changed"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "errors": {
+    "validationFailed": "One or more validation errors occurred.",
+    "unexpected": "An unexpected error occurred. Please try again later."
+  }
+}

@@ -54,9 +54,10 @@ export function EntityPageHeader({
         </div>
       </div>
 
-      {children && (
-        <div className="flex w-full gap-2 sm:w-auto">{children}</div>
-      )}
+      <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
+        <LanguageSwitcher />
+        {children && <div className="flex gap-2">{children}</div>}
+      </div>
     </div>
   );
 }

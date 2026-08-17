@@ -8,11 +8,14 @@ import { AuthProvider } from "@/auth/auth-context";
 import { RealtimeProvider } from "@/realtime/realtime-context";
 import { ThemeProvider, useTheme } from "@/components/theme/theme-provider";
 import { router } from "@/routes";
+import "@/i18n";
+import { LocalizationRoot } from "@/localization-root";
 
 export function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
+    <LocalizationRoot>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <RealtimeProvider>
             {/* Top-level boundary so the public lazy routes (login, password
@@ -32,8 +35,9 @@ export function App() {
           </RealtimeProvider>
           <FshToaster />
         </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </LocalizationRoot>
   );
 }
 

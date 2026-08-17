@@ -13,19 +13,23 @@ import { AuthProvider } from "@/auth/auth-context";
 import { ThemeProvider, useTheme } from "@/components/theme/theme-provider";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette";
 import { router } from "@/routes";
+import "@/i18n";
+import { LocalizationRoot } from "@/localization-root";
 
 export function App() {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
+    <LocalizationRoot>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CommandPaletteProvider>
             <RouterProvider router={router} />
             <FshToaster />
           </CommandPaletteProvider>
         </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </LocalizationRoot>
   );
 }
 
