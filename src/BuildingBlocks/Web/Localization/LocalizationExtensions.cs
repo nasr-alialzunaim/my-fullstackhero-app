@@ -10,9 +10,13 @@ namespace FSH.Framework.Web.Localization;
 
 public sealed class FshLocalizationOptions
 {
-    public string DefaultCulture { get; set; } = SupportedCultures.Default;
-    public string[] SupportedCultures { get; set; } = global::FSH.Framework.Web.Localization.SupportedCultures.Tags;
+    public string DefaultCulture { get; set; } =
+        global::FSH.Framework.Web.Localization.SupportedCultures.Default;
+
+    public string[] SupportedCultureTags { get; set; } =
+        global::FSH.Framework.Web.Localization.SupportedCultures.Tags;
 }
+
 
 public static class LocalizationExtensions
 {
@@ -26,7 +30,8 @@ public static class LocalizationExtensions
         builder.Configuration.GetSection("LocalizationOptions").Bind(options);
         configure?.Invoke(options);
 
-        var supported = options.SupportedCultures
+        var supported = options.SupportedCultureTags
+
             .Where(SupportedCultures.IsSupported)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
