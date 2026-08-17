@@ -45,6 +45,7 @@ import { EntityDetailSection } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
 import { useSseEvents, useSseStatus, type SseEvent, type SseStatus } from "@/sse/sse-context";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 // ────────────────────────────────────────────────────────────────────────
 // Shaping helpers — pure, tested via memoization at the call sites.
@@ -848,6 +849,7 @@ function FirstRunPanel({
   tenantId: string | undefined;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section
       aria-labelledby="firstrun-heading"
@@ -859,8 +861,8 @@ function FirstRunPanel({
           writeDismissed(tenantId, true);
           onDismiss();
         }}
-        aria-label="Dismiss setup checklist"
-        title="Skip for now"
+        aria-label={t("overview.dismissSetup")}
+        title={t("overview.skipForNow")}
         className="absolute right-3 top-3 z-10 grid size-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--color-accent)] hover:text-foreground"
       >
         <X className="size-3.5" />
@@ -871,10 +873,10 @@ function FirstRunPanel({
           id="firstrun-heading"
           className="font-display text-[20px] font-bold tracking-tight text-foreground sm:text-[22px]"
         >
-          Welcome to {tenantName}
+          {t("overview.welcomeTo", { tenant: tenantName })}
         </h2>
         <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-muted-foreground">
-          Your tenant is provisioned and ready. Here's where most teams start.
+          {t("overview.readyDescription")}
         </p>
 
         <ul className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -895,6 +897,7 @@ function FirstRunPanel({
 
 function SetupTile({ spec }: { spec: SetupTileSpec }) {
   const Icon = spec.icon;
+  const { t } = useTranslation();
   return (
     <Link
       to={spec.to}
@@ -914,21 +917,21 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
           <Icon className="size-3.5" />
         </span>
         <span className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">
-          Step {spec.step}
+          {t("overview.step", { step: spec.step })}
         </span>
       </div>
 
       <div>
         <div className="text-[13px] font-semibold tracking-tight text-foreground">
-          {spec.title}
+          {t(`overview.setup.${spec.step}.title`, { defaultValue: spec.title })}
         </div>
         <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-          {spec.description}
+          {t(`overview.setup.${spec.step}.description`, { defaultValue: spec.description })}
         </p>
       </div>
 
       <div className="mt-auto flex items-center gap-1 pt-1 text-[11px] font-medium text-muted-foreground transition-colors group-hover/tile:text-foreground">
-        Open
+        {t("overview.open")}
         <ArrowRight className="size-3 transition-transform group-hover/tile:translate-x-0.5" />
       </div>
     </Link>
@@ -941,6 +944,7 @@ function SetupTile({ spec }: { spec: SetupTileSpec }) {
 
 export function OverviewPage() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const { status: sseStatus, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
@@ -1005,13 +1009,14 @@ export function OverviewPage() {
 
   // ── Header strings ────────────────────────────────────────────────────
   const now = new Date();
-  const dateCaption = now.toLocaleDateString("en-US", {
+  const dateCaption = now.toLocaleDateString(i18n.language, {
     weekday: "long",
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
   const greeting = getGreeting();
+  const greetingKey = greeting === "Good morning" ? "morning" : greeting === "Good afternoon" ? "afternoon" : "evening";
   const firstName = (user?.name ?? user?.email?.split("@")[0] ?? "operator")
     .toString()
     .split(" ")[0];
@@ -1045,7 +1050,7 @@ export function OverviewPage() {
   ) : status.isError || !status.data ? (
     "—"
   ) : validity.state === "Expired" ? (
-    <span className="text-[var(--color-destructive)]">Expired</span>
+    <span className="text-[var(--color-destructive)]">{t("overview.expired")}</span>
   ) : validity.daysLeft === null ? (
     "Open-ended"
   ) : (
@@ -1058,7 +1063,7 @@ export function OverviewPage() {
       >
         {formatNumber(validity.daysLeft)}
       </span>
-      <span className="text-[12px] font-medium text-muted-foreground">days</span>
+      <span className="text-[12px] font-medium text-muted-foreground">{t("overview.days")}</span>
     </span>
   );
   const validitySub = status.isLoading
@@ -1114,24 +1119,24 @@ export function OverviewPage() {
             {dateCaption} · {tenantLabel}
           </p>
           <h1 className="mt-1 font-display text-display-page font-bold leading-tight tracking-tight text-foreground">
-            {greeting}, {firstName}
+            {t(`overview.greeting.${greetingKey}`)}, {firstName}
           </h1>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" disabled={refreshing} onClick={onRefresh}>
             <RefreshCw className={cn("mr-1.5 size-3.5", refreshing && "animate-spin")} />
-            Refresh
+            {t("overview.refresh")}
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/activity">
               <Activity className="mr-1.5 size-3.5" />
-              View activity
+              {t("overview.viewActivity")}
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/system/audits">
               <ScrollText className="mr-1.5 size-3.5" />
-              View audits
+              {t("overview.viewAudits")}
             </Link>
           </Button>
         </div>
@@ -1143,7 +1148,7 @@ export function OverviewPage() {
           index={0}
           tone="primary"
           icon={Server}
-          label="Plan"
+          label={t("overview.plan")}
           value={planValue}
           sublabel={planSub}
         />
@@ -1151,7 +1156,7 @@ export function OverviewPage() {
           index={1}
           tone={status.isLoading || status.isError || !status.data ? "success" : validity.tone}
           icon={Calendar}
-          label="Valid for"
+          label={t("overview.validFor")}
           value={validityValue}
           sublabel={validitySub}
         />
@@ -1159,7 +1164,7 @@ export function OverviewPage() {
           index={2}
           tone="warning"
           icon={Gauge}
-          label="Resources"
+          label={t("overview.resources")}
           value={resourcesValue}
           sublabel={resourcesSub}
         />
@@ -1167,7 +1172,7 @@ export function OverviewPage() {
           index={3}
           tone="info"
           icon={Zap}
-          label="Live events"
+          label={t("overview.liveEvents")}
           value={<span className="tabular-nums">{formatNumber(eventCount)}</span>}
           sublabel={
             <span className="inline-flex items-center gap-1.5">
@@ -1203,7 +1208,7 @@ export function OverviewPage() {
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Left rail */}
         <aside className="w-full space-y-4 lg:w-[360px] lg:shrink-0">
-          <EntityDetailSection title="Subscription" icon={CreditCard}>
+          <EntityDetailSection title={t("overview.subscription")} icon={CreditCard}>
             <SubscriptionBody
               data={subscription.data}
               loading={subscription.isLoading}
@@ -1211,7 +1216,7 @@ export function OverviewPage() {
             />
           </EntityDetailSection>
 
-          <EntityDetailSection title="System status" icon={Wifi}>
+          <EntityDetailSection title={t("overview.systemStatus")} icon={Wifi}>
             <SystemStatusBody sseStatus={sseStatus} eventCount={eventCount} />
           </EntityDetailSection>
         </aside>
@@ -1219,15 +1224,15 @@ export function OverviewPage() {
         {/* Right column — 2-up widget grid */}
         <div className="grid w-full min-w-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
           <EntityDetailSection
-            title="Recent audits"
+            title={t("overview.recentAudits")}
             icon={ScrollText}
-            description="Last 24 hours, top 5 events."
+            description={t("overview.recentAuditsDescription")}
             action={
               <Link
                 to="/system/audits"
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                See all <ArrowUpRight className="size-3" />
+                {t("overview.seeAll")} <ArrowUpRight className="size-3" />
               </Link>
             }
           >
@@ -1235,9 +1240,9 @@ export function OverviewPage() {
           </EntityDetailSection>
 
           <EntityDetailSection
-            title="Usage by resource"
+            title={t("overview.usageByResource")}
             icon={Gauge}
-            description="Current-month consumption against plan limits."
+            description={t("overview.usageDescription")}
             action={
               totalsView.overage > 0 ? <Badge variant="danger">overage</Badge> : undefined
             }
