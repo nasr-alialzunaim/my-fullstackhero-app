@@ -41,6 +41,7 @@ import { useAuth } from "@/auth/use-auth";
 import { useSseStatus } from "@/sse/sse-context";
 import { useTheme } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // ─────────────────────────────────────────────────────────────────────
 // User dropdown helpers — match the dentalOS sidebar user-block pattern.
@@ -245,6 +246,7 @@ export function Topbar() {
 
       {/* Notification bell — bell badge + dropdown inbox. */}
       <NotificationBell />
+      <LanguageSwitcher />
 
       {/* `modal={false}` is required because we open the sign-out
           confirmation Dialog from a DropdownMenuItem. Default modal mode

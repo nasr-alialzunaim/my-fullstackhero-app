@@ -5,6 +5,21 @@
     "arabic": "العربية",
     "changed": "تم تغيير اللغة"
   },
+  "navigation": {
+    "primary": "التنقل الرئيسي",
+    "overview": "نظرة عامة",
+    "settings": "الإعدادات",
+    "tenants": "المستأجرون",
+    "identity": "الهوية",
+    "users": "المستخدمون",
+    "roles": "الأدوار",
+    "impersonation": "انتحال الهوية",
+    "operations": "العمليات",
+    "billing": "الفوترة",
+    "webhooks": "Webhooks",
+    "audits": "سجلات التدقيق",
+    "health": "الحالة الصحية"
+  },
   "actions": {
     "save": "حفظ",
     "cancel": "إلغاء",
