@@ -20,6 +20,7 @@ import {
   type EntityStatusTone,
 } from "@/components/list";
 import { describe, formatDate, formatMoney } from "@/lib/list-helpers";
+import { useTranslation } from "react-i18next";
 
 // ────────────────────────────────────────────────────────────────────
 // Helpers
@@ -47,6 +48,7 @@ function formatPeriod(year: number, month: number) {
 // ────────────────────────────────────────────────────────────────────
 
 export function InvoiceDetailPage() {
+  const { t } = useTranslation();
   const { id = "" } = useParams<{ id: string }>();
 
   const query = useQuery({
@@ -59,7 +61,7 @@ export function InvoiceDetailPage() {
 
   return (
     <div className="pb-12">
-      <EntityDetailBack to="/invoices" label="Back to invoices" />
+      <EntityDetailBack to="/invoices" label={t("invoiceDetail.backToInvoices")} />
 
       {query.isError && (
         <div className="mb-5">
@@ -83,24 +85,25 @@ export function InvoiceDetailPage() {
 // ────────────────────────────────────────────────────────────────────
 
 function InvoiceBody({ invoice }: { invoice: InvoiceDto }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-5">
       <InvoiceHeader invoice={invoice} />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
         {/* Left: line items + totals */}
-        <EntityDetailSection title="Line items" icon={FileText} padded={false}>
+        <EntityDetailSection title={t("invoiceDetail.lineItems")} icon={FileText} padded={false}>
           <LineItemsTable invoice={invoice} />
         </EntityDetailSection>
 
         {/* Right: meta + dates + notes */}
         <aside className="space-y-5">
-          <EntityDetailSection title="Details" icon={Receipt}>
+          <EntityDetailSection title={t("invoiceDetail.details")} icon={Receipt}>
             <DetailsBody invoice={invoice} />
           </EntityDetailSection>
 
           {invoice.notes && (
-            <EntityDetailSection title="Notes" icon={FileText}>
+            <EntityDetailSection title={t("invoiceDetail.notes")} icon={FileText}>
               <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--color-foreground)]/90">
                 {invoice.notes}
               </p>
@@ -113,6 +116,7 @@ function InvoiceBody({ invoice }: { invoice: InvoiceDto }) {
 }
 
 function InvoiceHeader({ invoice }: { invoice: InvoiceDto }) {
+  const { t } = useTranslation();
   const [downloading, setDownloading] = useState(false);
 
   const onDownload = async () => {
@@ -121,7 +125,7 @@ function InvoiceHeader({ invoice }: { invoice: InvoiceDto }) {
     try {
       await downloadInvoicePdf(invoice.id, invoice.invoiceNumber);
     } catch (err) {
-      toast.error("Download failed", { description: describe(err) });
+      toast.error(t("invoiceDetail.downloadFailed"), { description: describe(err) });
     } finally {
       setDownloading(false);
     }
@@ -158,7 +162,7 @@ function InvoiceHeader({ invoice }: { invoice: InvoiceDto }) {
               )}
             </div>
             <p className="mt-1.5 text-[12px] text-[var(--color-muted-foreground)]">
-              Period {formatPeriod(invoice.periodYear, invoice.periodMonth)} ·{" "}
+              {t("invoiceDetail.period")} {formatPeriod(invoice.periodYear, invoice.periodMonth)} ·{" "}
               <span className="font-display font-semibold text-[var(--color-foreground)]">
                 {formatMoney(invoice.subtotalAmount, invoice.currency)}
               </span>
@@ -175,7 +179,7 @@ function InvoiceHeader({ invoice }: { invoice: InvoiceDto }) {
             className="gap-1.5"
           >
             <Download className="size-3.5" />
-            {downloading ? "Preparing…" : "Download PDF"}
+            {downloading ? t("invoiceDetail.preparing") : t("invoiceDetail.downloadPdf")}
           </Button>
         </div>
       </div>
@@ -190,16 +194,17 @@ function InvoiceHeader({ invoice }: { invoice: InvoiceDto }) {
 const LINE_GRID = "grid-cols-[1fr_80px_110px_110px] sm:grid-cols-[1fr_100px_130px_130px]";
 
 function LineItemsTable({ invoice }: { invoice: InvoiceDto }) {
+  const { t } = useTranslation();
   const items = invoice.lineItems ?? [];
 
   if (items.length === 0) {
     return (
       <div className="px-5 py-10 text-center">
         <p className="text-[13px] font-semibold text-[var(--color-foreground)]">
-          No line items
+          {t("invoiceDetail.noLineItems")}
         </p>
         <p className="mt-1 text-[11.5px] text-[var(--color-muted-foreground)]">
-          This invoice has no itemized charges.
+          {t("invoiceDetail.noLineItemsDescription")}
         </p>
       </div>
     );
@@ -210,10 +215,10 @@ function LineItemsTable({ invoice }: { invoice: InvoiceDto }) {
       <div
         className={`grid ${LINE_GRID} items-center gap-3 border-b border-[var(--color-border)] bg-[oklch(from_var(--color-muted)_l_c_h_/_0.4)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]`}
       >
-        <span>Description</span>
-        <span className="text-right">Qty</span>
-        <span className="text-right">Unit price</span>
-        <span className="text-right">Amount</span>
+        <span>{t("invoiceDetail.description")}</span>
+        <span className="text-right">{t("invoiceDetail.quantity")}</span>
+        <span className="text-right">{t("invoiceDetail.unitPrice")}</span>
+        <span className="text-right">{t("invoiceDetail.amount")}</span>
       </div>
 
       {items.map((item, i) => (

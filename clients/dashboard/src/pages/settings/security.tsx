@@ -53,6 +53,7 @@ import {
 } from "@/api/sessions";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PROFILE_KEY = ["identity", "me"] as const;
 
@@ -93,6 +94,7 @@ function apiErrorMessage(err: unknown, fallback: string): string {
 // ─────────────────────────────────────────────────────────────────────────
 
 export function SecuritySettings() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const profileQuery = useQuery({ queryKey: PROFILE_KEY, queryFn: getMyProfile });
@@ -119,10 +121,10 @@ export function SecuritySettings() {
     mutationFn: (id: string) => revokeSession(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
-      toast.success("Session revoked");
+      toast.success(t("security.sessionRevoked"));
     },
     onError: (err) =>
-      toast.error(apiErrorMessage(err, "Could not revoke session.")),
+      toast.error(apiErrorMessage(err, t("security.revokeSessionFailed"))),
   });
 
   const revokeAll = useMutation({
@@ -130,11 +132,11 @@ export function SecuritySettings() {
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ["identity", "sessions", "me"] });
       toast.success(
-        `Revoked ${data.revokedCount} ${data.revokedCount === 1 ? "session" : "sessions"}`,
+        t("security.revokedCount", { count: data.revokedCount }),
       );
     },
     onError: (err) =>
-      toast.error(apiErrorMessage(err, "Could not revoke sessions.")),
+      toast.error(apiErrorMessage(err, t("security.revokeSessionsFailed"))),
   });
 
   const otherActiveCount = useMemo(
@@ -146,7 +148,7 @@ export function SecuritySettings() {
     sessionsQuery.error instanceof ApiRequestError
       ? sessionsQuery.error.problem?.detail ?? sessionsQuery.error.message
       : sessionsQuery.error
-        ? "Failed to load sessions."
+        ? t("security.loadSessionsFailed")
         : null;
 
   return (
@@ -160,15 +162,15 @@ export function SecuritySettings() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
-                Active sessions
+                {t("security.activeSessions")}
                 {!sessionsQuery.isLoading && (
                   <Badge variant="default">
-                    {sessions.filter((s) => s.isActive).length} active
+                    {t("security.activeCount", { count: sessions.filter((s) => s.isActive).length })}
                   </Badge>
                 )}
               </CardTitle>
               <CardDescription>
-                Browsers and devices currently signed in to your account.
+                {t("security.sessionsDescription")}
               </CardDescription>
             </div>
             <Button
@@ -178,7 +180,7 @@ export function SecuritySettings() {
               onClick={() => revokeAll.mutate()}
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
-              Sign out everywhere else
+              {t("security.signOutEverywhereElse")}
             </Button>
           </div>
         </CardHeader>
@@ -194,9 +196,9 @@ export function SecuritySettings() {
             <SessionsSkeleton />
           ) : sessions.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-sm font-medium tracking-tight">No sessions tracked</p>
+              <p className="text-sm font-medium tracking-tight">{t("security.noSessionsTracked")}</p>
               <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                Session activity will appear here once you sign in from any device.
+                {t("security.noSessionsDescription")}
               </p>
             </div>
           ) : (
@@ -231,8 +233,8 @@ export function SecuritySettings() {
                       <div className="space-y-0.5">
                         <div className="flex flex-wrap items-center gap-2 text-sm font-medium tracking-tight">
                           {describeDevice(s)}
-                          {s.isCurrentSession && <Badge variant="brand">this device</Badge>}
-                          {!s.isActive && <Badge variant="outline">revoked</Badge>}
+                          {s.isCurrentSession && <Badge variant="brand">{t("security.thisDevice")}</Badge>}
+                          {!s.isActive && <Badge variant="outline">{t("security.revoked")}</Badge>}
                         </div>
                         <div className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
                           {s.ipAddress ?? "unknown ip"} · last activity {formatTimestamp(s.lastActivityAt)}
@@ -248,7 +250,7 @@ export function SecuritySettings() {
                         onClick={() => revokeOne.mutate(s.id)}
                       >
                         <LogOut className="mr-1.5 h-3.5 w-3.5" />
-                        {isRevoking ? "Revoking…" : "Revoke"}
+                        {isRevoking ? t("security.revoking") : t("security.revoke")}
                       </Button>
                     )}
                   </li>

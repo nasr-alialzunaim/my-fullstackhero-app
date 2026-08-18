@@ -30,19 +30,23 @@ import {
   type FontOption,
 } from "@/components/theme/appearance-options";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const themeOptions: Array<{
   value: ThemeMode;
   label: string;
   description: string;
+  labelKey: string;
+  descriptionKey: string;
   Icon: React.ComponentType<{ className?: string }>;
 }> = [
-  { value: "light", label: "Light", description: "Bright canvas, day-shift comfort.", Icon: Sun },
-  { value: "system", label: "System", description: "Follow the OS preference.", Icon: Monitor },
-  { value: "dark", label: "Dark", description: "Reduced glare for long sessions.", Icon: Moon },
+  { value: "light", label: "Light", description: "Bright canvas, day-shift comfort.", labelKey: "appearance.light", descriptionKey: "appearance.lightDescription", Icon: Sun },
+  { value: "system", label: "System", description: "Follow the OS preference.", labelKey: "appearance.system", descriptionKey: "appearance.systemDescription", Icon: Monitor },
+  { value: "dark", label: "Dark", description: "Reduced glare for long sessions.", labelKey: "appearance.dark", descriptionKey: "appearance.darkDescription", Icon: Moon },
 ];
 
 export function AppearanceSettings() {
+  const { t } = useTranslation();
   const {
     mode, setMode,
     font, setFont,
@@ -65,13 +69,14 @@ export function AppearanceSettings() {
       {/* Theme */}
       <Card>
         <CardHeader>
-          <CardTitle>Theme</CardTitle>
+          <CardTitle>{t("appearance.theme")}</CardTitle>
           <CardDescription>
-            Pick a colour mode for the dashboard. System follows your OS.
+            {t("appearance.themeDescription")}
+
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-3">
-          {themeOptions.map(({ value, label, description, Icon }) => {
+          {themeOptions.map(({ value, label, labelKey, description, descriptionKey, Icon }) => {
             const active = mode === value;
             return (
               <SwatchButton
@@ -79,7 +84,7 @@ export function AppearanceSettings() {
                 active={active}
                 onClick={() => setMode(value)}
                 aria-pressed={active}
-                aria-label={`${label} theme`}
+                aria-label={t("appearance.themeAria", { theme: t(labelKey, { defaultValue: label }) })}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <Icon
@@ -92,8 +97,8 @@ export function AppearanceSettings() {
                   />
                   {active && <ActiveTag />}
                 </div>
-                <SwatchTitle active={active}>{label}</SwatchTitle>
-                <SwatchSubtitle>{description}</SwatchSubtitle>
+                <SwatchTitle active={active}>{t(labelKey, { defaultValue: label })}</SwatchTitle>
+                <SwatchSubtitle>{t(descriptionKey, { defaultValue: description })}</SwatchSubtitle>
               </SwatchButton>
             );
           })}
@@ -103,10 +108,10 @@ export function AppearanceSettings() {
       {/* Accent — six brand palettes */}
       <Card>
         <CardHeader>
-          <CardTitle>Accent</CardTitle>
+          <CardTitle>{t("appearance.accent")}</CardTitle>
           <CardDescription>
-            Pick the brand colour used for primary actions, charts, and
-            highlights across the dashboard.
+            {t("appearance.accentDescription")}
+
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-3 lg:grid-cols-7">
@@ -141,9 +146,10 @@ export function AppearanceSettings() {
       {/* Font — four selectable families */}
       <Card>
         <CardHeader>
-          <CardTitle>Font</CardTitle>
+          <CardTitle>{t("appearance.font")}</CardTitle>
           <CardDescription>
-            The UI typeface. Mono code blocks always use JetBrains Mono.
+            {t("appearance.fontDescription")}
+
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 px-6 pb-5 pt-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -161,19 +167,21 @@ export function AppearanceSettings() {
       {/* Density */}
       <Card>
         <CardHeader>
-          <CardTitle>Density</CardTitle>
+          <CardTitle>{t("appearance.density")}</CardTitle>
           <CardDescription>
-            Compact mode reduces card padding and row height for data-dense screens.
+            {t("appearance.densityDescription")}
+
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 pb-5 pt-1">
           <div className="text-sm text-[var(--color-muted-foreground)]">
-            Use compact spacing across the dashboard.
+            {t("appearance.compactSpacing")}
+
           </div>
           <Switch
             checked={density === "compact"}
             onCheckedChange={(checked) => setDensity(checked ? "compact" : "comfortable")}
-            aria-label="Compact density"
+            aria-label={t("appearance.compactDensity")}
           />
         </CardContent>
       </Card>
@@ -181,9 +189,9 @@ export function AppearanceSettings() {
       {/* Motion */}
       <Card>
         <CardHeader>
-          <CardTitle>Motion</CardTitle>
+          <CardTitle>{t("appearance.motion")}</CardTitle>
           <CardDescription>
-            Override the system{" "}
+            {t("appearance.motionDescription")} {" "}
             <code className="rounded bg-[var(--color-muted)] px-1 font-mono text-[11px]">
               prefers-reduced-motion
             </code>{" "}
@@ -192,12 +200,13 @@ export function AppearanceSettings() {
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 pb-5 pt-1">
           <div className="text-sm text-[var(--color-muted-foreground)]">
-            Disable transitions and decorative animations.
+            {t("appearance.disableMotion")}
+
           </div>
           <Switch
             checked={reducedMotion}
             onCheckedChange={setReducedMotion}
-            aria-label="Reduce motion"
+            aria-label={t("appearance.reduceMotion")}
           />
         </CardContent>
       </Card>

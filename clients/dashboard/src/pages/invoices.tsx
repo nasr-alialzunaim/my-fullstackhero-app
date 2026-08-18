@@ -25,6 +25,7 @@ import {
   type EntityStatusTone,
 } from "@/components/list";
 import { formatDate } from "@/lib/list-helpers";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 20;
 
@@ -69,6 +70,7 @@ const DESKTOP_GRID =
 // ────────────────────────────────────────────────────────────────────
 
 export function InvoicesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [pageNumber, setPageNumber] = useState(1);
   const query = useQuery({
@@ -115,7 +117,7 @@ export function InvoicesPage() {
     query.error instanceof ApiRequestError
       ? query.error.problem?.detail ?? query.error.message
       : query.error
-        ? "Failed to load invoices."
+        ? t("invoices.loadFailed")
         : null;
 
   const searchActive = search.trim().length > 0;
@@ -126,16 +128,16 @@ export function InvoicesPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Receipt}
-        title="Invoices"
+        title={t("invoices.title")}
         total={query.data?.totalCount ?? null}
-        unit="invoice"
-        description="Your tenant's billing history, newest first."
+        unit={t("invoices.unit")}
+        description={t("invoices.description")}
       />
 
       <EntitySearch
         value={search}
         onChange={setSearch}
-        placeholder="Search by invoice number, status, or period…"
+        placeholder={t("invoices.searchPlaceholder")}
       />
 
       {errorMessage && <ErrorBand message={errorMessage} />}
@@ -145,11 +147,11 @@ export function InvoicesPage() {
       ) : filtered.length === 0 ? (
         <EntityEmpty
           icon={Receipt}
-          title={searchActive ? "No invoices found" : "No invoices yet"}
+          title={searchActive ? t("invoices.noResults") : t("invoices.empty")}
           body={
             searchActive
-              ? `Nothing matches "${search.trim()}". Try a different term or clear the search.`
-              : "Once your tenant has been billed for a period, invoices will appear here."
+              ? t("invoices.noResultsDescription", { term: search.trim() })
+              : t("invoices.emptyDescription")
           }
           action={
             searchActive ? (
@@ -158,7 +160,7 @@ export function InvoicesPage() {
                 onClick={() => setSearch("")}
                 className="h-9 rounded-lg px-4 text-[13px]"
               >
-                Clear search
+                {t("invoices.clearSearch")}
               </Button>
             ) : undefined
           }
@@ -169,14 +171,12 @@ export function InvoicesPage() {
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
               {searchActive ? (
                 <>
-                  {filtered.length} invoice{filtered.length === 1 ? "" : "s"} matched
-                  on this page
+                  {t("invoices.matched", { count: filtered.length })}
                 </>
               ) : (
                 <>
-                  Showing {sorted.length} of {totalCount} invoice
-                  {totalCount === 1 ? "" : "s"}
-                  {totalPages > 1 ? ` · page ${pageNumber} of ${totalPages}` : ""}
+                  {t("invoices.showing", { shown: sorted.length, total: totalCount })}
+                  {totalPages > 1 ? ` · ${t("invoices.page", { current: pageNumber, total: totalPages })}` : ""}
                 </>
               )}
             </p>
@@ -192,11 +192,11 @@ export function InvoicesPage() {
           {/* Desktop: table */}
           <EntityListCard className="hidden md:block">
             <EntityListHeader className={DESKTOP_GRID}>
-              <span>Invoice #</span>
-              <span>Customer</span>
-              <span className="text-right">Amount</span>
-              <span>Status</span>
-              <span>Due date</span>
+              <span>{t("invoices.number")}</span>
+              <span>{t("invoices.customer")}</span>
+              <span className="text-right">{t("invoices.amount")}</span>
+              <span>{t("invoices.status")}</span>
+              <span>{t("invoices.dueDate")}</span>
             </EntityListHeader>
             {filtered.map((invoice, i) => (
               <DesktopRow

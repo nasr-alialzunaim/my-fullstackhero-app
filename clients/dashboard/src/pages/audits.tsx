@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 25;
 const DESKTOP_COLS = "grid-cols-[minmax(0,1fr)_minmax(0,2fr)_96px_160px]";
@@ -185,6 +186,7 @@ const INITIAL_FILTERS: FilterState = {
 // ────────────────────────────────────────────────────────────────────────
 
 export function AuditsPage() {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   const [drawerId, setDrawerId] = useState<string | null>(null);
@@ -281,10 +283,10 @@ export function AuditsPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={ScrollText}
-        title="Audit trail"
+        title={t("audits.title")}
         total={paged?.totalCount ?? null}
-        unit="event"
-        description="Activity, security, entity-change, and exception events across the platform. Window enforced server-side; max 90 days."
+        unit={t("audits.unit")}
+        description={t("audits.description")}
       >
         <Button
           variant="outline"
@@ -298,7 +300,7 @@ export function AuditsPage() {
           <RefreshCw
             className={cn("size-4", auditsQuery.isFetching && "animate-spin")}
           />
-          Refresh
+          {t("audits.refresh")}
         </Button>
       </EntityPageHeader>
 
@@ -306,7 +308,7 @@ export function AuditsPage() {
       <EntitySearch
         value={searchInput}
         onChange={setSearchInput}
-        placeholder="Search payload, source, user…"
+        placeholder={t("audits.searchPlaceholder")}
       />
 
       {/* Filter bar — preserved verbatim (range presets, chips, advanced) */}
@@ -338,17 +340,17 @@ export function AuditsPage() {
           className="flex items-start gap-2 rounded-lg border border-[oklch(from_var(--color-destructive)_l_c_h_/_0.30)] bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.06)] px-3 py-2 text-sm text-[var(--color-destructive)]"
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
-          <span>{(auditsQuery.error as Error)?.message ?? "Failed to load audits"}</span>
+          <span>{(auditsQuery.error as Error)?.message ?? t("audits.loadFailed")}</span>
         </div>
       ) : items.length === 0 ? (
         <EntityEmpty
           icon={ShieldCheck}
-          title="No audits in this window"
-          body="Try widening the time range or relaxing the filters. Activity events arrive as soon as the platform handles a request."
+          title={t("audits.empty")}
+          body={t("audits.emptyDescription")}
           action={
             activeChipCount > 0 || filters.search ? (
               <Button variant="outline" onClick={onResetFilters} className="h-9 rounded-lg px-4 text-[13px]">
-                Reset filters
+                {t("audits.resetFilters")}
               </Button>
             ) : undefined
           }
@@ -357,7 +359,7 @@ export function AuditsPage() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[12px] font-medium text-[var(--color-muted-foreground)]">
-              {paged?.totalCount ?? 0} event{(paged?.totalCount ?? 0) !== 1 ? "s" : ""} found
+              {t("audits.found", { count: paged?.totalCount ?? 0 })}
             </p>
             {auditsQuery.isFetching && (
               <Loader2 className="size-3.5 animate-spin text-[var(--color-muted-foreground)]" />
@@ -378,10 +380,10 @@ export function AuditsPage() {
           {/* Desktop list */}
           <EntityListCard className="hidden md:block">
             <EntityListHeader className={DESKTOP_COLS}>
-              <span>Actor</span>
-              <span>Event</span>
-              <span>Severity</span>
-              <span>Timestamp</span>
+              <span>{t("audits.actor")}</span>
+              <span>{t("audits.event")}</span>
+              <span>{t("audits.severity")}</span>
+              <span>{t("audits.timestamp")}</span>
             </EntityListHeader>
             {items.map((row, i) => (
               <AuditDesktopRow
@@ -719,6 +721,7 @@ function FilterBar({
   onSearchInput: (v: string) => void;
   onReset: () => void;
 }) {
+  const { t } = useTranslation();
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   return (
@@ -749,7 +752,7 @@ function FilterBar({
             <Input
               value={searchInput}
               onChange={(e) => onSearchInput(e.target.value)}
-              placeholder="Search payload, source, user…"
+              placeholder={t("audits.searchPlaceholder")}
               className="pl-9"
             />
             {searchInput && (
