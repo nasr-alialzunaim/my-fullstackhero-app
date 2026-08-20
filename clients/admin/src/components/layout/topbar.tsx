@@ -35,6 +35,7 @@ import { useAuth } from "@/auth/use-auth";
 import { getMyProfile } from "@/api/users";
 import { useTheme } from "@/components/theme/theme-provider";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -145,6 +146,7 @@ function SimpleMenuItem({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function Topbar() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -189,7 +191,7 @@ export function Topbar() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label="Open profile menu"
+            aria-label={t("account.openMenu", { defaultValue: "Open profile menu" })}
             className={cn(
               "group flex cursor-pointer items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 outline-none",
               "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
@@ -205,7 +207,7 @@ export function Topbar() {
             initials={initialsOf(user?.name ?? user?.email)}
           />
           {/* Name + tenant — desktop only */}
-          <div className="hidden min-w-0 text-left md:block">
+          <div className="hidden min-w-0 text-start md:block">
             <p className="truncate text-[12px] font-medium leading-none text-[var(--color-foreground)]">
               {displayName}
             </p>
@@ -252,18 +254,18 @@ export function Topbar() {
 
           {/* Theme */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Theme
+            {t("account.theme", { defaultValue: "Theme" })}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
             <ThemeMenuItem
               icon={Sun}
-              label="Light"
+              label={t("account.light", { defaultValue: "Light" })}
               active={theme === "light"}
               onSelect={() => setTheme("light")}
             />
             <ThemeMenuItem
               icon={Moon}
-              label="Dark"
+              label={t("account.dark", { defaultValue: "Dark" })}
               active={theme === "dark"}
               onSelect={() => setTheme("dark")}
             />
@@ -273,17 +275,17 @@ export function Topbar() {
 
           {/* Account quick actions */}
           <DropdownMenuLabel className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-            Account
+            {t("account.account", { defaultValue: "Account" })}
           </DropdownMenuLabel>
           <div className="px-1 pb-1">
             <SimpleMenuItem
               icon={UserRound}
-              label="Profile"
+              label={t("account.profile", { defaultValue: "Profile" })}
               onSelect={() => navigate("/settings/profile")}
             />
             <SimpleMenuItem
               icon={SettingsIcon}
-              label="Settings"
+              label={t("navigation.settings", { defaultValue: "Settings" })}
               onSelect={() => navigate("/settings")}
             />
           </div>
@@ -298,7 +300,7 @@ export function Topbar() {
               className="!my-0 cursor-pointer rounded-md !px-2.5 !py-1.5"
             >
               <LogOut className="size-3.5" />
-              <span className="text-[12.5px] font-medium">Sign out</span>
+              <span className="text-[12.5px] font-medium">{t("account.signOut", { defaultValue: "Sign out" })}</span>
             </DropdownMenuItem>
           </div>
         </DropdownMenuContent>
@@ -308,10 +310,9 @@ export function Topbar() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Sign out of fullstackhero?</DialogTitle>
+            <DialogTitle>{t("account.signOutTitle", { defaultValue: "Sign out of fullstackhero?" })}</DialogTitle>
             <DialogDescription>
-              You'll need to sign in again to access this admin. Any unsaved
-              work in this session will be lost.
+              {t("account.signOutDescription", { defaultValue: "You'll need to sign in again to access this admin. Any unsaved work in this session will be lost." })}
             </DialogDescription>
           </DialogHeader>
           <DialogBody>
@@ -340,7 +341,7 @@ export function Topbar() {
               size="sm"
               onClick={() => setConfirmOpen(false)}
             >
-              Cancel
+              {t("actions.cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button
               variant="destructive"
@@ -349,7 +350,7 @@ export function Topbar() {
               autoFocus
             >
               <LogOut className="mr-1.5 h-3.5 w-3.5" />
-              Sign out
+              {t("account.signOut", { defaultValue: "Sign out" })}
             </Button>
           </DialogFooter>
         </DialogContent>

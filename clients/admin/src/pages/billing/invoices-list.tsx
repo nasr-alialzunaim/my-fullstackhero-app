@@ -25,6 +25,7 @@ import { Select } from "@/components/list";
 import { KpiTile } from "@/components/kpi-tile";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 20;
 
@@ -80,6 +81,7 @@ function describe(err: unknown): string {
 // ─── component ───────────────────────────────────────────────────────
 
 export function InvoicesListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [pageNumber, setPageNumber] = useState(1);
 
@@ -143,12 +145,12 @@ export function InvoicesListPage() {
       {/* KPI strip — page-scope (current page, not all-time) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiTile
-          label="Page invoices"
+          label={t("billing.pageInvoices", { defaultValue: "Page invoices" })}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : data?.items.length ?? 0}
-          subtitle={data ? `${data.totalCount.toLocaleString()} total` : "loading…"}
+          subtitle={data ? `${data.totalCount.toLocaleString()} ${t("billing.total", { defaultValue: "total" })}` : t("billing.loading", { defaultValue: "loading…" })}
         />
         <KpiTile
-          label="Billed"
+          label={t("billing.billed", { defaultValue: "Billed" })}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
@@ -156,10 +158,10 @@ export function InvoicesListPage() {
               formatMoney(totals.totalBilled, totals.currency)
             )
           }
-          subtitle="this page"
+          subtitle={t("billing.thisPage", { defaultValue: "this page" })}
         />
         <KpiTile
-          label="Outstanding"
+          label={t("billing.outstanding", { defaultValue: "Outstanding" })}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
@@ -167,10 +169,10 @@ export function InvoicesListPage() {
               formatMoney(totals.outstanding, totals.currency)
             )
           }
-          subtitle="issued, awaiting payment"
+          subtitle={t("billing.awaitingPayment", { defaultValue: "issued, awaiting payment" })}
         />
         <KpiTile
-          label="Paid"
+          label={t("billing.paid", { defaultValue: "Paid" })}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
@@ -178,7 +180,7 @@ export function InvoicesListPage() {
               formatMoney(totals.paid, totals.currency)
             )
           }
-          subtitle={`${totals.paidCount} invoice${totals.paidCount === 1 ? "" : "s"}`}
+          subtitle={`${totals.paidCount} ${t("billing.invoice", { defaultValue: "invoice" })}${totals.paidCount === 1 ? "" : "s"}`}
         />
       </div>
 
@@ -188,24 +190,24 @@ export function InvoicesListPage() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-[var(--color-muted-foreground)]" />
-              <span>Filters</span>
+              <span>{t("billing.filters", { defaultValue: "Filters" })}</span>
             </CardTitle>
             <CardDescription>
-              All filters are AND-combined. Period is matched exactly (year + month).
+              {t("billing.filtersDescription", { defaultValue: "All filters are AND-combined. Period is matched exactly (year + month)." })}
             </CardDescription>
           </div>
           {filtersDirty && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="mr-1 h-3.5 w-3.5" /> Clear
+              <X className="mr-1 h-3.5 w-3.5" /> {t("billing.clear", { defaultValue: "Clear" })}
             </Button>
           )}
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
-            <Label htmlFor="filter-tenant">Tenant</Label>
+            <Label htmlFor="filter-tenant">{t("billing.tenant", { defaultValue: "Tenant" })}</Label>
             <Input
               id="filter-tenant"
-              placeholder="tenant identifier"
+              placeholder={t("billing.tenantPlaceholder", { defaultValue: "tenant identifier" })}
               value={tenantFilter}
               onChange={(e) => {
                 setTenantFilter(e.target.value);
@@ -215,7 +217,7 @@ export function InvoicesListPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="filter-status">Status</Label>
+            <Label htmlFor="filter-status">{t("billing.status", { defaultValue: "Status" })}</Label>
             <Select
               id="filter-status"
               value={statusFilter}

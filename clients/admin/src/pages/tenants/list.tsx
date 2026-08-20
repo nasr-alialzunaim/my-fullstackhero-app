@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn";
 import { CreateTenantDialog } from "@/components/tenants/create-tenant-dialog";
 import { useAuth } from "@/auth/use-auth";
 import { MultitenancyPermissions } from "@/lib/permissions";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 12;
 
@@ -23,6 +24,7 @@ function formatDate(value: string): string {
 }
 
 export function TenantsListPage() {
+  const { t } = useTranslation();
   const [pageNumber, setPageNumber] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const navigate = useNavigate();
@@ -51,14 +53,14 @@ export function TenantsListPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Building2}
-        title="Registry"
+        title={t("tenants.title", { defaultValue: "Registry" })}
         tone="info"
         total={data?.totalCount ?? null}
-        unit="tenant"
+        unit={t("tenants.unit", { defaultValue: "tenant" })}
         description={
           data
-            ? `${data.totalCount} ${data.totalCount === 1 ? "tenant" : "tenants"} registered on this instance.`
-            : "Loading the registry…"
+            ? t("tenants.description", { count: data.totalCount, defaultValue: `${data.totalCount} ${data.totalCount === 1 ? "tenant" : "tenants"} registered on this instance.` })
+            : t("tenants.loading", { defaultValue: "Loading the registry…" })
         }
       >
         {canCreateTenant && (
@@ -66,7 +68,7 @@ export function TenantsListPage() {
             onClick={() => setCreateOpen(true)}
             className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
           >
-            <Plus className="size-4" /> New tenant
+            <Plus className="size-4" /> {t("tenants.newTenant", { defaultValue: "New tenant" })}
           </Button>
         )}
       </EntityPageHeader>
@@ -76,7 +78,7 @@ export function TenantsListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load tenants."
+              : t("tenants.loadFailed", { defaultValue: "Failed to load tenants." })
           }
         />
       )}
@@ -86,15 +88,15 @@ export function TenantsListPage() {
           role="status"
           className="py-12 text-center font-mono text-sm uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]"
         >
-          Loading…
+          {t("tenants.loadingShort", { defaultValue: "Loading…" })}
         </div>
       )}
 
       {!query.isLoading && items.length === 0 && !query.isError && (
         <div className="py-16 text-center">
-          <p className="font-display text-2xl text-[var(--color-foreground)]">No tenants yet.</p>
+          <p className="font-display text-2xl text-[var(--color-foreground)]">{t("tenants.empty", { defaultValue: "No tenants yet." })}</p>
           <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-            Provision the first tenant to get started.
+            {t("tenants.emptyDescription", { defaultValue: "Provision the first tenant to get started." })}
           </p>
         </div>
       )}
@@ -122,13 +124,13 @@ export function TenantsListPage() {
               className={`grid items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-muted)]/40 px-4 py-2.5 ${DESKTOP_COLS}`}
             >
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Tenant
+                {t("tenants.tenant", { defaultValue: "Tenant" })}
               </span>
               <span className="hidden text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:block">
-                Admin email
+                {t("tenants.adminEmail", { defaultValue: "Admin email" })}
               </span>
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Status
+                {t("tenants.status", { defaultValue: "Status" })}
               </span>
               <span />
             </div>
@@ -160,7 +162,7 @@ export function TenantsListPage() {
               onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
               className="h-9 rounded-lg px-3 text-[13px]"
             >
-              <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Previous
+              <ChevronLeft className="mr-1 h-3.5 w-3.5" /> {t("users.previous", { defaultValue: "Previous" })}
             </Button>
             <Button
               variant="outline"
@@ -169,7 +171,7 @@ export function TenantsListPage() {
               onClick={() => setPageNumber((p) => p + 1)}
               className="h-9 rounded-lg px-3 text-[13px]"
             >
-              Next <ChevronRight className="ml-1 h-3.5 w-3.5" />
+              {t("users.next", { defaultValue: "Next" })} <ChevronRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

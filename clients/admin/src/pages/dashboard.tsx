@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EntityPageHeader, Stat, StatStrip, ToneIconTile, type ToneIconTileTone } from "@/components/list";
 import { useAuth } from "@/auth/use-auth";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 /**
  * DashboardPage — the operator overview. EntityPageHeader greeting,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/cn";
  * the rest of the app. No fake "Coming soon" filler.
  */
 export function DashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const tenantsQuery = useQuery({
@@ -53,20 +55,20 @@ export function DashboardPage() {
           icon={LayoutDashboard}
           title={
             <>
-              Overview{firstName ? (
+              {t("dashboard.overview", { defaultValue: "Overview" })}{firstName ? (
                 <span className="text-[var(--color-muted-foreground)]">, {firstName}</span>
               ) : null}
             </>
           }
           tone="primary"
-          description="Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface."
+          description={t("dashboard.description", { defaultValue: "Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface." })}
         />
       </div>
 
       {/* ── KPI stat strip ───────────────────────────────────────────── */}
       <StatStrip cols={4} className="fsh-enter fsh-enter-2">
         <Stat
-          label="Tenants"
+          label={t("navigation.tenants", { defaultValue: "Tenants" })}
           value={
             tenantsQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
@@ -74,10 +76,10 @@ export function DashboardPage() {
               tenantsTotal?.toLocaleString() ?? "—"
             )
           }
-          hint="registered on this instance"
+          hint={t("dashboard.registered", { defaultValue: "registered on this instance" })}
         />
         <Stat
-          label="Plans"
+          label={t("dashboard.plans", { defaultValue: "Plans" })}
           value={
             plansQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
@@ -85,10 +87,10 @@ export function DashboardPage() {
               plans.length.toLocaleString()
             )
           }
-          hint={`${activePlans} active`}
+          hint={`${activePlans} ${t("dashboard.active", { defaultValue: "active" })}`}
         />
         <Stat
-          label="Invoices"
+          label={t("billing.invoices", { defaultValue: "Invoices" })}
           value={
             invoicesQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
@@ -99,11 +101,11 @@ export function DashboardPage() {
           hint={
             invoicesPage
               ? `${invoicesPage.totalCount.toLocaleString()} total ledger`
-              : "loading…"
+              : t("dashboard.loading", { defaultValue: "loading…" })
           }
         />
         <Stat
-          label="Outstanding"
+          label={t("billing.outstanding", { defaultValue: "Outstanding" })}
           value={
             invoicesQuery.isLoading ? (
               <Skeleton className="h-7 w-16" />
@@ -111,7 +113,7 @@ export function DashboardPage() {
               outstandingCount.toLocaleString()
             )
           }
-          hint="issued, awaiting payment"
+          hint={t("billing.awaitingPayment", { defaultValue: "issued, awaiting payment" })}
           tone={outstandingCount > 0 ? "warning" : "default"}
         />
       </StatStrip>
@@ -119,36 +121,36 @@ export function DashboardPage() {
       {/* ── Quick pivots ─────────────────────────────────────────────── */}
       <section className="fsh-enter fsh-enter-3 space-y-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-          Entry points
+          {t("dashboard.entryPoints", { defaultValue: "Entry points" })}
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <PivotCard
             to="/tenants"
             icon={Building2}
             tone="info"
-            title="Tenants"
-            description="Provision, suspend, and inspect tenants."
+            title={t("navigation.tenants", { defaultValue: "Tenants" })}
+            description={t("dashboard.tenantsDescription", { defaultValue: "Provision, suspend, and inspect tenants." })}
           />
           <PivotCard
             to="/users"
             icon={UsersRound}
             tone="primary"
-            title="Users"
-            description="Root-tenant operators and role management."
+            title={t("navigation.users", { defaultValue: "Users" })}
+            description={t("dashboard.usersDescription", { defaultValue: "Root-tenant operators and role management." })}
           />
           <PivotCard
             to="/billing/plans"
             icon={Receipt}
             tone="success"
-            title="Billing"
-            description="Plans, subscriptions, invoices and pricing."
+            title={t("navigation.billing", { defaultValue: "Billing" })}
+            description={t("dashboard.billingDescription", { defaultValue: "Plans, subscriptions, invoices and pricing." })}
           />
           <PivotCard
             to="/billing/invoices"
             icon={FileText}
             tone="warning"
-            title="Invoices"
-            description="Cross-tenant ledger. Issue, mark paid, void."
+            title={t("billing.invoices", { defaultValue: "Invoices" })}
+            description={t("dashboard.invoicesDescription", { defaultValue: "Cross-tenant ledger. Issue, mark paid, void." })}
           />
         </div>
       </section>
