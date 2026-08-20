@@ -6,6 +6,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/auth/use-auth";
 import {
   findSectionForPath,
@@ -18,6 +19,36 @@ import {
 } from "@/components/layout/nav-data";
 
 const COLLAPSED_KEY = "fsh.sidebar.collapsed";
+
+const NAVIGATION_KEYS: Record<string, string> = {
+  Overview: "navigation.overview",
+  Chat: "navigation.chat",
+  "My Files": "navigation.myFiles",
+  Settings: "navigation.settings",
+  Operations: "navigation.operations",
+  "Live activity": "navigation.liveActivity",
+  Subscription: "navigation.subscription",
+  Invoices: "navigation.invoices",
+  Catalog: "navigation.catalog",
+  Products: "navigation.products",
+  Brands: "navigation.brands",
+  Categories: "navigation.categories",
+  Helpdesk: "navigation.helpdesk",
+  Tickets: "navigation.tickets",
+  Identity: "navigation.identity",
+  Users: "navigation.users",
+  Roles: "navigation.roles",
+  Groups: "navigation.groups",
+  System: "navigation.system",
+  Health: "navigation.health",
+  "Audit trail": "navigation.auditTrail",
+  Sessions: "navigation.sessions",
+  Trash: "navigation.trash",
+};
+
+function navLabel(t: (key: string, options?: { defaultValue?: string }) => string, label: string) {
+  return t(NAVIGATION_KEYS[label] ?? label, { defaultValue: label });
+}
 
 /** Persisted collapsed state. Reads localStorage on mount; writes on change. */
 function useCollapsedSidebar() {
@@ -45,6 +76,7 @@ function useCollapsedSidebar() {
 
 export function Sidebar() {
   const { collapsed, toggle } = useCollapsedSidebar();
+  const { t } = useTranslation();
   const location = useLocation();
 
   // Single-select accordion: which section is currently open. Defaults
@@ -73,9 +105,9 @@ export function Sidebar() {
   return (
     <aside
       data-collapsed={collapsed || undefined}
-      aria-label="Primary navigation"
+      aria-label={t("navigation.primary", { defaultValue: "Primary navigation" })}
       className={cn(
-        "hidden shrink-0 flex-col border-r border-[var(--color-border)]",
+        "hidden shrink-0 flex-col border-s border-[var(--color-border)]",
         "bg-[oklch(from_var(--color-card)_l_c_h_/_0.85)] backdrop-blur-xl backdrop-saturate-150 md:flex",
         "transition-[width] duration-[var(--duration-default)] ease-[var(--ease-out-cubic)]",
         collapsed ? "w-[52px]" : "w-[220px]",
@@ -288,6 +320,7 @@ function AccordionSection({
   onNavigate?: () => void;
 }) {
   const SectionIcon = section.icon;
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -317,7 +350,7 @@ function AccordionSection({
         aria-controls={`nav-section-${section.id}`}
         className={cn(
           "flex h-9 w-full cursor-pointer items-center gap-3 rounded-md px-3",
-          "text-left text-sm font-medium",
+          "text-start text-sm font-medium",
           "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
           isOpen
@@ -326,7 +359,7 @@ function AccordionSection({
         )}
       >
         <SectionIcon className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate">{section.caption}</span>
+        <span className="flex-1 truncate">{navLabel(t, section.caption)}</span>
         <ChevronDown
           aria-hidden
           className={cn(
@@ -396,14 +429,16 @@ function NavItemLink({
   onNavigate?: () => void;
 }) {
   const Icon = item.icon;
+  const { t } = useTranslation();
+  const label = navLabel(t, item.label);
   return (
     <NavLink
       to={item.to}
       end={item.to === "/"}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       // When collapsed the text label is hidden, so the icon-only link needs
       // an explicit accessible name (title alone is the weakest AT signal).
-      aria-label={collapsed ? item.label : undefined}
+      aria-label={collapsed ? label : undefined}
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
@@ -423,7 +458,7 @@ function NavItemLink({
           <span
             aria-hidden
             className={cn(
-              "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-[var(--color-primary)]",
+              "absolute start-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-e-full bg-[var(--color-primary)]",
               "transition-opacity duration-[var(--duration-default)]",
               isActive ? "opacity-100" : "opacity-0",
             )}
@@ -432,7 +467,7 @@ function NavItemLink({
           <Icon className="h-4 w-4 shrink-0" />
 
           {!collapsed && (
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">{label}</span>
           )}
 
           {/* Tooltip in collapsed mode — surfaces on hover OR keyboard
@@ -443,14 +478,14 @@ function NavItemLink({
             <span
               role="tooltip"
               className={cn(
-                "pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap",
+                "pointer-events-none absolute start-full top-1/2 z-50 ms-3 -translate-y-1/2 whitespace-nowrap",
                 "rounded-md border border-[var(--color-border)] bg-[var(--color-popover)] px-2 py-1",
                 "text-xs text-[var(--color-popover-foreground)] shadow-[var(--shadow-md)]",
                 "opacity-0 transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
                 "group-hover/nav:opacity-100 group-focus-visible/nav:opacity-100",
               )}
             >
-              {item.label}
+              {label}
             </span>
           )}
         </>

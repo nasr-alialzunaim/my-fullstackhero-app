@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="ValidationErrorTitle" xml:space="preserve"><value>Validation error</value></data>
+  <data name="ValidationErrorDetail" xml:space="preserve"><value>One or more validation errors occurred.</value></data>
+  <data name="UnauthorizedTitle" xml:space="preserve"><value>Unauthorized</value></data>
+  <data name="NotFoundTitle" xml:space="preserve"><value>Not Found</value></data>
+  <data name="BadRequestTitle" xml:space="preserve"><value>Bad Request</value></data>
+  <data name="UnexpectedTitle" xml:space="preserve"><value>An unexpected error occurred</value></data>
+  <data name="UnexpectedDetail" xml:space="preserve"><value>An unexpected error occurred. Please try again later.</value></data>
+</root>

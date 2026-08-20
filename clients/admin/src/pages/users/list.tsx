@@ -11,6 +11,7 @@ import { EntityPageHeader, ErrorBand } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { CreateUserDialog } from "@/components/users/create-user-dialog";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 12;
 
@@ -27,6 +28,7 @@ const DESKTOP_COLS =
   "grid-cols-[1fr_140px_24px] lg:grid-cols-[1.6fr_140px_180px_24px]";
 
 export function UsersListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -100,18 +102,18 @@ export function UsersListPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Users}
-        title="Directory"
+        title={t("users.title", { defaultValue: "Directory" })}
         total={data?.totalCount ?? null}
-        unit="account"
+        unit={t("users.unit", { defaultValue: "account" })}
         description={data
-          ? `${data.totalCount} ${data.totalCount === 1 ? "account" : "accounts"} on this tenant.`
-          : "Loading the roster…"}
+          ? t("users.description", { count: data.totalCount, defaultValue: `${data.totalCount} ${data.totalCount === 1 ? "account" : "accounts"} on this tenant.` })
+          : t("users.loading", { defaultValue: "Loading the roster…" })}
       >
         <Button
           onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
-          <Plus className="size-4" /> New user
+          <Plus className="size-4" /> {t("users.newUser", { defaultValue: "New user" })}
         </Button>
       </EntityPageHeader>
 
@@ -125,39 +127,39 @@ export function UsersListPage() {
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search name, username, email…"
-            aria-label="Search users"
+            placeholder={t("users.searchPlaceholder", { defaultValue: "Search name, username, email…" })}
+            aria-label={t("users.searchAria", { defaultValue: "Search users" })}
             className="h-9 w-full rounded-md border border-[var(--color-input)] bg-transparent pl-9 pr-3 font-mono text-[12.5px] outline-none transition-colors placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)] focus-visible:border-[var(--color-ring)] focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
           />
         </div>
 
         <Segmented
-          label="Status"
+          label={t("users.status", { defaultValue: "Status" })}
           value={activeFilter}
           onChange={setActiveFilter}
           options={[
-            { value: "any", label: "Any" },
-            { value: "yes", label: "Active" },
-            { value: "no", label: "Disabled" },
+            { value: "any", label: t("users.any", { defaultValue: "Any" }) },
+            { value: "yes", label: t("users.active", { defaultValue: "Active" }) },
+            { value: "no", label: t("users.disabled", { defaultValue: "Disabled" }) },
           ]}
         />
         <Segmented
-          label="Email"
+          label={t("users.email", { defaultValue: "Email" })}
           value={confirmedFilter}
           onChange={setConfirmedFilter}
           options={[
-            { value: "any", label: "Any" },
-            { value: "yes", label: "Confirmed" },
-            { value: "no", label: "Pending" },
+            { value: "any", label: t("users.any", { defaultValue: "Any" }) },
+            { value: "yes", label: t("users.confirmed", { defaultValue: "Confirmed" }) },
+            { value: "no", label: t("users.pending", { defaultValue: "Pending" }) },
           ]}
         />
 
         <Select
-          label="Role"
+          label={t("users.role", { defaultValue: "Role" })}
           value={roleId}
           onChange={(v) => setRoleId(v)}
           options={(rolesQuery.data ?? []).map((r) => ({ value: r.id ?? "", label: r.name ?? r.id ?? "" }))}
-          placeholder="Any role"
+          placeholder={t("users.anyRole", { defaultValue: "Any role" })}
           minWidth="9rem"
         />
       </div>
@@ -167,7 +169,7 @@ export function UsersListPage() {
           message={
             usersQuery.error instanceof ApiRequestError
               ? usersQuery.error.problem?.detail ?? usersQuery.error.message
-              : "Failed to load users."
+              : t("users.loadFailed", { defaultValue: "Failed to load users." })
           }
         />
       )}

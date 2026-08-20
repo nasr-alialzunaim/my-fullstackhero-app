@@ -11,6 +11,7 @@ import {
   EntityStatusBadge,
   type EntityStatusTone,
 } from "@/components/list";
+import { useTranslation } from "react-i18next";
 
 const timeFmt = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
@@ -67,6 +68,7 @@ function entityLabel(data: unknown): string {
 const DESKTOP_GRID = "grid-cols-[1fr_240px_120px]";
 
 export function ActivityPage() {
+  const { t } = useTranslation();
   const { status, eventCount } = useSseStatus();
   const { events } = useSseEvents();
 
@@ -77,15 +79,15 @@ export function ActivityPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Activity}
-        title="Live activity"
+        title={t("activity.title")}
         total={eventCount}
-        unit="event"
-        description="Full event log streamed from the API over Server-Sent Events."
+        unit={t("activity.unit")}
+        description={t("activity.description")}
       >
         {isLive ? (
-          <Badge variant="success">streaming</Badge>
+          <Badge variant="success">{t("activity.streaming")}</Badge>
         ) : status === "error" ? (
-          <Badge variant="danger">offline</Badge>
+          <Badge variant="danger">{t("activity.offline")}</Badge>
         ) : (
           <Badge variant="default">{status}</Badge>
         )}
@@ -94,11 +96,11 @@ export function ActivityPage() {
       {items.length === 0 ? (
         <EntityEmpty
           icon={Inbox}
-          title={isLive ? "Listening for activity" : "No events yet"}
+          title={isLive ? t("activity.listening") : t("activity.noEvents")}
           body={
             isLive
-              ? "The stream is open. Events will appear here as the backend publishes them."
-              : "The activity stream is not connected. Events will queue once the connection comes online."
+              ? t("activity.streamOpen")
+              : t("activity.streamOffline")
           }
         />
       ) : (
@@ -118,7 +120,7 @@ export function ActivityPage() {
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Activity events"
+            aria-label={t("activity.eventsAria")}
           >
             {items.map((ev) => (
               <MobileCard key={ev.id} ev={ev} />
@@ -131,12 +133,12 @@ export function ActivityPage() {
             role="log"
             aria-live="polite"
             aria-relevant="additions"
-            aria-label="Activity events"
+            aria-label={t("activity.eventsAria")}
           >
             <EntityListHeader className={DESKTOP_GRID}>
-              <span>Action</span>
-              <span>Entity</span>
-              <span className="text-right">Time</span>
+              <span>{t("activity.action")}</span>
+              <span>{t("activity.entity")}</span>
+              <span className="text-right">{t("activity.time")}</span>
             </EntityListHeader>
             {items.map((ev, i) => (
               <DesktopRow

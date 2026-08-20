@@ -33,10 +33,12 @@ import { EmptyState } from "@/components/empty-state";
 import { CreateWebhookDialog } from "@/components/webhooks/create-webhook-dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 25;
 
 export function WebhooksListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -85,10 +87,10 @@ export function WebhooksListPage() {
     <div className="space-y-8">
       <EntityPageHeader
         icon={Webhook}
-        title="Webhooks"
+        title={t("webhooks.title", { defaultValue: "Webhooks" })}
         total={data?.totalCount ?? null}
-        unit="subscription"
-        description="Subscribe HTTP endpoints to domain events. Payloads are signed with HMAC-SHA256 using the secret you provide — verify the X-FSH-Signature header on your side before trusting the body."
+        unit={t("webhooks.subscription", { defaultValue: "subscription" })}
+        description={t("webhooks.description", { defaultValue: "Subscribe HTTP endpoints to domain events. Payloads are signed with HMAC-SHA256 using the secret you provide — verify the X-FSH-Signature header on your side before trusting the body." })}
       >
         <Button
           variant="outline"
@@ -98,10 +100,10 @@ export function WebhooksListPage() {
           className="flex-1 sm:flex-none"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-          Refresh
+          {t("webhooks.refresh", { defaultValue: "Refresh" })}
         </Button>
         <Button onClick={() => setCreateOpen(true)} className="flex-1 sm:flex-none">
-          <Plus className="mr-1 h-4 w-4" /> New subscription
+          <Plus className="mr-1 h-4 w-4" /> {t("webhooks.newSubscription", { defaultValue: "New subscription" })}
         </Button>
       </EntityPageHeader>
 
@@ -110,22 +112,22 @@ export function WebhooksListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load subscriptions."
+              : t("webhooks.loadFailed", { defaultValue: "Failed to load subscriptions." })
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading subscriptions" />}
+      {query.isLoading && <LoadingRow label={t("webhooks.loading", { defaultValue: "Loading subscriptions" })} />}
 
       {!query.isLoading && items.length === 0 && !query.isError && (
         <EmptyState
           icon={Webhook}
-          kicker="// no subscriptions"
-          title="No webhook subscriptions yet."
-          description="Add an endpoint and pick which events should fire. We'll retry failed deliveries automatically."
+          kicker={t("webhooks.noSubscriptionsKicker", { defaultValue: "// no subscriptions" })}
+          title={t("webhooks.emptyTitle", { defaultValue: "No webhook subscriptions yet." })}
+          description={t("webhooks.emptyDescription", { defaultValue: "Add an endpoint and pick which events should fire. We'll retry failed deliveries automatically." })}
           action={
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> New subscription
+              <Plus className="mr-1 h-4 w-4" /> {t("webhooks.newSubscription", { defaultValue: "New subscription" })}
             </Button>
           }
         />
@@ -162,7 +164,7 @@ export function WebhooksListPage() {
           hasNext={data.hasNext}
           onPrev={() => setPage((p) => Math.max(1, p - 1))}
           onNext={() => setPage((p) => p + 1)}
-          noun="subscriptions"
+          noun={t("webhooks.subscriptions", { defaultValue: "subscriptions" })}
         />
       )}
 
@@ -190,6 +192,7 @@ function Row({
   onDelete: () => void;
   onOpen: () => void;
 }) {
+  const { t } = useTranslation();
   const num = String(index).padStart(3, "0");
   return (
     <li>
@@ -203,7 +206,7 @@ function Row({
             sub.isActive ? "bg-[var(--color-accent-signal)]" : "bg-[var(--color-muted-foreground)]/50",
           )}
           aria-hidden
-          title={sub.isActive ? "Active" : "Inactive"}
+          title={sub.isActive ? t("webhooks.active", { defaultValue: "Active" }) : t("webhooks.inactive", { defaultValue: "Inactive" })}
         />
         <button
           type="button"
@@ -221,7 +224,7 @@ function Row({
               </span>
             )}
             <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-              · since {new Date(sub.createdAtUtc).toLocaleDateString()}
+              · {t("webhooks.since", { defaultValue: "since" })} {new Date(sub.createdAtUtc).toLocaleDateString()}
             </span>
           </div>
         </button>
@@ -229,10 +232,10 @@ function Row({
           variant={sub.isActive ? "success" : "muted"}
           className="font-mono uppercase tracking-[0.14em]"
         >
-          {sub.isActive ? "Active" : "Inactive"}
+          {sub.isActive ? t("webhooks.active", { defaultValue: "Active" }) : t("webhooks.inactive", { defaultValue: "Inactive" })}
         </Badge>
         <Button variant="outline" size="sm" onClick={onTest} disabled={busy}>
-          <Send className="mr-1 h-3.5 w-3.5" /> Test
+          <Send className="mr-1 h-3.5 w-3.5" /> {t("webhooks.test", { defaultValue: "Test" })}
         </Button>
         <Button
           variant="ghost"

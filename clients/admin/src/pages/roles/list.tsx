@@ -9,6 +9,7 @@ import { EntityPageHeader, ErrorBand, LoadingRow } from "@/components/list";
 import { EmptyState } from "@/components/empty-state";
 import { ApiRequestError } from "@/lib/api-client";
 import { CreateRoleDialog } from "@/components/roles/create-role-dialog";
+import { useTranslation } from "react-i18next";
 
 const ROOT_ROLE_NAMES = new Set(["Admin", "Basic"]);
 
@@ -17,6 +18,7 @@ const DESKTOP_COLS =
   "grid-cols-[1fr_120px_24px] lg:grid-cols-[1.4fr_2fr_120px_24px]";
 
 export function RolesListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -55,17 +57,17 @@ export function RolesListPage() {
     <div className="space-y-4 sm:space-y-6">
       <EntityPageHeader
         icon={Shield}
-        title="Roles"
+        title={t("roles.title", { defaultValue: "Roles" })}
         total={query.data ? roles.length : null}
-        unit="role"
-        description="Define what people can do. Each role bundles a set of permissions; users inherit a role's permissions by being assigned to it."
+        unit={t("roles.unit", { defaultValue: "role" })}
+        description={t("roles.description", { defaultValue: "Define what people can do. Each role bundles a set of permissions; users inherit a role's permissions by being assigned to it." })}
       >
         <Button
           onClick={() => setCreateOpen(true)}
           className="h-9 flex-1 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:flex-none"
         >
           <Plus className="size-4" />
-          New role
+          {t("roles.newRole", { defaultValue: "New role" })}
         </Button>
       </EntityPageHeader>
 
@@ -78,8 +80,8 @@ export function RolesListPage() {
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description…"
-          aria-label="Search roles"
+          placeholder={t("roles.searchPlaceholder", { defaultValue: "Search by name or description…" })}
+          aria-label={t("roles.searchAria", { defaultValue: "Search roles" })}
           className="h-9 w-full rounded-md border border-[var(--color-input)] bg-transparent pl-9 pr-3 text-[13px] outline-none transition-colors placeholder:text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)] focus-visible:border-[var(--color-ring)] focus-visible:ring-[3px] focus-visible:ring-[oklch(from_var(--color-ring)_l_c_h_/_0.5)]"
         />
       </div>
@@ -89,37 +91,37 @@ export function RolesListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load roles."
+              : t("roles.loadFailed", { defaultValue: "Failed to load roles." })
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading roles" />}
+      {query.isLoading && <LoadingRow label={t("roles.loading", { defaultValue: "Loading roles" })} />}
 
       {!query.isLoading && filtered.length === 0 && !query.isError && (
         searchActive ? (
           <div className="py-16 text-center">
-            <p className="font-display text-2xl">No roles found.</p>
+            <p className="font-display text-2xl">{t("roles.noFound", { defaultValue: "No roles found." })}</p>
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-              Nothing matches &ldquo;{debounced}&rdquo;. Try a different term.
+              {t("roles.noMatch", { term: debounced, defaultValue: `Nothing matches “${debounced}”. Try a different term.` })}
             </p>
             <Button
               variant="outline"
               className="mt-4 h-9 rounded-lg px-4 text-[13px]"
               onClick={() => setSearch("")}
             >
-              Clear search
+              {t("roles.clearSearch", { defaultValue: "Clear search" })}
             </Button>
           </div>
         ) : (
           <EmptyState
             icon={ShieldCheck}
-            kicker="// no roles"
-            title="No roles defined yet."
-            description="Create your first role to start bundling permissions."
+            kicker={t("roles.noRolesKicker", { defaultValue: "// no roles" })}
+            title={t("roles.noDefined", { defaultValue: "No roles defined yet." })}
+            description={t("roles.createFirst", { defaultValue: "Create your first role to start bundling permissions." })}
             action={
               <Button onClick={() => setCreateOpen(true)} className="h-9 rounded-lg px-4 text-[13px]">
-                <Plus className="mr-1.5 h-4 w-4" /> New role
+                <Plus className="mr-1.5 h-4 w-4" /> {t("roles.newRole", { defaultValue: "New role" })}
               </Button>
             }
           />
@@ -150,13 +152,13 @@ export function RolesListPage() {
               className={`grid items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-muted)]/40 px-4 py-2.5 ${DESKTOP_COLS}`}
             >
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Name
+                {t("roles.name", { defaultValue: "Name" })}
               </span>
               <span className="hidden text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] lg:block">
-                Description
+                {t("roles.descriptionLabel", { defaultValue: "Description" })}
               </span>
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-                Permissions
+                {t("roles.permissions", { defaultValue: "Permissions" })}
               </span>
               <span />
             </div>

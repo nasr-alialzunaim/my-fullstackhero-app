@@ -29,6 +29,7 @@ import {
 } from "@/lib/permissions";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const SYSTEM_ROLE_NAMES = new Set(["Admin", "Basic"]);
 
@@ -39,6 +40,7 @@ const profileSchema = z.object({
 type ProfileValues = z.infer<typeof profileSchema>;
 
 export function RoleDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -58,14 +60,14 @@ export function RoleDetailPage() {
         icon={Shield}
         title={role?.name ?? "Role"}
         total={role ? (role.permissions?.length ?? 0) : null}
-        unit="grant"
+        unit={t("roles.grant", { defaultValue: "grant" })}
         description={
-          role?.description ?? "Inspect and edit this role's profile and permission grants."
+          role?.description ?? t("roles.detailDescription", { defaultValue: "Inspect and edit this role's profile and permission grants." })
         }
       >
         {isSystem && (
           <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-[0.14em]">
-            <Lock className="mr-1 h-3 w-3" /> System
+            <Lock className="mr-1 h-3 w-3" /> {t("roles.system", { defaultValue: "System" })}
           </Badge>
         )}
         <Button
@@ -74,7 +76,7 @@ export function RoleDetailPage() {
           onClick={() => navigate("/roles")}
           className="h-9 gap-1.5 rounded-lg px-3 text-[13px]"
         >
-          <ArrowLeft className="size-3.5" /> Registry
+          <ArrowLeft className="size-3.5" /> {t("roles.registry", { defaultValue: "Registry" })}
         </Button>
       </EntityPageHeader>
 
@@ -83,12 +85,12 @@ export function RoleDetailPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load role."
+              : t("roles.loadFailed", { defaultValue: "Failed to load role." })
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading role" />}
+      {query.isLoading && <LoadingRow label={t("roles.loadingDetail", { defaultValue: "Loading role" })} />}
 
       {isSystem && role && (
         <div
@@ -104,7 +106,7 @@ export function RoleDetailPage() {
           </span>
           <div className="min-w-0 text-sm leading-relaxed">
             <p className="font-medium text-[var(--color-foreground)]">
-              Built-in role — read only
+              {t("roles.builtInReadOnly", { defaultValue: "Built-in role — read only" })}
             </p>
             <p className="mt-0.5 text-[12.5px] text-[var(--color-muted-foreground)]">
               <span className="font-mono font-medium">{role.name}</span> ships with the framework.
