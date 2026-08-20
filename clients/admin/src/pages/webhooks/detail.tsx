@@ -36,10 +36,12 @@ import {
 } from "@/components/list";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 25;
 
 export function WebhookDetailPage() {
+  const { t } = useTranslation();
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -86,13 +88,13 @@ export function WebhookDetailPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        crumbs={[{ label: "\\ Webhooks" }, { label: sub?.url ?? "…", muted: true }]}
-        trailing={sub ? (sub.isActive ? "ACTIVE" : "INACTIVE") : "—"}
-        title={sub?.url ?? "Subscription"}
-        description={sub ? `Subscribed to ${sub.events.length} ${sub.events.length === 1 ? "event" : "events"}.` : "Loading subscription…"}
+        crumbs={[{ label: `\\ ${t("webhooks.title", { defaultValue: "Webhooks" })}` }, { label: sub?.url ?? "…", muted: true }]}
+        trailing={sub ? (sub.isActive ? t("webhooks.activeUpper", { defaultValue: "ACTIVE" }) : t("webhooks.inactiveUpper", { defaultValue: "INACTIVE" })) : "—"}
+        title={sub?.url ?? t("webhooks.subscription", { defaultValue: "Subscription" })}
+        description={sub ? t("webhooks.subscribedEvents", { defaultValue: "Subscribed to {{count}} {{unit}}.", count: sub.events.length, unit: sub.events.length === 1 ? t("webhooks.event", { defaultValue: "event" }) : t("webhooks.events", { defaultValue: "events" }) }) : t("webhooks.loadingSubscription", { defaultValue: "Loading subscription…" })}
         actions={
           <Button variant="ghost" size="sm" onClick={() => navigate("/webhooks")}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Subscriptions
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("webhooks.subscriptions", { defaultValue: "Subscriptions" })}
           </Button>
         }
       />
@@ -102,28 +104,28 @@ export function WebhookDetailPage() {
           message={
             subsQuery.error instanceof ApiRequestError
               ? subsQuery.error.problem?.detail ?? subsQuery.error.message
-              : "Failed to load subscription."
+              : t("webhooks.loadSubscriptionFailed", { defaultValue: "Failed to load subscription." })
           }
         />
       )}
 
-      {subsQuery.isLoading && <LoadingRow label="Loading subscription" />}
+      {subsQuery.isLoading && <LoadingRow label={t("webhooks.loadingSubscription", { defaultValue: "Loading subscription" })} />}
 
       {!subsQuery.isLoading && !sub && !subsQuery.isError && (
-        <ErrorBand message="Subscription not found. It may have been deleted." />
+        <ErrorBand message={t("webhooks.notFound", { defaultValue: "Subscription not found. It may have been deleted." })} />
       )}
 
       {sub && (
         <div className="space-y-4">
           <SettingsSection
             icon={Link2}
-            title="Endpoint"
-            description="Where we POST event payloads."
+            title={t("webhooks.endpoint", { defaultValue: "Endpoint" })}
+            description={t("webhooks.endpointDescription", { defaultValue: "Where we POST event payloads." })}
             footer={
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => test.mutate()} disabled={test.isPending}>
                   <Send className="mr-1.5 h-3.5 w-3.5" />
-                  {test.isPending ? "Sending…" : "Send test event"}
+                  {test.isPending ? t("webhooks.sending", { defaultValue: "Sending…" }) : t("webhooks.sendTest", { defaultValue: "Send test event" })}
                 </Button>
                 <Button
                   variant="ghost"
@@ -137,41 +139,41 @@ export function WebhookDetailPage() {
                   className="text-[var(--color-destructive)] hover:bg-[oklch(from_var(--color-destructive)_l_c_h_/_0.08)]"
                 >
                   <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                  {remove.isPending ? "Deleting…" : "Delete subscription"}
+                  {remove.isPending ? t("webhooks.deleting", { defaultValue: "Deleting…" }) : t("webhooks.deleteSubscription", { defaultValue: "Delete subscription" })}
                 </Button>
               </div>
             }
           >
             <dl className="grid grid-cols-1 gap-y-3 sm:grid-cols-2">
               <FieldRow label="URL" mono value={sub.url} />
-              <FieldRow label="Status" value={
+              <FieldRow label={t("webhooks.status", { defaultValue: "Status" })} value={
                 <Badge variant={sub.isActive ? "success" : "muted"} className="font-mono uppercase tracking-[0.14em]">
-                  {sub.isActive ? "Active" : "Inactive"}
+                  {sub.isActive ? t("webhooks.active", { defaultValue: "Active" }) : t("webhooks.inactive", { defaultValue: "Inactive" })}
                 </Badge>
               } />
-              <FieldRow label="Subscription id" mono value={sub.id} />
-              <FieldRow label="Created" mono value={new Date(sub.createdAtUtc).toLocaleString()} />
+              <FieldRow label={t("webhooks.subscriptionId", { defaultValue: "Subscription id" })} mono value={sub.id} />
+              <FieldRow label={t("webhooks.created", { defaultValue: "Created" })} mono value={new Date(sub.createdAtUtc).toLocaleString()} />
             </dl>
           </SettingsSection>
 
           <SettingsSection
             icon={List}
-            title="Events"
-            description="Event types this endpoint subscribes to."
+            title={t("webhooks.events", { defaultValue: "Events" })}
+            description={t("webhooks.eventsDescription", { defaultValue: "Event types this endpoint subscribes to." })}
           >
             <div className="flex flex-wrap gap-1.5">
               {sub.events.map((e) => (
                 <code key={e} className="code-chip">{e}</code>
               ))}
               {sub.events.length === 0 && (
-                <span className="text-sm text-[var(--color-muted-foreground)]">— no events; subscription would never fire</span>
+                <span className="text-sm text-[var(--color-muted-foreground)]">{t("webhooks.noEvents", { defaultValue: "— no events; subscription would never fire" })}</span>
               )}
             </div>
           </SettingsSection>
 
           <SettingsSection
-            title="Deliveries"
-            description="Recent attempts to POST events to this endpoint. Auto-refreshes every 10s."
+            title={t("webhooks.deliveries", { defaultValue: "Deliveries" })}
+            description={t("webhooks.deliveriesDescription", { defaultValue: "Recent attempts to POST events to this endpoint. Auto-refreshes every 10s." })}
             footer={
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted-foreground)]">
@@ -184,7 +186,7 @@ export function WebhookDetailPage() {
                   disabled={deliveries.isFetching}
                 >
                   <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", deliveries.isFetching && "animate-spin")} />
-                  Refresh
+                  {t("webhooks.refresh", { defaultValue: "Refresh" })}
                 </Button>
               </div>
             }
@@ -192,10 +194,10 @@ export function WebhookDetailPage() {
             {deliveries.isError ? (
               <ErrorBand message={describe(deliveries.error)} />
             ) : deliveries.isLoading ? (
-              <LoadingRow label="Loading deliveries" />
+              <LoadingRow label={t("webhooks.loadingDeliveries", { defaultValue: "Loading deliveries" })} />
             ) : (deliveries.data?.items.length ?? 0) === 0 ? (
               <p className="text-sm text-[var(--color-muted-foreground)]">
-                No deliveries yet. Try the test button above, or wait for matching events to fire.
+                {t("webhooks.noDeliveries", { defaultValue: "No deliveries yet. Try the test button above, or wait for matching events to fire." })}
               </p>
             ) : (
               <>
@@ -216,7 +218,7 @@ export function WebhookDetailPage() {
                       hasNext={deliveries.data!.hasNext}
                       onPrev={() => setDeliveryPage((p) => Math.max(1, p - 1))}
                       onNext={() => setDeliveryPage((p) => p + 1)}
-                      noun="deliveries"
+                      noun={t("webhooks.deliveries", { defaultValue: "deliveries" })}
                     />
                   </div>
                 )}

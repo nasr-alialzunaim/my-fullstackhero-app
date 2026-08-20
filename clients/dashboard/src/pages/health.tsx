@@ -28,6 +28,7 @@ import {
   type ToneIconTileTone,
 } from "@/components/list";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 // ────────────────────────────────────────────────────────────────────────
 // Tone helpers — keep status-to-aesthetic mapping in one place so the
@@ -154,6 +155,7 @@ function formatRelative(iso: string, now: number = Date.now()): string {
 const POLL_INTERVAL_MS = 10_000;
 
 export function HealthPage() {
+  const { t } = useTranslation();
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const query = useQuery({
@@ -191,12 +193,11 @@ export function HealthPage() {
   return (
     <div className="space-y-7 pb-12">
       <PageHero
-        eyebrow="System · Health"
-        title="Health"
+        eyebrow={t("health.systemEyebrow", { defaultValue: "System · Health" })}
+        title={t("health.title", { defaultValue: "Health" })}
         subtitle={
           <>
-            Live readiness probe across every registered dependency. Polled every{" "}
-            <span className="font-mono">{POLL_INTERVAL_MS / 1000}s</span>.
+            {t("health.subtitle", { defaultValue: "Live readiness probe across every registered dependency. Polled every {{seconds}}s.", seconds: POLL_INTERVAL_MS / 1000 })}
           </>
         }
         actions={
@@ -205,14 +206,14 @@ export function HealthPage() {
               variant="outline"
               size="sm"
               onClick={() => setAutoRefresh((v) => !v)}
-              title={autoRefresh ? "Pause auto-refresh" : "Resume auto-refresh"}
+              title={autoRefresh ? t("health.pauseAutoRefresh", { defaultValue: "Pause auto-refresh" }) : t("health.resumeAutoRefresh", { defaultValue: "Resume auto-refresh" })}
             >
               {autoRefresh ? (
                 <Pause className="mr-1.5 h-3.5 w-3.5" />
               ) : (
                 <Play className="mr-1.5 h-3.5 w-3.5" />
               )}
-              {autoRefresh ? "Live" : "Paused"}
+              {autoRefresh ? t("health.live", { defaultValue: "Live" }) : t("health.paused", { defaultValue: "Paused" })}
             </Button>
             <Button
               variant="outline"
@@ -223,7 +224,7 @@ export function HealthPage() {
               <RefreshCw
                 className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")}
               />
-              Refresh
+              {t("health.refresh", { defaultValue: "Refresh" })}
             </Button>
           </>
         }
@@ -246,14 +247,14 @@ export function HealthPage() {
       </section>
 
       {/* ── Dependencies list ───────────────────────────────────────────── */}
-      <section aria-label="Dependencies" className="fsh-enter fsh-enter-3">
+      <section aria-label={t("health.dependencies", { defaultValue: "Dependencies" })} className="fsh-enter fsh-enter-3">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="font-display text-[16px] font-semibold tracking-tight text-[var(--color-foreground)]">
-            Dependencies
+            {t("health.dependencies", { defaultValue: "Dependencies" })}
           </h2>
           {snapshot && (
             <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-muted-foreground)]">
-              {computed?.total ?? 0} checks · total{" "}
+              {computed?.total ?? 0} {t("health.checks", { defaultValue: "checks" })} · {t("health.total", { defaultValue: "total" })}{" "}
               <span className="font-mono tabular-nums text-[var(--color-foreground)]">
                 {formatLatency(computed?.totalDuration ?? 0)}
               </span>

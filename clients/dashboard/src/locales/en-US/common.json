@@ -47,6 +47,19 @@
     "signIn": "Sign in",
     "demoSignIn": "Sign in with a demo account"
   },
+  "health": {
+    "systemEyebrow": "System · Health",
+    "title": "Health",
+    "subtitle": "Live readiness probe across every registered dependency. Polled every {{seconds}}s.",
+    "pauseAutoRefresh": "Pause auto-refresh",
+    "resumeAutoRefresh": "Resume auto-refresh",
+    "live": "Live",
+    "paused": "Paused",
+    "refresh": "Refresh",
+    "dependencies": "Dependencies",
+    "checks": "checks",
+    "total": "total"
+  },
   "overview": {
     "dismissSetup": "Dismiss setup checklist",
     "skipForNow": "Skip for now",

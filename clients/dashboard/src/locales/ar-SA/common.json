@@ -47,6 +47,19 @@
     "signIn": "تسجيل الدخول",
     "demoSignIn": "تسجيل الدخول بحساب تجريبي"
   },
+  "health": {
+    "systemEyebrow": "النظام · الحالة الصحية",
+    "title": "الحالة الصحية",
+    "subtitle": "فحص الجاهزية المباشر لجميع التبعيات المسجلة. يتم الفحص كل {{seconds}} ثوانٍ.",
+    "pauseAutoRefresh": "إيقاف التحديث التلقائي",
+    "resumeAutoRefresh": "استئناف التحديث التلقائي",
+    "live": "مباشر",
+    "paused": "متوقف مؤقتًا",
+    "refresh": "تحديث",
+    "dependencies": "التبعيات",
+    "checks": "فحوصات",
+    "total": "الإجمالي"
+  },
   "overview": {
     "dismissSetup": "إغلاق قائمة الإعداد",
     "skipForNow": "تخطي الآن",

@@ -25,6 +25,7 @@ import { RevokeGrantDialog } from "@/components/impersonation/revoke-grant-dialo
 import { IdentityPermissions } from "@/lib/permissions";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const REFRESH_INTERVAL_MS = 5_000;
 
@@ -36,6 +37,7 @@ const STATUS_OPTIONS: { value: ImpersonationGrantStatus; label: string }[] = [
 ];
 
 export function ImpersonationListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const canRevoke = (user?.permissions ?? []).includes(IdentityPermissions.Impersonation.Revoke);
   const canImpersonate = (user?.permissions ?? []).includes(IdentityPermissions.Users.Impersonate);
@@ -77,8 +79,8 @@ export function ImpersonationListPage() {
       <EntityPageHeader
         icon={UserCog}
         tone="warning"
-        title="Impersonation"
-        description="Every impersonation token issued by the server is tracked here. Active grants can be revoked — the token is rejected by the JWT validation hook within seconds."
+        title={t("impersonation.title", { defaultValue: "Impersonation" })}
+        description={t("impersonation.description", { defaultValue: "Every impersonation token issued by the server is tracked here. Active grants can be revoked — the token is rejected by the JWT validation hook within seconds." })}
       >
         <Button
           variant="outline"
@@ -88,15 +90,15 @@ export function ImpersonationListPage() {
           className="flex-1 sm:flex-none"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", grants.isFetching && "animate-spin")} />
-          Refresh
+          {t("impersonation.refresh", { defaultValue: "Refresh" })}
         </Button>
       </EntityPageHeader>
 
       <StatStrip cols={4}>
-        <Stat label="Active" value={grants.isLoading ? "—" : counts.active.toString()} hint="in-flight tokens" tone={counts.active > 0 ? "signal" : "default"} />
-        <Stat label="Ended" value={grants.isLoading ? "—" : counts.ended.toString()} hint="operator clicked End" />
-        <Stat label="Revoked" value={grants.isLoading ? "—" : counts.revoked.toString()} hint="forcibly invalidated" tone={counts.revoked > 0 ? "danger" : "default"} />
-        <Stat label="Expired" value={grants.isLoading ? "—" : counts.expired.toString()} hint="reached natural TTL" />
+        <Stat label={t("impersonation.active", { defaultValue: "Active" })} value={grants.isLoading ? "—" : counts.active.toString()} hint={t("impersonation.inFlight", { defaultValue: "in-flight tokens" })} tone={counts.active > 0 ? "signal" : "default"} />
+        <Stat label={t("impersonation.ended", { defaultValue: "Ended" })} value={grants.isLoading ? "—" : counts.ended.toString()} hint={t("impersonation.operatorEnded", { defaultValue: "operator clicked End" })} />
+        <Stat label={t("impersonation.revoked", { defaultValue: "Revoked" })} value={grants.isLoading ? "—" : counts.revoked.toString()} hint={t("impersonation.forciblyInvalidated", { defaultValue: "forcibly invalidated" })} tone={counts.revoked > 0 ? "danger" : "default"} />
+        <Stat label={t("impersonation.expired", { defaultValue: "Expired" })} value={grants.isLoading ? "—" : counts.expired.toString()} hint={t("impersonation.naturalTtl", { defaultValue: "reached natural TTL" })} />
       </StatStrip>
 
       <FilterBar>
@@ -104,7 +106,7 @@ export function ImpersonationListPage() {
           value={status}
           onChange={(v) => setStatus(v as ImpersonationGrantStatus | "")}
           options={STATUS_OPTIONS}
-          placeholder="All statuses"
+          placeholder={t("impersonation.allStatuses", { defaultValue: "All statuses" })}
           minWidth="12rem"
         />
       </FilterBar>
@@ -114,22 +116,22 @@ export function ImpersonationListPage() {
           message={
             grants.error instanceof ApiRequestError
               ? grants.error.problem?.detail ?? grants.error.message
-              : "Failed to load impersonation grants."
+              : t("impersonation.loadFailed", { defaultValue: "Failed to load impersonation grants." })
           }
         />
       )}
 
-      {grants.isLoading && <LoadingRow label="Loading grants" />}
+      {grants.isLoading && <LoadingRow label={t("impersonation.loading", { defaultValue: "Loading grants" })} />}
 
       {!grants.isLoading && items.length === 0 && !grants.isError && (
         <EmptyState
           icon={UserCog}
-          kicker="// nothing here"
-          title={status === "Active" ? "No active impersonations." : "No grants match this filter."}
+          kicker={t("impersonation.emptyKicker", { defaultValue: "// nothing here" })}
+          title={status === "Active" ? t("impersonation.noActive", { defaultValue: "No active impersonations." }) : t("impersonation.noMatch", { defaultValue: "No grants match this filter." })}
           description={
             status === "Active"
-              ? "When an operator starts impersonating a tenant user, the session appears here in real time."
-              : "Try a different status filter to see the rest of the grant history."
+              ? t("impersonation.activeDescription", { defaultValue: "When an operator starts impersonating a tenant user, the session appears here in real time." })
+              : t("impersonation.historyDescription", { defaultValue: "Try a different status filter to see the rest of the grant history." })
           }
         />
       )}

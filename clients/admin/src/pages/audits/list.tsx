@@ -30,6 +30,7 @@ import { ApiRequestError } from "@/lib/api-client";
 import { AuditingPermissions } from "@/lib/permissions";
 import { AuditDetailSheet } from "@/pages/audits/detail";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 25;
 
@@ -38,6 +39,7 @@ const PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 250;
 
 export function AuditsListPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [params, setParams] = useSearchParams();
@@ -128,10 +130,10 @@ export function AuditsListPage() {
     <div className="space-y-8">
       <EntityPageHeader
         icon={ScrollText}
-        title="Audit trail"
+        title={t("audits.title", { defaultValue: "Audit trail" })}
         total={data?.totalCount ?? null}
-        unit="event"
-        description="Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end."
+        unit={t("audits.unit", { defaultValue: "event" })}
+        description={t("audits.description", { defaultValue: "Every security action, entity change, and exception captured by the auditing pipeline. Filter by event type, severity, or correlation id to follow a request end-to-end." })}
       >
         <Button
           variant="outline"
@@ -141,22 +143,22 @@ export function AuditsListPage() {
           className="flex-1 sm:flex-none"
         >
           <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", query.isFetching && "animate-spin")} />
-          Refresh
+          {t("audits.refresh", { defaultValue: "Refresh" })}
         </Button>
       </EntityPageHeader>
 
       <StatStrip cols={4}>
-        <Stat label="Total events" value={summary.isLoading ? "—" : summaryStats.total.toLocaleString()} hint="across all event types" />
-        <Stat label="Errors + critical" value={summary.isLoading ? "—" : summaryStats.errors.toLocaleString()} hint="severity ≥ Error" tone={summaryStats.errors > 0 ? "danger" : "default"} />
-        <Stat label="Security events" value={summary.isLoading ? "—" : summaryStats.security.toLocaleString()} hint="logins, role grants, tokens" tone={summaryStats.security > 0 ? "info" : "default"} />
-        <Stat label="Exceptions" value={summary.isLoading ? "—" : summaryStats.exceptions.toLocaleString()} hint="unhandled / classified" tone={summaryStats.exceptions > 0 ? "warning" : "default"} />
+        <Stat label={t("audits.totalEvents", { defaultValue: "Total events" })} value={summary.isLoading ? "—" : summaryStats.total.toLocaleString()} hint={t("audits.allEventTypes", { defaultValue: "across all event types" })} />
+        <Stat label={t("audits.errorsCritical", { defaultValue: "Errors + critical" })} value={summary.isLoading ? "—" : summaryStats.errors.toLocaleString()} hint={t("audits.severityError", { defaultValue: "severity ≥ Error" })} tone={summaryStats.errors > 0 ? "danger" : "default"} />
+        <Stat label={t("audits.securityEvents", { defaultValue: "Security events" })} value={summary.isLoading ? "—" : summaryStats.security.toLocaleString()} hint={t("audits.securityHint", { defaultValue: "logins, role grants, tokens" })} tone={summaryStats.security > 0 ? "info" : "default"} />
+        <Stat label={t("audits.exceptions", { defaultValue: "Exceptions" })} value={summary.isLoading ? "—" : summaryStats.exceptions.toLocaleString()} hint={t("audits.exceptionsHint", { defaultValue: "unhandled / classified" })} tone={summaryStats.exceptions > 0 ? "warning" : "default"} />
       </StatStrip>
 
       <FilterBar
         trailing={
           activeFilters > 0 ? (
             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
-              <X className="mr-1 h-3.5 w-3.5" /> Clear all ({activeFilters})
+              <X className="mr-1 h-3.5 w-3.5" /> {t("audits.clearAll", { defaultValue: "Clear all" })} ({activeFilters})
             </Button>
           ) : undefined
         }
@@ -165,8 +167,8 @@ export function AuditsListPage() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search user, source, correlation…"
-            aria-label="Search audit trail"
+            placeholder={t("audits.searchPlaceholder", { defaultValue: "Search user, source, correlation…" })}
+            aria-label={t("audits.searchAria", { defaultValue: "Search audit trail" })}
             className="h-8"
           />
         </div>
@@ -174,14 +176,14 @@ export function AuditsListPage() {
           value={eventType}
           onValueChange={(v) => setParam("type", v || null)}
           options={AUDIT_EVENT_TYPES.map((t) => ({ value: t, label: t }))}
-          emptyLabel="All event types"
+          emptyLabel={t("audits.allEventTypesLabel", { defaultValue: "All event types" })}
           className="min-w-[10rem]"
         />
         <Select
           value={severity}
           onValueChange={(v) => setParam("sev", v || null)}
           options={AUDIT_SEVERITIES.map((s) => ({ value: s, label: s }))}
-          emptyLabel="All severities"
+          emptyLabel={t("audits.allSeverities", { defaultValue: "All severities" })}
           className="min-w-[10rem]"
         />
         {canCrossTenant && (
@@ -189,8 +191,8 @@ export function AuditsListPage() {
             <Input
               value={tenantId}
               onChange={(e) => setParam("tenant", e.target.value || null)}
-              placeholder="Tenant id (cross-tenant)"
-              aria-label="Filter by tenant id"
+              placeholder={t("audits.tenantPlaceholder", { defaultValue: "Tenant id (cross-tenant)" })}
+              aria-label={t("audits.tenantAria", { defaultValue: "Filter by tenant id" })}
               className="h-8 font-mono text-xs"
             />
           </div>
@@ -199,8 +201,8 @@ export function AuditsListPage() {
           <Input
             value={correlationId}
             onChange={(e) => setParam("corr", e.target.value || null)}
-            placeholder="Correlation id"
-            aria-label="Filter by correlation id"
+            placeholder={t("audits.correlationPlaceholder", { defaultValue: "Correlation id" })}
+            aria-label={t("audits.correlationAria", { defaultValue: "Filter by correlation id" })}
             className="h-8 font-mono text-xs"
           />
         </div>
@@ -211,27 +213,27 @@ export function AuditsListPage() {
           message={
             query.error instanceof ApiRequestError
               ? query.error.problem?.detail ?? query.error.message
-              : "Failed to load audit events."
+              : t("audits.loadFailed", { defaultValue: "Failed to load audit events." })
           }
         />
       )}
 
-      {query.isLoading && <LoadingRow label="Loading events" />}
+      {query.isLoading && <LoadingRow label={t("audits.loading", { defaultValue: "Loading events" })} />}
 
       {!query.isLoading && items.length === 0 && !query.isError && (
         <EmptyState
           icon={ScrollText}
-          kicker="// no events"
-          title="No audit events match your filters."
+          kicker={t("audits.noEventsKicker", { defaultValue: "// no events" })}
+          title={t("audits.noMatch", { defaultValue: "No audit events match your filters." })}
           description={
             activeFilters > 0
-              ? "Try clearing or relaxing a filter — the trail is broad by default."
-              : "The audit pipeline hasn't recorded anything for this tenant yet."
+              ? t("audits.relaxFilter", { defaultValue: "Try clearing or relaxing a filter — the trail is broad by default." })
+              : t("audits.noTenantEvents", { defaultValue: "The audit pipeline hasn't recorded anything for this tenant yet." })
           }
           action={
             activeFilters > 0 ? (
               <Button variant="outline" onClick={clearAll}>
-                Clear filters
+                {t("audits.clearFilters", { defaultValue: "Clear filters" })}
               </Button>
             ) : undefined
           }
@@ -257,7 +259,7 @@ export function AuditsListPage() {
           hasNext={data.hasNext}
           onPrev={() => setPage(Math.max(1, pageNumber - 1))}
           onNext={() => setPage(pageNumber + 1)}
-          noun="events"
+          noun={t("audits.events", { defaultValue: "events" })}
         />
       )}
 

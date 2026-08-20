@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0</value></resheader>
+  <data name="ValidationErrorTitle" xml:space="preserve"><value>خطأ في التحقق</value></data>
+  <data name="ValidationErrorDetail" xml:space="preserve"><value>حدث خطأ واحد أو أكثر في التحقق من البيانات.</value></data>
+  <data name="UnauthorizedTitle" xml:space="preserve"><value>غير مصرح</value></data>
+  <data name="NotFoundTitle" xml:space="preserve"><value>لم يتم العثور على المورد</value></data>
+  <data name="BadRequestTitle" xml:space="preserve"><value>طلب غير صالح</value></data>
+  <data name="UnexpectedTitle" xml:space="preserve"><value>حدث خطأ غير متوقع</value></data>
+  <data name="UnexpectedDetail" xml:space="preserve"><value>حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقًا.</value></data>
+</root>
