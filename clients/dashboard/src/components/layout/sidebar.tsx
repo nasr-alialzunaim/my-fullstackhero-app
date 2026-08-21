@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
   PanelLeftClose,
@@ -8,6 +9,7 @@ import {
 import { cn } from "@/lib/cn";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/auth/use-auth";
+import { getMyStatus } from "@/api/billing";
 import {
   findSectionForPath,
   topNavBottom,
@@ -78,6 +80,12 @@ export function Sidebar() {
   const { collapsed, toggle } = useCollapsedSidebar();
   const { t } = useTranslation();
   const location = useLocation();
+  const { data: tenantStatus } = useQuery({
+    queryKey: ["tenant", "me", "status"],
+    queryFn: getMyStatus,
+    staleTime: 60_000,
+  });
+  const tenantName = tenantStatus?.name || "fullstackhero";
 
   // Single-select accordion: which section is currently open. Defaults
   // to the section that owns the current route. Manual clicks override
@@ -133,7 +141,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="whitespace-nowrap font-display text-[15px] font-bold leading-none tracking-tight text-[var(--color-foreground)]">
-                fullstack<span className="text-[var(--color-primary)]">hero</span>
+                {tenantName}
               </span>
               <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
                 Dashboard

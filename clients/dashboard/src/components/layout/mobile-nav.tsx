@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
 import {
   Sheet,
@@ -18,6 +19,7 @@ import {
 import { SidebarNavBody } from "@/components/layout/sidebar";
 import { findSectionForPath } from "@/components/layout/nav-data";
 import { cn } from "@/lib/cn";
+import { getMyStatus } from "@/api/billing";
 
 /**
  * Mobile nav drawer.
@@ -63,6 +65,12 @@ export function MobileNavProvider({ children }: { children: ReactNode }) {
 export function MobileNavRoot() {
   const { open, setOpen } = useMobileNav();
   const location = useLocation();
+  const { data: tenantStatus } = useQuery({
+    queryKey: ["tenant", "me", "status"],
+    queryFn: getMyStatus,
+    staleTime: 60_000,
+  });
+  const tenantName = tenantStatus?.name || "fullstackhero";
 
   // Single-select accordion state — local to the drawer so opening it
   // always shows the section that owns the current route.
@@ -104,7 +112,7 @@ export function MobileNavRoot() {
           >
             F
           </span>
-          <span className="font-semibold tracking-tight">fullstackhero</span>
+          <span className="max-w-[12rem] truncate font-semibold tracking-tight" dir="auto">{tenantName}</span>
         </div>
 
         <SidebarNavBody
