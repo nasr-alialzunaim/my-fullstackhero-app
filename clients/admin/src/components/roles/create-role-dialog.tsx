@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { useTranslation } from "react-i18next";
 
 // ─── Schema (identical to the old create page) ───────────────────────────────
 
@@ -42,6 +43,7 @@ export function CreateRoleDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -64,7 +66,7 @@ export function CreateRoleDialog({
         description: values.description?.trim() ? values.description : null,
       }),
     onSuccess: (result) => {
-      toast.success(`Role ${result.name} created`);
+      toast.success(t("roles.created", { defaultValue: "Role {{name}} created", name: result.name }));
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       handleClose();
       navigate(`/roles/${result.id}`);
@@ -74,7 +76,7 @@ export function CreateRoleDialog({
         err instanceof ApiRequestError
           ? err.problem?.detail ?? err.problem?.title ?? err.message
           : err.message;
-      toast.error("Create failed", { description: detail });
+      toast.error(t("roles.createFailed", { defaultValue: "Create failed" }), { description: detail });
     },
   });
 
@@ -94,7 +96,7 @@ export function CreateRoleDialog({
         else onOpenChange(true);
       }}
     >
-      <DialogContent size="md">
+      <DialogContent size="md" className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
         {/* ── Header ── */}
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -108,22 +110,21 @@ export function CreateRoleDialog({
               <Shield className="h-[18px] w-[18px]" />
             </span>
             <div className="min-w-0">
-              <DialogTitle className="text-[16px]">New role</DialogTitle>
+              <DialogTitle className="text-[16px]">{t("roles.newRole", { defaultValue: "New role" })}</DialogTitle>
             </div>
           </div>
           <DialogDescription className="mt-1">
-            Create a role, then grant it permissions on its detail page. The role name is what shows
-            up in user role assignments — choose something descriptive.
+            {t("roles.createDescription", { defaultValue: "Create a role, then grant it permissions on its detail page. The role name is what shows up in user role assignments — choose something descriptive." })}
           </DialogDescription>
         </DialogHeader>
 
         {/* ── Form ── */}
         <form onSubmit={onSubmit}>
           <DialogBody className="space-y-4">
-            <Field id="cr-name" label="Name" required error={errors.name?.message}>
+            <Field id="cr-name" label={t("roles.name", { defaultValue: "Name" })} required error={errors.name?.message}>
               <Input
                 id="cr-name"
-                placeholder="Support agent"
+                placeholder={t("roles.namePlaceholder", { defaultValue: "Support agent" })}
                 autoComplete="off"
                 aria-invalid={errors.name ? true : undefined}
                 {...register("name")}
@@ -131,13 +132,13 @@ export function CreateRoleDialog({
             </Field>
             <Field
               id="cr-description"
-              label="Description"
-              hint="Optional. Plain English explaining what this role is for."
+              label={t("roles.descriptionLabel", { defaultValue: "Description" })}
+              hint={t("roles.descriptionHint", { defaultValue: "Optional. Explain what this role is for." })}
               error={errors.description?.message}
             >
               <Input
                 id="cr-description"
-                placeholder="Inbound support · read-only on billing"
+                placeholder={t("roles.descriptionPlaceholder", { defaultValue: "Inbound support · read-only on billing" })}
                 aria-invalid={errors.description ? true : undefined}
                 {...register("description")}
               />
@@ -152,10 +153,10 @@ export function CreateRoleDialog({
               onClick={handleClose}
               disabled={submitting}
             >
-              Cancel
+              {t("common.cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Saving…" : "Create role"}
+              {submitting ? t("roles.saving", { defaultValue: "Saving…" }) : t("roles.createRole", { defaultValue: "Create role" })}
             </Button>
           </DialogFooter>
         </form>

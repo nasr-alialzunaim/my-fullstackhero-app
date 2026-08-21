@@ -1,34 +1,34 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { CreditCard } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useTranslation } from "react-i18next";
 import { EntityPageHeader } from "@/components/list";
 
-type Tab = { to: string; label: string };
-
-const TABS: Tab[] = [
-  { to: "/billing/plans", label: "Plans" },
-  { to: "/billing/invoices", label: "Invoices" },
-];
+const TAB_KEYS = [
+  { to: "/billing/plans", key: "plans" },
+  { to: "/billing/invoices", key: "invoices" },
+] as const;
 
 /**
  * BillingLayout — page hero + horizontal tabbed sub-nav. Child routes render
  * inside `<Outlet />`.
  */
 export function BillingLayout() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <EntityPageHeader
         icon={CreditCard}
         tone="saffron"
-        title="Billing"
-        description="Manage plans, subscriptions, and invoices across every tenant on this instance."
+        title={t("billing.title", { defaultValue: "Billing" })}
+        description={t("billing.description", { defaultValue: "Manage plans, subscriptions, and invoices across every tenant on this instance." })}
       />
 
       <nav
         className="flex items-center gap-1 border-b border-[var(--color-border)]"
-        aria-label="Billing sections"
+        aria-label={t("billing.sections", { defaultValue: "Billing sections" })}
       >
-        {TABS.map((tab) => (
+        {TAB_KEYS.map((tab) => (
           <NavLink
             key={tab.to}
             to={tab.to}
@@ -41,7 +41,7 @@ export function BillingLayout() {
               )
             }
           >
-            {tab.label}
+            {t(`billing.${tab.key}`, { defaultValue: tab.key === "plans" ? "Plans" : "Invoices" })}
           </NavLink>
         ))}
       </nav>
