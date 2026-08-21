@@ -21,6 +21,7 @@ import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/auth/use-auth";
 import { BillingPermissions } from "@/lib/permissions";
+import { useTranslation } from "react-i18next";
 
 // ─── helpers ─────────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ function describe(err: unknown, fallback: string): string {
 // ─── component ───────────────────────────────────────────────────────
 
 export function InvoiceDetailPage() {
+  const { t } = useTranslation();
   const { invoiceId = "" } = useParams<{ invoiceId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -99,36 +101,36 @@ export function InvoiceDetailPage() {
   // could be stale if the query refetched between render and click.
   const downloadMutation = useMutation({
     mutationFn: ({ id, number }: { id: string; number: string }) => downloadInvoicePdf(id, number),
-    onError: (err) => toast.error("Download failed", { description: describe(err, "Could not download the invoice PDF.") }),
+    onError: (err) => toast.error(t("billing.downloadFailed", { defaultValue: "Download failed" }), { description: describe(err, t("billing.downloadInvoiceFailed", { defaultValue: "Could not download the invoice PDF." })) }),
   });
 
   const issueMutation = useMutation({
     mutationFn: () => issueInvoice(invoiceId, dueAt ? new Date(dueAt).toISOString() : null),
     onSuccess: () => {
-      toast.success("Invoice issued", { description: "Status moved to Issued." });
+      toast.success(t("billing.invoiceIssued", { defaultValue: "Invoice issued" }), { description: t("billing.statusMovedIssued", { defaultValue: "Status moved to Issued." }) });
       setDueAt("");
       invalidate();
     },
-    onError: (err) => toast.error("Issue failed", { description: describe(err, "Could not issue invoice.") }),
+    onError: (err) => toast.error(t("billing.issueFailed", { defaultValue: "Issue failed" }), { description: describe(err, t("billing.issueInvoiceFailed", { defaultValue: "Could not issue invoice." })) }),
   });
 
   const payMutation = useMutation({
     mutationFn: () => markInvoicePaid(invoiceId),
     onSuccess: () => {
-      toast.success("Marked paid");
+      toast.success(t("billing.markedPaid", { defaultValue: "Marked paid" }));
       invalidate();
     },
-    onError: (err) => toast.error("Mark-paid failed", { description: describe(err, "Could not mark paid.") }),
+    onError: (err) => toast.error(t("billing.markPaidFailed", { defaultValue: "Mark-paid failed" }), { description: describe(err, t("billing.markPaidInvoiceFailed", { defaultValue: "Could not mark paid." })) }),
   });
 
   const voidMutation = useMutation({
     mutationFn: () => voidInvoice(invoiceId, voidReason.trim() ? voidReason.trim() : null),
     onSuccess: () => {
-      toast.success("Invoice voided");
+      toast.success(t("billing.invoiceVoided", { defaultValue: "Invoice voided" }));
       setVoidReason("");
       invalidate();
     },
-    onError: (err) => toast.error("Void failed", { description: describe(err, "Could not void invoice.") }),
+    onError: (err) => toast.error(t("billing.voidFailed", { defaultValue: "Void failed" }), { description: describe(err, t("billing.voidInvoiceFailed", { defaultValue: "Could not void invoice." })) }),
   });
 
   // ── render ─────────────────────────────────────────────────────────
@@ -137,7 +139,7 @@ export function InvoiceDetailPage() {
     <div className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" onClick={() => navigate("/billing/invoices")} className="-ml-2 mb-4">
-          <ArrowLeft className="mr-1 h-4 w-4" /> All invoices
+          <ArrowLeft className="mr-1 h-4 w-4" /> {t("billing.allInvoices", { defaultValue: "All invoices" })}
         </Button>
 
         {query.isLoading ? (
@@ -159,10 +161,10 @@ export function InvoiceDetailPage() {
                 <code className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-tight">
                   {invoice.invoiceNumber}
                 </code>
-                <Badge variant={statusVariant(invoice.status)}>{invoice.status}</Badge>
+                <Badge variant={statusVariant(invoice.status)}>{t(`billing.invoiceStatus.${invoice.status}`, { defaultValue: invoice.status })}</Badge>
                 {invoice.purpose && (
                   <Badge variant="outline">
-                    {invoice.purpose === "Subscription" ? "Subscription" : "Usage"}
+                    {invoice.purpose === "Subscription" ? t("billing.subscription", { defaultValue: "Subscription" }) : t("billing.usage", { defaultValue: "Usage" })}
                   </Badge>
                 )}
                 <span className="font-mono text-[11px] text-[var(--color-muted-foreground)]">
@@ -192,10 +194,10 @@ export function InvoiceDetailPage() {
                   downloadMutation.mutate({ id: invoice.id, number: invoice.invoiceNumber })
                 }
                 disabled={downloadMutation.isPending}
-                title="Download this invoice as a PDF"
+                title={t("billing.downloadInvoice", { defaultValue: "Download this invoice as a PDF" })}
               >
                 <Download className="mr-1.5 h-3.5 w-3.5" />
-                {downloadMutation.isPending ? "Preparing…" : "Download PDF"}
+                {downloadMutation.isPending ? t("billing.preparing", { defaultValue: "Preparing…" }) : t("billing.downloadPdf", { defaultValue: "Download PDF" })}
               </Button>
             )}
           </EntityPageHeader>
@@ -205,13 +207,13 @@ export function InvoiceDetailPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Line items */}
         <SettingsSection
-          title="Line items"
+          title={t("billing.lineItems", { defaultValue: "Line items" })}
           description={
             invoice
-              ? `${invoice.lineItems.length} line${invoice.lineItems.length === 1 ? "" : "s"}`
+              ? t("billing.lineCount", { count: invoice.lineItems.length, defaultValue: `${invoice.lineItems.length} line${invoice.lineItems.length === 1 ? "" : "s"}` })
               : query.isError
-                ? "Unavailable"
-                : "Loading…"
+                ? t("billing.unavailable", { defaultValue: "Unavailable" })
+                : t("billing.loading", { defaultValue: "Loading…" })
           }
         >
           {query.isError ? (
@@ -229,7 +231,7 @@ export function InvoiceDetailPage() {
             </ul>
           ) : invoice && invoice.lineItems.length === 0 ? (
             <div className="py-8 text-center text-sm text-[var(--color-muted-foreground)]">
-              No line items.
+              {t("billing.noLineItems", { defaultValue: "No line items." })}
             </div>
           ) : invoice ? (
             <ul className="-mx-5 border-t border-[var(--color-border)]">
@@ -238,7 +240,7 @@ export function InvoiceDetailPage() {
               ))}
               <li className="grid grid-cols-[1fr_auto] items-baseline gap-x-6 border-t-2 border-[var(--color-border-strong)] px-5 py-4">
                 <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                  subtotal
+                  {t("billing.subtotal", { defaultValue: "subtotal" })}
                 </div>
                 <div className="text-display text-xl font-semibold tabular-nums">
                   {formatMoney(invoice.subtotalAmount, invoice.currency)}
@@ -259,11 +261,11 @@ export function InvoiceDetailPage() {
               {/* Issue */}
               <SettingsSection
                 icon={Send}
-                title="Issue"
-                description="Transition from Draft to Issued status."
+                title={t("billing.issue", { defaultValue: "Issue" })}
+                description={t("billing.issueDescription", { defaultValue: "Transition from Draft to Issued status." })}
               >
                 <div className={cn("space-y-3", invoice.status !== "Draft" && "opacity-60")}>
-                  <Field id="dueAt" label="Due date" hint="Leave blank for server default (+14 days).">
+                  <Field id="dueAt" label={t("billing.dueDate", { defaultValue: "Due date" })} hint={t("billing.dueDateHint", { defaultValue: "Leave blank for server default (+14 days)." })}>
                     <Input
                       id="dueAt"
                       type="date"
@@ -278,7 +280,7 @@ export function InvoiceDetailPage() {
                     onClick={() => issueMutation.mutate()}
                     className="w-full"
                   >
-                    {issueMutation.isPending ? "Issuing…" : "Issue invoice"}
+                    {issueMutation.isPending ? t("billing.issuing", { defaultValue: "Issuing…" }) : t("billing.issueInvoice", { defaultValue: "Issue invoice" })}
                   </Button>
                 </div>
               </SettingsSection>
@@ -286,8 +288,8 @@ export function InvoiceDetailPage() {
               {/* Mark paid */}
               <SettingsSection
                 icon={CheckCircle2}
-                title="Mark paid"
-                description="Records manual payment receipt. Idempotent."
+                title={t("billing.markPaid", { defaultValue: "Mark paid" })}
+                description={t("billing.markPaidDescription", { defaultValue: "Records manual payment receipt. Idempotent." })}
               >
                 <div className={cn(invoice.status !== "Issued" && "opacity-60")}>
                   <Button
@@ -296,7 +298,7 @@ export function InvoiceDetailPage() {
                     onClick={() => payMutation.mutate()}
                     className="w-full"
                   >
-                    {payMutation.isPending ? "Saving…" : "Mark as paid"}
+                    {payMutation.isPending ? t("billing.saving", { defaultValue: "Saving…" }) : t("billing.markAsPaid", { defaultValue: "Mark as paid" })}
                   </Button>
                 </div>
               </SettingsSection>
@@ -304,8 +306,8 @@ export function InvoiceDetailPage() {
               {/* Void */}
               <SettingsSection
                 icon={Ban}
-                title="Void"
-                description="Cancel from Draft or Issued. Irreversible."
+                title={t("billing.void", { defaultValue: "Void" })}
+                description={t("billing.voidDescription", { defaultValue: "Cancel from Draft or Issued. Irreversible." })}
               >
                 <div
                   className={cn(
@@ -313,10 +315,10 @@ export function InvoiceDetailPage() {
                     (invoice.status === "Paid" || invoice.status === "Void") && "opacity-60",
                   )}
                 >
-                  <Field id="voidReason" label="Reason" hint="Optional — appended to notes.">
+                  <Field id="voidReason" label={t("billing.reason", { defaultValue: "Reason" })} hint={t("billing.reasonHint", { defaultValue: "Optional — appended to notes." })}>
                     <Input
                       id="voidReason"
-                      placeholder="duplicate · disputed · …"
+                      placeholder={t("billing.voidReasonPlaceholder", { defaultValue: "duplicate · disputed · …" })}
                       value={voidReason}
                       onChange={(e) => setVoidReason(e.target.value)}
                       disabled={
@@ -337,7 +339,7 @@ export function InvoiceDetailPage() {
                     onClick={() => voidMutation.mutate()}
                     className="w-full"
                   >
-                    {voidMutation.isPending ? "Voiding…" : "Void invoice"}
+                    {voidMutation.isPending ? t("billing.voiding", { defaultValue: "Voiding…" }) : t("billing.voidInvoice", { defaultValue: "Void invoice" })}
                   </Button>
                 </div>
               </SettingsSection>
@@ -345,7 +347,7 @@ export function InvoiceDetailPage() {
               )}
 
               {invoice.notes && (
-                <SettingsSection title="Notes">
+                <SettingsSection title={t("billing.notes", { defaultValue: "Notes" })}>
                   <p className="whitespace-pre-line text-xs text-[var(--color-foreground)]">
                     {invoice.notes}
                   </p>

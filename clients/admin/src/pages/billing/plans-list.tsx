@@ -10,6 +10,7 @@ import { PlanFormDialog } from "@/components/billing/plan-form-dialog";
 import { ApiRequestError } from "@/lib/api-client";
 import { useAuth } from "@/auth/use-auth";
 import { BillingPermissions } from "@/lib/permissions";
+import { useTranslation } from "react-i18next";
 
 // ─── helpers ──────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ function describe(err: unknown): string {
 // ─── component ────────────────────────────────────────────────────────
 
 export function PlansListPage() {
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BillingPlanDto | undefined>(undefined);
   const { user: currentUser } = useAuth();
@@ -78,17 +80,17 @@ export function PlansListPage() {
       {/* KPI strip */}
       <StatStrip cols={3}>
         <Stat
-          label="Plans"
+          label={t("billing.plans", { defaultValue: "Plans" })}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : totals.count}
-          hint={`${totals.active} active`}
+          hint={t("billing.activeCount", { count: totals.active, defaultValue: `${totals.active} active` })}
         />
         <Stat
-          label="Active"
+          label={t("billing.active", { defaultValue: "Active" })}
           value={query.isLoading ? <Skeleton className="h-7 w-16" /> : totals.active}
-          hint={totals.count - totals.active > 0 ? `${totals.count - totals.active} inactive` : "all active"}
+          hint={totals.count - totals.active > 0 ? t("billing.inactiveCount", { count: totals.count - totals.active, defaultValue: `${totals.count - totals.active} inactive` }) : t("billing.allActive", { defaultValue: "all active" })}
         />
         <Stat
-          label="Average base"
+          label={t("billing.averageBase", { defaultValue: "Average base" })}
           value={
             query.isLoading ? (
               <Skeleton className="h-7 w-24" />
@@ -96,19 +98,19 @@ export function PlansListPage() {
               formatMoney(totals.averagePrice, totals.currency)
             )
           }
-          hint="monthly subscription fee"
+          hint={t("billing.monthlyFee", { defaultValue: "monthly subscription fee" })}
         />
       </StatStrip>
 
       {/* Plans list */}
       <SettingsSection
         icon={Tag}
-        title="All plans"
-        description="Pricing schedule used by tenant subscriptions and invoice generation."
+        title={t("billing.allPlans", { defaultValue: "All plans" })}
+        description={t("billing.plansDescription", { defaultValue: "Pricing schedule used by tenant subscriptions and invoice generation." })}
         footer={
           canManageBilling ? (
             <Button onClick={openCreate}>
-              <Plus className="mr-1 h-4 w-4" /> New plan
+              <Plus className="mr-1 h-4 w-4" /> {t("billing.newPlan", { defaultValue: "New plan" })}
             </Button>
           ) : undefined
         }
@@ -130,7 +132,7 @@ export function PlansListPage() {
           </ul>
         ) : plans.length === 0 ? (
           <div className="py-10 text-center text-sm text-[var(--color-muted-foreground)]">
-            No plans yet. Create your first plan to start charging tenants.
+            {t("billing.noPlans", { defaultValue: "No plans yet. Create your first plan to start charging tenants." })}
           </div>
         ) : (
           <ul className="-mx-5 border-t border-[var(--color-border)]">
@@ -147,16 +149,16 @@ export function PlansListPage() {
                       {plan.key}
                     </code>
                     <span className="font-display text-base font-semibold">{plan.name}</span>
-                    <Badge variant="outline">{plan.interval === "Yearly" ? "Yearly" : "Monthly"}</Badge>
+                    <Badge variant="outline">{plan.interval === "Yearly" ? t("billing.yearly", { defaultValue: "Yearly" }) : t("billing.monthly", { defaultValue: "Monthly" })}</Badge>
                     {plan.isActive ? (
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="success">{t("billing.active", { defaultValue: "Active" })}</Badge>
                     ) : (
-                      <Badge variant="muted">Inactive</Badge>
+                      <Badge variant="muted">{t("billing.inactive", { defaultValue: "Inactive" })}</Badge>
                     )}
                   </div>
                   <div className="mt-1 font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                    currency {plan.currency} ·{" "}
-                    overage {formatOverageRates(plan.overageRates, plan.currency)}
+                    {t("billing.currency", { defaultValue: "currency" })} {plan.currency} ·{" "}
+                    {t("billing.overage", { defaultValue: "overage" })} {formatOverageRates(plan.overageRates, plan.currency)}
                   </div>
                 </div>
 
@@ -167,14 +169,14 @@ export function PlansListPage() {
                       {formatMoney(planTermPrice(plan), plan.currency)}
                     </div>
                     <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--color-muted-foreground)]">
-                      {plan.interval === "Yearly" ? "per year" : "per month"}
+                      {plan.interval === "Yearly" ? t("billing.perYear", { defaultValue: "per year" }) : t("billing.perMonth", { defaultValue: "per month" })}
                     </div>
                   </div>
                   {canManageBilling && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Edit ${plan.name}`}
+                      aria-label={t("billing.editPlan", { name: plan.name, defaultValue: `Edit ${plan.name}` })}
                       onClick={() => openEdit(plan)}
                     >
                       <Pencil className="h-4 w-4" />

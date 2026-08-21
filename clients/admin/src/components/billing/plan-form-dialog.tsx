@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { useTranslation } from "react-i18next";
 
 const PLAN_KEY_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$/;
 
@@ -175,26 +176,27 @@ export function PlanFormDialog({
   const pricingInvalid =
     !!fieldError(requiredNonNegative, monthlyBasePrice) || !!annualError || hasOverageError;
 
+  const { t } = useTranslation();
   const onClose = () => onOpenChange(false);
 
   const createMutation = useMutation({
     mutationFn: createPlan,
     onSuccess: () => {
-      toast.success(`Plan "${name}" created`);
+      toast.success(t("billing.planCreated", { name, defaultValue: "Plan \"{{name}}\" created" }));
       queryClient.invalidateQueries({ queryKey: ["billing", "plans"] });
       onClose();
     },
-    onError: (err) => toast.error("Create failed", { description: describe(err, "Could not create plan.") }),
+    onError: (err) => toast.error(t("billing.createFailed", { defaultValue: "Create failed" }), { description: describe(err, t("billing.createPlanFailed", { defaultValue: "Could not create plan." })) }),
   });
 
   const updateMutation = useMutation({
     mutationFn: updatePlan,
     onSuccess: () => {
-      toast.success(`Plan "${name}" updated`);
+      toast.success(t("billing.planUpdated", { name, defaultValue: "Plan \"{{name}}\" updated" }));
       queryClient.invalidateQueries({ queryKey: ["billing", "plans"] });
       onClose();
     },
-    onError: (err) => toast.error("Update failed", { description: describe(err, "Could not update plan.") }),
+    onError: (err) => toast.error(t("billing.updateFailed", { defaultValue: "Update failed" }), { description: describe(err, t("billing.updatePlanFailed", { defaultValue: "Could not update plan." })) }),
   });
 
   const pending = createMutation.isPending || updateMutation.isPending;
@@ -229,7 +231,7 @@ export function PlanFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg">
+      <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <span
@@ -240,12 +242,12 @@ export function PlanFormDialog({
             >
               <CreditCard className="h-[18px] w-[18px]" />
             </span>
-            <DialogTitle className="text-[16px]">{isEdit ? "Edit plan" : "New plan"}</DialogTitle>
+            <DialogTitle className="text-[16px]">{isEdit ? t("billing.editPlanTitle", { defaultValue: "Edit plan" }) : t("billing.newPlan", { defaultValue: "New plan" })}</DialogTitle>
           </div>
           <DialogDescription className="mt-1">
             {isEdit
-              ? "Update name, pricing, interval, or overage rates. Key and currency are immutable."
-              : "Plan keys are canonical slugs used by tenant subscriptions and quota configuration."}
+              ? t("billing.editPlanDescription", { defaultValue: "Update name, pricing, interval, or overage rates. Key and currency are immutable." })
+              : t("billing.newPlanDescription", { defaultValue: "Plan keys are canonical slugs used by tenant subscriptions and quota configuration." })}
           </DialogDescription>
         </DialogHeader>
 
@@ -255,37 +257,37 @@ export function PlanFormDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={CreditCard}
-                title="Plan details"
-                description="Identity + pricing. The interval sets the term length and how often the tenant is billed."
+                title={t("billing.planDetails", { defaultValue: "Plan details" })}
+                description={t("billing.planDetailsDescription", { defaultValue: "Identity + pricing. The interval sets the term length and how often the tenant is billed." })}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="pf-key"
-                  label="Key"
-                  hint="Lowercase slug (e.g. 'pro', 'team-2025'). Immutable."
+                  label={t("billing.key", { defaultValue: "Key" })}
+                  hint={t("billing.keyHint", { defaultValue: "Lowercase slug (e.g. 'pro', 'team-2025'). Immutable." })}
                   required={!isEdit}
-                  error={keyInvalid ? "Invalid slug." : undefined}
+                  error={keyInvalid ? t("billing.invalidSlug", { defaultValue: "Invalid slug." }) : undefined}
                 >
                   <Input
                     id="pf-key"
                     value={key}
                     onChange={(e) => setKey(e.target.value)}
-                    placeholder="pro"
+                    placeholder={t("billing.keyPlaceholder", { defaultValue: "pro" })}
                     className="font-mono"
                     disabled={isEdit}
                     autoComplete="off"
                   />
                 </Field>
-                <Field id="pf-name" label="Display name" required>
-                  <Input id="pf-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Pro" />
+                <Field id="pf-name" label={t("billing.displayName", { defaultValue: "Display name" })} required>
+                  <Input id="pf-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("billing.namePlaceholder", { defaultValue: "Pro" })} />
                 </Field>
-                <Field id="pf-currency" label="Currency" hint="ISO 4217. Immutable." required={!isEdit}>
+                <Field id="pf-currency" label={t("billing.currencyLabel", { defaultValue: "Currency" })} hint={t("billing.currencyHint", { defaultValue: "ISO 4217. Immutable." })} required={!isEdit}>
                   <Input
                     id="pf-currency"
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                    placeholder="USD"
+                    placeholder={t("billing.currencyPlaceholder", { defaultValue: "USD" })}
                     className="font-mono"
                     disabled={isEdit}
                     autoComplete="off"
@@ -293,8 +295,8 @@ export function PlanFormDialog({
                 </Field>
                 <Field
                   id="pf-monthlyBasePrice"
-                  label="Monthly base price"
-                  hint="Canonical monthly rate; the term price for monthly plans."
+                  label={t("billing.monthlyBasePrice", { defaultValue: "Monthly base price" })}
+                  hint={t("billing.monthlyBasePriceHint", { defaultValue: "Canonical monthly rate; the term price for monthly plans." })}
                   required
                   error={priceError}
                 >
@@ -306,7 +308,7 @@ export function PlanFormDialog({
                     placeholder="29.00"
                   />
                 </Field>
-                <Field id="pf-interval" label="Billing interval" required>
+                <Field id="pf-interval" label={t("billing.billingInterval", { defaultValue: "Billing interval" })} required>
                   <Select<PlanInterval>
                     id="pf-interval"
                     value={interval}
@@ -317,8 +319,8 @@ export function PlanFormDialog({
                 {interval === "Yearly" && (
                   <Field
                     id="pf-annualPrice"
-                    label="Annual price"
-                    hint="Per yearly term. Blank → 12× monthly."
+                    label={t("billing.annualPrice", { defaultValue: "Annual price" })}
+                    hint={t("billing.annualPriceHint", { defaultValue: "Per yearly term. Blank → 12× monthly." })}
                     error={annualError}
                   >
                     <Input
@@ -337,8 +339,8 @@ export function PlanFormDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={Gauge}
-                title="Overage rates"
-                description="Per-unit price when a tenant exceeds the plan limit. Leave blank to skip a resource."
+                title={t("billing.overageRates", { defaultValue: "Overage rates" })}
+                description={t("billing.overageRatesDescription", { defaultValue: "Per-unit price when a tenant exceeds the plan limit. Leave blank to skip a resource." })}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
@@ -364,10 +366,10 @@ export function PlanFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
-              Cancel
+              {t("actions.cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button type="submit" disabled={pending || keyInvalid || pricingInvalid}>
-              {pending ? "Saving…" : isEdit ? "Save changes" : "Create plan"}
+              {pending ? t("billing.saving", { defaultValue: "Saving…" }) : isEdit ? t("billing.saveChanges", { defaultValue: "Save changes" }) : t("billing.createPlan", { defaultValue: "Create plan" })}
             </Button>
           </DialogFooter>
         </form>
