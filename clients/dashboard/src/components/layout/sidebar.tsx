@@ -150,23 +150,25 @@ export function Sidebar() {
           )}
         </div>
 
-        {!collapsed && (
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label="Collapse sidebar"
-            aria-expanded={!collapsed}
-            title="Collapse sidebar"
-            className={cn(
-              "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
-              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-            )}
-          >
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={cn(
+            "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
+            "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          )}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" aria-hidden />
+          ) : (
             <PanelLeftClose className="h-4 w-4" aria-hidden />
-          </button>
-        )}
+          )}
+        </button>
       </div>
 
       <SidebarNavBody
