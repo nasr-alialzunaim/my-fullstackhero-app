@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Web;
+using FSH.Framework.Web;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
@@ -74,6 +74,7 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
+    typeof(FSH.Modules.DNA.DnaModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,

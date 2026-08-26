@@ -113,6 +113,7 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
+    typeof(FSH.Modules.DNA.DnaModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,
