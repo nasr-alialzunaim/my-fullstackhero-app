@@ -1,10 +1,12 @@
 using Asp.Versioning;
 using FSH.Framework.Persistence;
-using FSH.Framework.Web.Modules;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Identity.Authorization;
+using FSH.Framework.Web.Modules;
 using FSH.Modules.DNA.Contracts.Authorization;
 using FSH.Modules.DNA.Data;
+using FSH.Modules.DNA.Features.v1.Cases.CreateCase;
+using FSH.Modules.DNA.Features.v1.Cases.ListCases;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -33,7 +35,7 @@ public sealed class DnaModule : IModule
 
     public void ConfigureMiddleware(IApplicationBuilder app)
     {
-        // DNA has no custom middleware in the skeleton phase.
+        // DNA has no custom middleware in this phase.
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -45,18 +47,22 @@ public sealed class DnaModule : IModule
             .ReportApiVersions()
             .Build();
 
-        endpoints.MapGroup("api/v{version:apiVersion}/dna")
+        var dna = endpoints.MapGroup("api/v{version:apiVersion}/dna")
             .WithTags("DNA")
             .WithApiVersionSet(versionSet)
-            .RequireAuthorization()
-            .MapGet("", () => Results.Ok(new
+            .RequireAuthorization();
+
+        dna.MapGet("", () => Results.Ok(new
             {
                 module = "DNA",
-                status = "skeleton",
-                message = "DNA module is registered and ready for Phase 2."
+                status = "ready",
+                message = "DNA module is registered and ready for Cases."
             }))
             .WithName("GetDnaModuleStatus")
             .WithSummary("Get DNA module status")
             .RequirePermission(DnaPermissions.ModuleAccess.View);
+
+        dna.MapCreateCaseEndpoint();
+        dna.MapListCasesEndpoint();
     }
 }

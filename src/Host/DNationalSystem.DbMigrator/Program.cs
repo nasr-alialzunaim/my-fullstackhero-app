@@ -93,6 +93,9 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Billing.BillingModule),
         typeof(FSH.Modules.Catalog.Contracts.CatalogContractsMarker),
         typeof(FSH.Modules.Catalog.CatalogModule),
+
+        typeof(FSH.Modules.DNA.Contracts.v1.Cases.CreateCaseCommand),
+        typeof(FSH.Modules.DNA.Features.v1.Cases.CreateCase.CreateCaseCommandHandler),
         typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
         typeof(FSH.Modules.Tickets.TicketsModule),
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
@@ -103,6 +106,7 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Notifications.NotificationsModule),
     ];
 });
+
 
 var moduleAssemblies = new Assembly[]
 {

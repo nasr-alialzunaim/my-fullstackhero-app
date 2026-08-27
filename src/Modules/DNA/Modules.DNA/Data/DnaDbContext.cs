@@ -12,6 +12,8 @@ public sealed class DnaDbContext : BaseDbContext
 {
     public const string Schema = "dna";
 
+    public DbSet<Domain.DnaCase> Cases => Set<Domain.DnaCase>();
+
     public DnaDbContext(
         IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
         DbContextOptions<DnaDbContext> options,
