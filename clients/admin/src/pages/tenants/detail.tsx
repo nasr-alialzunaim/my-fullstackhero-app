@@ -177,7 +177,7 @@ export function TenantDetailPage() {
                     )}
                     <Badge variant="outline">
                       <CalendarClock className="h-3 w-3" />
-                      Valid until {formatDate(tenant.validUpto)}
+                      {t("tenants.validUntil", { defaultValue: "Valid until" })} {formatDate(tenant.validUpto)}
                     </Badge>
                     {tenant.issuer && (
                       <Badge variant="outline" className="font-mono text-[10.5px]">
@@ -276,14 +276,11 @@ export function TenantDetailPage() {
             description={
               tenant.isActive ? (
                 <>
-                  Users of <strong className="text-[var(--color-foreground)]">{tenant.name}</strong> will
-                  be blocked from signing in and all their API requests will be rejected until you
-                  reactivate the tenant.
+                  {t("tenants.deactivateDescription", { defaultValue: "Users of" })} <strong className="text-[var(--color-foreground)]">{tenant.name}</strong> {t("tenants.deactivateDescriptionRest", { defaultValue: "will be blocked from signing in and all their API requests will be rejected until you reactivate the tenant." })}
                 </>
               ) : (
                 <>
-                  <strong className="text-[var(--color-foreground)]">{tenant.name}</strong>&apos;s users
-                  will be able to sign in and use the platform again.
+                  <strong className="text-[var(--color-foreground)]">{tenant.name}</strong> {t("tenants.activateDescription", { defaultValue: "users will be able to sign in and use the platform again." })}
                 </>
               )
             }
@@ -429,7 +426,7 @@ function ProvisioningPanel({
   canRetry?: boolean;
 }) {
   const { t } = useTranslation();
-  const overall = notTracked ? "Not tracked" : status ?? (loading ? "Loading" : "Unknown");
+  const overall = notTracked ? t("tenants.notTracked", { defaultValue: "Not tracked" }) : status === "Completed" ? t("tenants.completed", { defaultValue: "Completed" }) : status === "Failed" ? t("tenants.failed", { defaultValue: "Failed" }) : status === "Running" ? t("tenants.running", { defaultValue: "Running" }) : loading ? t("tenants.loadingShort", { defaultValue: "Loading" }) : t("tenants.unknown", { defaultValue: "Unknown" });
 
   const overallVariant =
     status === "Completed"
@@ -448,7 +445,7 @@ function ProvisioningPanel({
           <OverallStatusDot status={notTracked ? "NotTracked" : (status ?? "Unknown")} />
           <Badge variant={overallVariant}>
             {status === "Failed"
-              ? `Failed at ${currentStep ?? "unknown step"}`
+              ? t("tenants.failedAt", { defaultValue: "Failed at {{step}}", step: currentStep ?? t("tenants.unknownStep", { defaultValue: "unknown step" }) })
               : currentStep
                 ? `${overall} · ${currentStep}`
                 : overall}
@@ -457,7 +454,7 @@ function ProvisioningPanel({
         {status === "Failed" && canRetry && (
           <Button size="sm" variant="outline" onClick={onRetry} disabled={retryPending}>
             <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", retryPending && "animate-spin")} />
-            {retryPending ? "Re-queuing…" : "Retry provisioning"}
+            {retryPending ? t("tenants.requeuing", { defaultValue: "Re-queuing…" }) : t("tenants.retryProvisioning", { defaultValue: "Retry provisioning" })}
           </Button>
         )}
       </div>
@@ -474,13 +471,12 @@ function ProvisioningPanel({
             className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]"
           />
           <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
-            This tenant wasn't created through the provisioning pipeline, so there's no run
-            history to show. Tenants created via the console report their seed/migrate steps here.
+            {t("tenants.notTrackedDescription", { defaultValue: "This tenant wasn't created through the provisioning pipeline, so there's no run history to show. Tenants created via the console report their seed/migrate steps here." })}
           </p>
         </div>
       ) : steps.length === 0 ? (
         <p className="text-[13px] text-[var(--color-muted-foreground)]">
-          No provisioning runs recorded.
+          {t("tenants.noRuns", { defaultValue: "No provisioning runs recorded." })}
         </p>
       ) : (
         <StepTimeline steps={steps} />

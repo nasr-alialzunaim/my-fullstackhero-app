@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Web;
+using FSH.Framework.Web;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
@@ -55,6 +55,9 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Billing.BillingModule),
         typeof(FSH.Modules.Catalog.Contracts.CatalogContractsMarker),
         typeof(FSH.Modules.Catalog.CatalogModule),
+
+        typeof(FSH.Modules.DNA.Contracts.v1.Cases.CreateCaseCommand),
+        typeof(FSH.Modules.DNA.Features.v1.Cases.CreateCase.CreateCaseCommandHandler),
         typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
         typeof(FSH.Modules.Tickets.TicketsModule),
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
@@ -65,6 +68,7 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Notifications.NotificationsModule)];
 });
 
+
 var moduleAssemblies = new Assembly[]
 {
     typeof(IdentityModule).Assembly,
@@ -74,6 +78,7 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
+    typeof(FSH.Modules.DNA.DnaModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,

@@ -1,5 +1,6 @@
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Chat.Contracts;
+using FSH.Modules.DNA.Contracts;
 using FSH.Modules.Identity.Contracts;
 using FSH.Modules.Multitenancy.Contracts;
 using NetArchTest.Rules;
@@ -19,6 +20,7 @@ public class ContractsPurityTests
     [
         typeof(AuditingContractsMarker).Assembly,
         typeof(ChatContractsMarker).Assembly,
+        typeof(DnaContractsMarker).Assembly,
         typeof(IdentityContractsMarker).Assembly,
         typeof(MultitenancyContractsMarker).Assembly
     ];
@@ -93,6 +95,10 @@ public class ContractsPurityTests
             "FSH.Modules.Chat.Features",
             "FSH.Modules.Chat.Data",
             "FSH.Modules.Chat.Domain",
+            "FSH.Modules.DNA.Data",
+            "FSH.Modules.DNA.Domain",
+            "FSH.Modules.DNA.Features",
+            "FSH.Modules.DNA.Persistence",
             "FSH.Modules.Identity.Features",
             "FSH.Modules.Identity.Data",
             "FSH.Modules.Identity.Persistence",

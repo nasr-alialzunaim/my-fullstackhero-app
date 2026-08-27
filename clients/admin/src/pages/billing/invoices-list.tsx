@@ -225,12 +225,12 @@ export function InvoicesListPage() {
                 setStatusFilter(v as InvoiceStatus | "");
                 setPageNumber(1);
               }}
-              options={STATUSES.map((s) => ({ value: s, label: s }))}
-              emptyLabel="All"
+              options={STATUSES.map((s) => ({ value: s, label: t(`billing.invoiceStatus.${s}`, { defaultValue: s }) }))}
+              emptyLabel={t("billing.all", { defaultValue: "All" })}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="filter-year">Year</Label>
+            <Label htmlFor="filter-year">{t("billing.year", { defaultValue: "Year" })}</Label>
             <Input
               id="filter-year"
               inputMode="numeric"
@@ -243,7 +243,7 @@ export function InvoicesListPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="filter-month">Month</Label>
+            <Label htmlFor="filter-month">{t("billing.month", { defaultValue: "Month" })}</Label>
             <Input
               id="filter-month"
               inputMode="numeric"
@@ -261,16 +261,16 @@ export function InvoicesListPage() {
       {/* List */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoices</CardTitle>
+          <CardTitle>{t("billing.invoiceListTitle", { defaultValue: "Invoices" })}</CardTitle>
           <CardDescription>
             {data ? (
               <>
-                Page <span className="tabular-nums">{data.pageNumber}</span> of{" "}
+                {t("billing.page", { defaultValue: "Page" })} <span className="tabular-nums">{data.pageNumber}</span> {t("billing.of", { defaultValue: "of" })}{" "}
                 <span className="tabular-nums">{Math.max(data.totalPages, 1)}</span> ·{" "}
-                <span className="tabular-nums">{data.totalCount.toLocaleString()}</span> total
+                <span className="tabular-nums">{data.totalCount.toLocaleString()}</span> {t("billing.total", { defaultValue: "total" })}
               </>
             ) : (
-              "Loading…"
+              t("billing.loading", { defaultValue: "Loading…" })
             )}
           </CardDescription>
         </CardHeader>
@@ -297,7 +297,7 @@ export function InvoicesListPage() {
             </ul>
           ) : items.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-[var(--color-muted-foreground)]">
-              No invoices match the current filters.
+              {t("billing.noInvoiceMatches", { defaultValue: "No invoices match the current filters." })}
             </div>
           ) : (
             <ul>
@@ -324,22 +324,22 @@ export function InvoicesListPage() {
                         <code className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[11px] font-medium tracking-tight">
                           {inv.invoiceNumber}
                         </code>
-                        <Badge variant={statusVariant(inv.status)}>{inv.status}</Badge>
+                        <Badge variant={statusVariant(inv.status)}>{t(`billing.invoiceStatus.${inv.status}`, { defaultValue: inv.status })}</Badge>
                         {inv.purpose && (
                           <Badge variant="outline">
-                            {inv.purpose === "Subscription" ? "Subscription" : "Usage"}
+                            {inv.purpose === "Subscription" ? t("billing.subscription", { defaultValue: "Subscription" }) : t("billing.usage", { defaultValue: "Usage" })}
                           </Badge>
                         )}
                       </div>
                       <div className="mt-1 truncate font-mono text-[11px] tracking-tight text-[var(--color-muted-foreground)]">
-                        tenant <span className="text-[var(--color-foreground)]">{inv.tenantId}</span> ·
-                        period {formatPeriod(inv.periodYear, inv.periodMonth)} ·
-                        created {formatDate(inv.createdAtUtc)}
+                        {t("billing.tenant", { defaultValue: "tenant" })} <span className="text-[var(--color-foreground)]">{inv.tenantId}</span> ·
+                        {t("billing.period", { defaultValue: "period" })} {formatPeriod(inv.periodYear, inv.periodMonth)} ·
+                        {t("billing.createdOn", { defaultValue: "created" })} {formatDate(inv.createdAtUtc)}
                         {inv.paidAtUtc && (
                           <>
                             {" · "}
                             <span className="text-[var(--color-success)]">
-                              paid {formatDate(inv.paidAtUtc)}
+                              {t("billing.paidOn", { defaultValue: "paid" })} {formatDate(inv.paidAtUtc)}
                             </span>
                           </>
                         )}
@@ -347,7 +347,7 @@ export function InvoicesListPage() {
                           <>
                             {" · "}
                             <span className="text-[var(--color-destructive)]">
-                              voided {formatDate(inv.voidedAtUtc)}
+                              {t("billing.voidedOn", { defaultValue: "voided" })} {formatDate(inv.voidedAtUtc)}
                             </span>
                           </>
                         )}
@@ -362,7 +362,7 @@ export function InvoicesListPage() {
                     </div>
                     {inv.dueAtUtc && inv.status === "Issued" && (
                       <div className="font-mono text-[11px] text-[var(--color-warning)]">
-                        due {formatDate(inv.dueAtUtc)}
+                        {t("billing.due", { defaultValue: "due" })} {formatDate(inv.dueAtUtc)}
                       </div>
                     )}
                   </div>

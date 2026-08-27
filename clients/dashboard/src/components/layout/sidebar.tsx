@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
   PanelLeftClose,
@@ -8,6 +9,7 @@ import {
 import { cn } from "@/lib/cn";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/auth/use-auth";
+import { getMyStatus } from "@/api/billing";
 import {
   findSectionForPath,
   topNavBottom,
@@ -78,6 +80,12 @@ export function Sidebar() {
   const { collapsed, toggle } = useCollapsedSidebar();
   const { t } = useTranslation();
   const location = useLocation();
+  const { data: tenantStatus } = useQuery({
+    queryKey: ["tenant", "me", "status"],
+    queryFn: getMyStatus,
+    staleTime: 60_000,
+  });
+  const tenantName = tenantStatus?.name || "fullstackhero";
 
   // Single-select accordion: which section is currently open. Defaults
   // to the section that owns the current route. Manual clicks override
@@ -133,7 +141,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="flex flex-col">
               <span className="whitespace-nowrap font-display text-[15px] font-bold leading-none tracking-tight text-[var(--color-foreground)]">
-                fullstack<span className="text-[var(--color-primary)]">hero</span>
+                {tenantName}
               </span>
               <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.7)]">
                 Dashboard
@@ -142,23 +150,25 @@ export function Sidebar() {
           )}
         </div>
 
-        {!collapsed && (
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label="Collapse sidebar"
-            aria-expanded={!collapsed}
-            title="Collapse sidebar"
-            className={cn(
-              "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
-              "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
-              "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
-            )}
-          >
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={cn(
+            "grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md",
+            "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]",
+            "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out-cubic)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+          )}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" aria-hidden />
+          ) : (
             <PanelLeftClose className="h-4 w-4" aria-hidden />
-          </button>
-        )}
+          )}
+        </button>
       </div>
 
       <SidebarNavBody

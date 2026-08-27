@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ApiRequestError } from "@/lib/api-client";
+import { useTranslation } from "react-i18next";
 
 // ─── Schema (identical to the old create page) ───────────────────────────────
 
@@ -82,6 +83,7 @@ export function CreateUserDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -116,9 +118,7 @@ export function CreateUserDialog({
         phoneNumber: values.phoneNumber?.trim() || undefined,
       }),
     onSuccess: (result) => {
-      toast.success("User created", {
-        description: result.message ?? "Confirmation email queued.",
-      });
+      toast.success(t("users.created", { defaultValue: "User created" }), { description: result.message ?? t("users.confirmationQueued", { defaultValue: "Confirmation email queued." }) });
       queryClient.invalidateQueries({ queryKey: ["users"] });
       handleClose();
       navigate(result.userId ? `/users/${result.userId}` : "/users");
@@ -128,7 +128,7 @@ export function CreateUserDialog({
         err instanceof ApiRequestError
           ? err.problem?.detail ?? err.problem?.title ?? err.message
           : (err as Error).message;
-      toast.error("Create failed", { description: detail });
+      toast.error(t("users.createFailed", { defaultValue: "Create failed" }), { description: detail });
     },
   });
 
@@ -148,7 +148,7 @@ export function CreateUserDialog({
         else onOpenChange(true);
       }}
     >
-      <DialogContent size="lg">
+      <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
         {/* ── Header ── */}
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -162,12 +162,11 @@ export function CreateUserDialog({
               <Users className="h-[18px] w-[18px]" />
             </span>
             <div className="min-w-0">
-              <DialogTitle className="text-[16px]">New account</DialogTitle>
+              <DialogTitle className="text-[16px]">{t("users.newAccount", { defaultValue: "New account" })}</DialogTitle>
             </div>
           </div>
           <DialogDescription className="mt-1">
-            The new user is created in the current tenant and emailed a confirmation link. Roles can
-            be assigned from the detail page after creation.
+            {t("users.createDescription", { defaultValue: "The new user is created in the current tenant and emailed a confirmation link. Roles can be assigned from the detail page after creation." })}
           </DialogDescription>
         </DialogHeader>
 
@@ -178,15 +177,15 @@ export function CreateUserDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={UserIcon}
-                title="Identity"
-                description="Personal details and the username they'll use to sign in."
+                title={t("users.identity", { defaultValue: "Identity" })}
+                description={t("users.identityDescription", { defaultValue: "Personal details and the username they'll use to sign in." })}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field
                     id="cu-firstName"
-                    label="First name"
+                    label={t("users.firstName", { defaultValue: "First name" })}
                     required
                     error={errors.firstName?.message}
                   >
@@ -199,7 +198,7 @@ export function CreateUserDialog({
                   </Field>
                   <Field
                     id="cu-lastName"
-                    label="Last name"
+                    label={t("users.lastName", { defaultValue: "Last name" })}
                     required
                     error={errors.lastName?.message}
                   >
@@ -214,9 +213,9 @@ export function CreateUserDialog({
 
                 <Field
                   id="cu-userName"
-                  label="Username"
+                  label={t("users.username", { defaultValue: "Username" })}
                   required
-                  hint="Letters, digits, dot, dash or underscore. 3–32 characters."
+                  hint={t("users.usernameHint", { defaultValue: "Letters, digits, dot, dash or underscore. 3–32 characters." })}
                   error={errors.userName?.message}
                 >
                   <Input
@@ -231,7 +230,7 @@ export function CreateUserDialog({
 
                 <Field
                   id="cu-email"
-                  label="Email"
+                  label={t("users.email", { defaultValue: "Email" })}
                   required
                   error={errors.email?.message}
                 >
@@ -248,7 +247,7 @@ export function CreateUserDialog({
 
                 <Field
                   id="cu-phoneNumber"
-                  label="Phone (optional)"
+                  label={t("users.phoneOptional", { defaultValue: "Phone (optional)" })}
                   error={errors.phoneNumber?.message}
                 >
                   <Input
@@ -267,14 +266,14 @@ export function CreateUserDialog({
             <div className="space-y-3">
               <SectionLabel
                 icon={KeyRound}
-                title="Credentials"
-                description="Initial password. The user is encouraged to change it on first sign-in."
+                title={t("users.credentials", { defaultValue: "Credentials" })}
+                description={t("users.credentialsDescription", { defaultValue: "Initial password. The user is encouraged to change it on first sign-in." })}
               />
               <div className="h-px bg-[var(--color-border)] opacity-60" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="cu-password"
-                  label="Password"
+                  label={t("users.password", { defaultValue: "Password" })}
                   required
                   error={errors.password?.message}
                 >
@@ -289,7 +288,7 @@ export function CreateUserDialog({
                 </Field>
                 <Field
                   id="cu-confirmPassword"
-                  label="Confirm password"
+                  label={t("users.confirmPassword", { defaultValue: "Confirm password" })}
                   required
                   error={errors.confirmPassword?.message}
                 >
@@ -314,10 +313,10 @@ export function CreateUserDialog({
               onClick={handleClose}
               disabled={submitting}
             >
-              Cancel
+              {t("common.cancel", { defaultValue: "Cancel" })}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Creating…" : "Create account"}
+              {submitting ? t("users.creating", { defaultValue: "Creating…" }) : t("users.createAccount", { defaultValue: "Create account" })}
             </Button>
           </DialogFooter>
         </form>
