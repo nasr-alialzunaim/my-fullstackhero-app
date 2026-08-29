@@ -1,5 +1,7 @@
-using FSH.Modules.Billing.Contracts.v1.Invoices.GenerateInvoices;
+using FSH.Modules.Billing.Contracts.v1.Invoices;
 using FSH.Modules.Billing.Services;
+
+using Mediator;
 
 namespace FSH.Modules.Billing.Features.v1.Invoices.GenerateInvoices;
 
