@@ -385,7 +385,6 @@ public sealed class ChatSendMessageTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
