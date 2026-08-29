@@ -1,5 +1,4 @@
 using System.Net;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
@@ -17,7 +16,6 @@ internal sealed class UserRoleService(
     UserManager<FshUser> userManager,
     RoleManager<FshRole> roleManager,
     IdentityDbContext db,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     ICurrentUser currentUser,
     IUserPermissionService userPermissionService) : IUserRoleService
 {
@@ -106,8 +104,7 @@ internal sealed class UserRoleService(
 
     private bool IsRootTenantAdmin(FshUser user)
     {
-        return user.Email == MultitenancyConstants.Root.EmailAddress
-            && multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id;
+        return user.Email == MultitenancyConstants.Root.EmailAddress;
     }
 
     private async Task EnsureMinimumAdminCountAsync()
@@ -157,7 +154,7 @@ internal sealed class UserRoleService(
             return;
         }
 
-        var tenantId = multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id;
+        const string tenantId = MultitenancyConstants.Root.Id;
         user.RecordRolesAssigned(assignedRoles, tenantId);
         await db.SaveChangesAsync(cancellationToken);
     }
