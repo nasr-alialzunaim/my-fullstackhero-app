@@ -10,7 +10,6 @@ export type TokenResponse = {
 export function issueToken(input: {
   email: string;
   password: string;
-  tenant: string;
 }) {
   return apiFetch<TokenResponse>("/api/v1/identity/token/issue", {
     method: "POST",
