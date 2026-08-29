@@ -47,8 +47,6 @@ internal static class IdentityUserSeeder
         // Force-confirm email via UserManager so the login flow reaches token issuance.
         // Tenant context is set inline (AsyncLocal) right before the UserManager call.
         using var scope = factory.Services.CreateScope();
-        var tenantInfo = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
         user.ShouldNotBeNull();
