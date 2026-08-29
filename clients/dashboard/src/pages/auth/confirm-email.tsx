@@ -69,7 +69,7 @@ export function ConfirmEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId and code, malformed]);
+  }, [userId, code, malformed]);
 
   return (
     <AuthShell
