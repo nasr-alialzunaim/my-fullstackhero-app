@@ -102,7 +102,7 @@ internal sealed class UserRoleService(
         await EnsureMinimumAdminCountAsync();
     }
 
-    private bool IsRootTenantAdmin(FshUser user)
+    private static bool IsRootTenantAdmin(FshUser user)
     {
         return user.Email == MultitenancyConstants.Root.EmailAddress;
     }
