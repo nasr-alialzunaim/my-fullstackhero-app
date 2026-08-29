@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using FSH.Framework.Web.Idempotency;
 using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy.Contracts.Dtos;
 
 namespace Caching.Tests;
 
@@ -25,11 +24,6 @@ public sealed class CachedTypeContractTests
         {
             var data = new TheoryData<Type>
             {
-                typeof(TenantThemeDto),
-                typeof(PaletteDto),
-                typeof(BrandAssetsDto),
-                typeof(TypographyDto),
-                typeof(LayoutDto),
                 typeof(CachedIdempotentResponse),
             };
 

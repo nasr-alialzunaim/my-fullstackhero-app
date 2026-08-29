@@ -47,15 +47,6 @@ export const IdentityPermissions = Object.freeze({
   },
 } as const);
 
-export const MultitenancyPermissions = Object.freeze({
-  Tenants: {
-    View: "Permissions.Tenants.View",
-    Create: "Permissions.Tenants.Create",
-    Update: "Permissions.Tenants.Update",
-    UpgradeSubscription: "Permissions.Tenants.UpgradeSubscription",
-  },
-} as const);
-
 export const BillingPermissions = Object.freeze({
   View: "Permissions.Billing.View",
   Manage: "Permissions.Billing.Manage",
@@ -97,16 +88,6 @@ export type PermissionGroup = {
 };
 
 export const PERMISSION_CATALOG: readonly PermissionGroup[] = [
-  {
-    category: "Tenants",
-    blurb: "Provision and operate tenants. Reserved for the root-tenant operator.",
-    entries: [
-      { name: MultitenancyPermissions.Tenants.View, description: "View tenants", root: true },
-      { name: MultitenancyPermissions.Tenants.Create, description: "Create tenants", root: true },
-      { name: MultitenancyPermissions.Tenants.Update, description: "Update tenants", root: true },
-      { name: MultitenancyPermissions.Tenants.UpgradeSubscription, description: "Upgrade tenant subscription", root: true },
-    ],
-  },
   {
     category: "Users",
     blurb: "Manage tenant user accounts and their assigned roles.",
