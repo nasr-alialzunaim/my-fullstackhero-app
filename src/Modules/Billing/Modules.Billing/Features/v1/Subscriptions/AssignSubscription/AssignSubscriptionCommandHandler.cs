@@ -1,45 +1,47 @@
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Shared.Multitenancy;
-using FSH.Modules.Billing.Contracts.v1.Subscriptions;
+using FSH.Framework.Shared.Installation;
+using FSH.Modules.Billing.Contracts;
+using FSH.Modules.Billing.Contracts.v1.Subscriptions.AssignSubscription;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
-using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Billing.Features.v1.Subscriptions.AssignSubscription;
 
-public sealed class AssignSubscriptionCommandHandler(
-    BillingDbContext dbContext,
-    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor)
-    : ICommandHandler<AssignSubscriptionCommand, Guid>
+public sealed class AssignSubscriptionCommandHandler(BillingDbContext db)
+    : ICommandHandler<AssignSubscriptionCommand, SubscriptionDto>
 {
-    public async ValueTask<Guid> Handle(AssignSubscriptionCommand command, CancellationToken cancellationToken)
+    public async ValueTask<SubscriptionDto> Handle(
+        AssignSubscriptionCommand command,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
+        const string installationId = InstallationConstants.Id;
 
-        // Only root may target an arbitrary tenant; a tenant caller is pinned to its own, so it can't
-        // (re)assign or cancel another tenant's subscription via a foreign tenant id in the body.
-        var callerTenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
-        var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
-        var targetTenantId = isRoot ? command.TenantId : callerTenantId;
+        var plan = await db.Plans
+            .FirstOrDefaultAsync(p => p.Id == command.PlanId && p.IsActive, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Active plan {command.PlanId} was not found.");
 
-#pragma warning disable CA1308 // Plan keys are canonical lowercase slugs
-        var key = command.PlanKey.ToLowerInvariant();
-#pragma warning restore CA1308
-        var plan = await dbContext.Plans.FirstOrDefaultAsync(p => p.Key == key && p.IsActive, cancellationToken).ConfigureAwait(false)
-            ?? throw new NotFoundException($"Active plan with key '{command.PlanKey}' not found.");
+        var current = await db.Subscriptions
+            .FirstOrDefaultAsync(
+                s => s.TenantId == installationId && s.Status == SubscriptionStatus.Active,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        current?.Cancel();
 
         var now = DateTime.UtcNow;
-        var current = await dbContext.Subscriptions
-            .FirstOrDefaultAsync(s => s.TenantId == targetTenantId && s.Status == Contracts.SubscriptionStatus.Active, cancellationToken)
-            .ConfigureAwait(false);
-        current?.Cancel(now);
+        var subscription = Subscription.Create(installationId, plan.Id, now);
+        db.Subscriptions.Add(subscription);
+        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-        var subscription = Subscription.Create(targetTenantId, plan.Id, now);
-        dbContext.Subscriptions.Add(subscription);
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return subscription.Id;
+        return new SubscriptionDto(
+            subscription.Id,
+            subscription.TenantId,
+            subscription.PlanId,
+            plan.Key,
+            subscription.StartUtc,
+            subscription.EndUtc,
+            subscription.Status);
     }
 }
