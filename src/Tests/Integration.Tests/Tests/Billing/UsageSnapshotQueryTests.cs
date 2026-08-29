@@ -1,7 +1,4 @@
 using System.Text.Json;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts.Dtos;
 using FSH.Modules.Billing.Data;
@@ -313,10 +310,7 @@ public sealed class UsageSnapshotQueryTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
@@ -332,10 +326,7 @@ public sealed class UsageSnapshotQueryTests
     private async Task SeedDirectAsync(Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         await action(db);
