@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Eventing.Outbox;
 using FSH.Framework.Shared.Multitenancy;
@@ -21,7 +20,6 @@ public sealed class GenerateTokenCommandHandler
     private readonly ISecurityAudit _securityAudit;
     private readonly IRequestContext _requestContext;
     private readonly IOutboxStore _outboxStore;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _multiTenantContextAccessor;
     private readonly ISessionService _sessionService;
     private readonly ILogger<GenerateTokenCommandHandler> _logger;
 
@@ -31,7 +29,6 @@ public sealed class GenerateTokenCommandHandler
         ISecurityAudit securityAudit,
         IRequestContext requestContext,
         IOutboxStore outboxStore,
-        IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
         ISessionService sessionService,
         ILogger<GenerateTokenCommandHandler> logger)
     {
@@ -40,7 +37,6 @@ public sealed class GenerateTokenCommandHandler
         _securityAudit = securityAudit;
         _requestContext = requestContext;
         _outboxStore = outboxStore;
-        _multiTenantContextAccessor = multiTenantContextAccessor;
         _sessionService = sessionService;
         _logger = logger;
     }
@@ -121,7 +117,7 @@ public sealed class GenerateTokenCommandHandler
             ct: cancellationToken);
 
         // 4) Enqueue integration event for token generation (sample event for testing eventing)
-        var tenantId = _multiTenantContextAccessor.MultiTenantContext?.TenantInfo?.Id;
+        const string tenantId = MultitenancyConstants.Root.Id;
         var correlationId = Guid.NewGuid().ToString();
 
         var integrationEvent = new TokenGeneratedIntegrationEvent(
