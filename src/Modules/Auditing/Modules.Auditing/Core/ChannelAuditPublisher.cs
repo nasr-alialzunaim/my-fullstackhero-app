@@ -144,7 +144,7 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
     /// Last-resort enrichment for envelopes published outside an HTTP request.
     /// Installation identity is fixed; trace data comes from <see cref="Activity.Current"/>.
     /// </summary>
-    private AuditEnvelope BackfillAmbientContext(AuditEnvelope env)
+    private static AuditEnvelope BackfillAmbientContext(AuditEnvelope env)
     {
         bool needTenant = string.IsNullOrWhiteSpace(env.TenantId);
         bool needTrace = string.IsNullOrWhiteSpace(env.TraceId);
