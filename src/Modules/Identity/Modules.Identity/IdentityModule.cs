@@ -35,7 +35,7 @@ using FSH.Modules.Identity.Features.v1.Roles.UpsertRole;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.AdminRevokeSession;
 using FSH.Modules.Identity.Features.v1.Sessions.GetMySessions;
-using FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions;
+using FSH.Modules.Identity.Features.v1.Sessions.GetAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.GetUserSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeAllSessions;
 using FSH.Modules.Identity.Features.v1.Sessions.RevokeSession;
@@ -125,9 +125,6 @@ public class IdentityModule : IModule
         // Configure password policy options
         services.Configure<PasswordPolicyOptions>(builder.Configuration.GetSection("PasswordPolicy"));
 
-        // Tenant subscription grace window (shared "Billing" section) — used by the login expiry check.
-        services.Configure<TenantGraceOptions>(builder.Configuration.GetSection(TenantGraceOptions.SectionName));
-
         // Register password history service
         services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
 
@@ -141,7 +138,7 @@ public class IdentityModule : IModule
         // Register group role service for group-derived permissions
         services.AddScoped<IGroupRoleService, GroupRoleService>();
 
-        // Quota gauge: reports live user count per tenant for the Users quota.
+        // Quota gauge: reports the installation-wide live user count.
         services.AddScoped<IQuotaGaugeProvider, UserCountQuotaGaugeProvider>();
 
         services.AddIdentity<FshUser, FshRole>(options =>
@@ -198,7 +195,7 @@ public class IdentityModule : IModule
         group.MapCreateOrUpdateRoleEndpoint();
 
         // permission catalog — every permission registered with the host,
-        // filtered to the caller's tenant context (root vs admin set)
+        // scoped to permissions registered in this installation.
         group.MapGetPermissionCatalogEndpoint();
 
         // users
@@ -228,7 +225,7 @@ public class IdentityModule : IModule
         group.MapRevokeAllSessionsEndpoint();
 
         // sessions - admin endpoints
-        group.MapGetTenantSessionsEndpoint();
+        group.MapGetAllSessionsEndpoint();
         group.MapGetUserSessionsEndpoint();
         group.MapAdminRevokeSessionEndpoint();
         group.MapAdminRevokeAllSessionsEndpoint();
