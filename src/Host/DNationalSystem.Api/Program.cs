@@ -82,9 +82,9 @@ var moduleAssemblies = new Assembly[]
 builder.AddHeroPlatform(o =>
 {
     o.EnableCaching = true;
-    o.EnableMailing = true;
+    o.EnableMailing = false;
     o.EnableJobs = true;
-    o.EnableQuotas = true;
+    o.EnableQuotas = false;
     o.EnableSse = true;
     o.EnableRealtime = true;
 });
@@ -105,7 +105,7 @@ app.UseHeroPlatform(p =>
 {
     p.MapModules = true;
     p.ServeStaticFiles = true;
-    p.UseQuotas = true;
+    p.UseQuotas = false;
     p.MapSseEndpoints = true;
     p.MapRealtime = true;
 });
