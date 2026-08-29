@@ -1,19 +1,19 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Installation;
-using FSH.Modules.Billing.Contracts;
-using FSH.Modules.Billing.Contracts.v1.Invoices.GetInvoicePdf;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Services;
 using Microsoft.EntityFrameworkCore;
+
+using Mediator;
 
 namespace FSH.Modules.Billing.Features.v1.Invoices.GetInvoicePdf;
 
 public sealed class GetInvoicePdfQueryHandler(
     BillingDbContext db,
     IInvoicePdfRenderer renderer)
-    : IQueryHandler<GetInvoicePdfQuery, InvoicePdfResponse>
+    : IQueryHandler<GetInvoicePdfQuery, InvoicePdfResult>
 {
-    public async ValueTask<InvoicePdfResponse> Handle(GetInvoicePdfQuery query, CancellationToken cancellationToken)
+    public async ValueTask<InvoicePdfResult> Handle(GetInvoicePdfQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -26,6 +26,6 @@ public sealed class GetInvoicePdfQueryHandler(
             ?? throw new NotFoundException($"Invoice {query.InvoiceId} not found.");
 
         var bytes = renderer.Render(invoice);
-        return new InvoicePdfResponse(bytes, $"invoice-{invoice.InvoiceNumber}.pdf");
+        return new InvoicePdfResult(bytes, $"invoice-{invoice.InvoiceNumber}.pdf");
     }
 }
