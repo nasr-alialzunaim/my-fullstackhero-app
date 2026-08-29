@@ -1,6 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
@@ -50,7 +50,7 @@ public sealed class IdentityService : IIdentityService
             await VerifyTwoFactorOrThrowAsync(user, twoFactorCode);
         }
 
-        var claims = await BuildUserClaimsAsync(user, MultitenancyConstants.Root.Id, ct);
+        var claims = await BuildUserClaimsAsync(user, InstallationConstants.Id, ct);
         return (user.Id, claims);
     }
 
@@ -79,12 +79,12 @@ public sealed class IdentityService : IIdentityService
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
         ValidateRefreshTokenAsync(string refreshToken, CancellationToken ct = default)
     {
-        var user = await FindUserByRefreshTokenAsync(refreshToken, MultitenancyConstants.Root.Id, ct);
+        var user = await FindUserByRefreshTokenAsync(refreshToken, InstallationConstants.Id, ct);
 
         ValidateRefreshTokenExpiry(user);
         ValidateUserStatus(user);
 
-        var claims = await BuildUserClaimsAsync(user, MultitenancyConstants.Root.Id, ct);
+        var claims = await BuildUserClaimsAsync(user, InstallationConstants.Id, ct);
         return (user.Id, claims);
     }
 
@@ -118,7 +118,7 @@ public sealed class IdentityService : IIdentityService
     {
         ArgumentNullException.ThrowIfNull(userId);
         ArgumentNullException.ThrowIfNull(tenantId);
-        tenantId = MultitenancyConstants.Root.Id;
+        tenantId = InstallationConstants.Id;
 
         // Single-installation runtime: user identity is globally unique.
         var user = await _userManager.Users
