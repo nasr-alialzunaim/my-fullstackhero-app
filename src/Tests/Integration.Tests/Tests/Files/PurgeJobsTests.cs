@@ -1,8 +1,5 @@
 using System.Reflection;
 using System.Security.Cryptography;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Storage.Services;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Files.Data;
@@ -18,8 +15,6 @@ namespace Integration.Tests.Tests.Files;
 
 /// <summary>
 /// Coverage for the two Hangfire purge jobs. They are NOT run by the scheduler in tests, so we
-/// resolve each from a DI scope (with the Finbuckle tenant context set INLINE in that scope to
-/// avoid the AsyncLocal NRE in the tenant filter) and invoke <c>RunAsync</c> directly after seeding
 /// a purgeable precondition. The real S3/MinIO RemoveAsync runs against bytes that were genuinely
 /// PUT, so this also exercises S3StorageService.RemoveAsync (DeleteObject) end-to-end.
 /// </summary>
@@ -142,12 +137,7 @@ public sealed class PurgeJobsTests
 
     private static void SetTenantContext(IServiceScope scope)
     {
-        // Set the Finbuckle tenant context INLINE in this scope — the FilesDbContext tenant filter
         // dereferences it, so a missing context surfaces as an NRE.
-        var tenant = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId).GetAwaiter().GetResult();
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
     }
 
     private async Task<bool> ObjectExistsAsync(string storageKey)
