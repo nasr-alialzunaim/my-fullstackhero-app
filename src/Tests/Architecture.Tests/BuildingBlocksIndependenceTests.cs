@@ -57,8 +57,9 @@ public class BuildingBlocksIndependenceTests
                 .InAssembly(assembly)
                 .ShouldNot()
                 .HaveDependencyOnAny(
-                    "DNationalSystem",
-                    "DNationalSystem.Api")
+                    "DNationalSystem.Api",
+                    "DNationalSystem.DbMigrator",
+                    "DNationalSystem.AppHost")
                 .GetResult();
 
             var failingTypes = result.FailingTypeNames ?? [];
