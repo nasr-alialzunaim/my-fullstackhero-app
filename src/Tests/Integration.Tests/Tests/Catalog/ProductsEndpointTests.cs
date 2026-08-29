@@ -511,8 +511,6 @@ public sealed class ProductsEndpointTests
         var email = $"{handle}@example.com";
 
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
         {
