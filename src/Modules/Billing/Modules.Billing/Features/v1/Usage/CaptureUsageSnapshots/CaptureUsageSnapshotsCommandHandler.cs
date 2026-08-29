@@ -16,12 +16,25 @@ public sealed class CaptureUsageSnapshotsCommandHandler(IUsageReporter reporter)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        return await reporter
+        var snapshots = await reporter
             .CaptureForPeriodAsync(
                 InstallationConstants.Id,
                 command.PeriodYear,
                 command.PeriodMonth,
                 cancellationToken)
             .ConfigureAwait(false);
+
+        return snapshots
+            .Select(s => new UsageSnapshotDto(
+                s.Id,
+                s.TenantId,
+                s.PeriodYear,
+                s.PeriodMonth,
+                s.Resource,
+                s.UsedUnits,
+                s.LimitUnits,
+                s.Overage,
+                s.CapturedAtUtc))
+            .ToList();
     }
 }
