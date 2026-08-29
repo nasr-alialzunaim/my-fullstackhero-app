@@ -1,7 +1,4 @@
 using System.Reflection;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Webhooks.Data;
 using FSH.Modules.Webhooks.Services;
 using Hangfire;
@@ -91,12 +88,6 @@ public sealed class WebhookDispatchJobTests
 
         // The job must have persisted a delivery row tagged with the unique event type.
         using var readScope = _factory.Services.CreateScope();
-        var tenant = await readScope.ServiceProvider
-            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId);
-        readScope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
-
         var db = readScope.ServiceProvider.GetRequiredService<WebhookDbContext>();
         var delivery = await db.Deliveries
             .AsNoTracking()
