@@ -1,8 +1,5 @@
 using System.Collections.Concurrent;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Webhooks.Services;
 using Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -181,12 +178,8 @@ public sealed class WebhookFanoutTests
         // its own from the event's TenantId, but the in-memory bus creates a child scope).
         if (!string.IsNullOrWhiteSpace(@event.TenantId))
         {
-            var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-                .GetAsync(@event.TenantId).ConfigureAwait(false);
             if (tenant is not null)
             {
-                sp.GetRequiredService<IMultiTenantContextSetter>()
-                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
             }
         }
 
