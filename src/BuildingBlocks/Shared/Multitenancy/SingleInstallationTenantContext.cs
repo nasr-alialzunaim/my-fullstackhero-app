@@ -21,6 +21,7 @@ public sealed class SingleInstallationTenantContext :
 
     IMultiTenantContext IMultiTenantContextAccessor.MultiTenantContext => RootContext;
 
+#pragma warning disable S2376 // Finbuckle's IMultiTenantContextSetter contract is intentionally setter-only.
     IMultiTenantContext IMultiTenantContextSetter.MultiTenantContext
     {
         set
@@ -29,6 +30,7 @@ public sealed class SingleInstallationTenantContext :
             // the former multitenant API cannot switch a single-installation process.
         }
     }
+#pragma warning restore S2376
 
     private static AppTenantInfo CreateInstallation() =>
         new(MultitenancyConstants.Root.Id, MultitenancyConstants.Root.Id, MultitenancyConstants.Root.Name)
