@@ -1,9 +1,7 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Quota;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Storage.Local;
 using FSH.Framework.Storage.S3;
 using FSH.Framework.Storage.Services;
@@ -94,7 +92,6 @@ public static class Extensions
             services.AddScoped<IStorageService>(sp => new QuotaMeteredStorageService(
                 sp.GetRequiredService<TInner>(),
                 sp.GetRequiredService<IQuotaService>(),
-                sp.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>(),
                 sp.GetRequiredService<ILogger<QuotaMeteredStorageService>>()));
             return;
         }
