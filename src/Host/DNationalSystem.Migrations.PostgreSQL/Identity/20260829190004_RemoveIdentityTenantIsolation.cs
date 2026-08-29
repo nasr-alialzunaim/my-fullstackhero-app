@@ -10,56 +10,62 @@ namespace DNationalSystem.Migrations.PostgreSQL.Identity;
 [Migration("20260829190004_RemoveIdentityTenantIsolation")]
 public sealed class RemoveIdentityTenantIsolation : Migration
 {
-    private static readonly string[] TenantTables =
-    [
-        "Roles", "RoleClaims", "Users", "Groups", "GroupRoles", "PasswordHistory",
-        "UserGroups", "UserSessions", "UserClaims", "UserLogins", "UserRoles", "UserTokens"
-    ];
+    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM identity."Roles" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."RoleClaims" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."Users" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."Groups" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."GroupRoles" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."PasswordHistory" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserGroups" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserSessions" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserClaims" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserLogins" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserRoles" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM identity."UserTokens" WHERE "TenantId" NOT IN ('', 'root')
+            ) THEN
+                RAISE EXCEPTION 'Single-tenant migration refused: identity contains non-root tenant data.';
+            END IF;
+        END $$;
 
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.Sql("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM identity."Roles" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."RoleClaims" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."Users" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."Groups" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."GroupRoles" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."PasswordHistory" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserGroups" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserSessions" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserClaims" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserLogins" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserRoles" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM identity."UserTokens" WHERE "TenantId" NOT IN ('', 'root')
-                ) THEN
-                    RAISE EXCEPTION 'Single-tenant migration refused: identity contains non-root tenant data.';
-                END IF;
-            END $$;
-            """);
+        ALTER TABLE identity."Roles" DROP COLUMN "TenantId";
+        ALTER TABLE identity."RoleClaims" DROP COLUMN "TenantId";
+        ALTER TABLE identity."Users" DROP COLUMN "TenantId";
+        ALTER TABLE identity."Groups" DROP COLUMN "TenantId";
+        ALTER TABLE identity."GroupRoles" DROP COLUMN "TenantId";
+        ALTER TABLE identity."PasswordHistory" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserGroups" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserSessions" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserClaims" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserLogins" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserRoles" DROP COLUMN "TenantId";
+        ALTER TABLE identity."UserTokens" DROP COLUMN "TenantId";
 
-        foreach (var table in TenantTables)
-        {
-            migrationBuilder.DropColumn("TenantId", "identity", table);
-        }
+        CREATE UNIQUE INDEX "RoleNameIndex" ON identity."Roles" ("NormalizedName");
+        CREATE UNIQUE INDEX "UserNameIndex" ON identity."Users" ("NormalizedUserName");
+        """);
 
-        migrationBuilder.CreateIndex("RoleNameIndex", "identity", "Roles", "NormalizedName", unique: true);
-        migrationBuilder.CreateIndex("UserNameIndex", "identity", "Users", "NormalizedUserName", unique: true);
-    }
+    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DROP INDEX IF EXISTS identity."RoleNameIndex";
+        DROP INDEX IF EXISTS identity."UserNameIndex";
 
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.DropIndex("RoleNameIndex", "identity", "Roles");
-        migrationBuilder.DropIndex("UserNameIndex", "identity", "Users");
+        ALTER TABLE identity."Roles" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."RoleClaims" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."Users" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."Groups" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."GroupRoles" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."PasswordHistory" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserGroups" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserSessions" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserClaims" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserLogins" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserRoles" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE identity."UserTokens" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
 
-        foreach (var table in TenantTables)
-        {
-            migrationBuilder.AddColumn<string>("TenantId", "identity", table, "text", nullable: false, defaultValue: "root");
-        }
-
-        migrationBuilder.CreateIndex("RoleNameIndex", "identity", "Roles", new[] { "NormalizedName", "TenantId" }, unique: true);
-        migrationBuilder.CreateIndex("UserNameIndex", "identity", "Users", new[] { "NormalizedUserName", "TenantId" }, unique: true);
-    }
+        CREATE UNIQUE INDEX "RoleNameIndex" ON identity."Roles" ("NormalizedName", "TenantId");
+        CREATE UNIQUE INDEX "UserNameIndex" ON identity."Users" ("NormalizedUserName", "TenantId");
+        """);
 }
