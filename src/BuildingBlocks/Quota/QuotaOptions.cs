@@ -3,9 +3,8 @@ using FSH.Framework.Shared.Quota;
 namespace FSH.Framework.Quota;
 
 /// <summary>
-/// Quota plan catalog. Tenants reference a plan by name via <c>AppTenantInfo.Plan</c>; the limits
-/// attached to that plan are used when the tenant has no per-tenant override. A tenant's own
-/// <c>QuotaLimits</c> map takes precedence over the plan defaults when present.
+/// Quota plan catalog for this installation. Installation-local overrides take precedence
+/// over configured plan defaults when present.
 /// </summary>
 public sealed class QuotaOptions
 {
@@ -23,8 +22,8 @@ public sealed class QuotaOptions
     public Dictionary<string, Dictionary<QuotaResource, long>> Plans { get; } = new();
 
     /// <summary>
-    /// Whether the root/platform tenant is exempt from quota enforcement. Defaults to true; platform
-    /// operators should not be gated by counters that represent customer billing units.
+    /// Whether this local installation is exempt from quota enforcement.
+    /// Offline deployments normally keep this enabled.
     /// </summary>
-    public bool ExemptRootTenant { get; set; } = true;
+    public bool ExemptInstallation { get; set; } = true;
 }
