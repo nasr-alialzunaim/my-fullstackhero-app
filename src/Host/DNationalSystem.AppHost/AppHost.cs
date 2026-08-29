@@ -91,18 +91,6 @@ var migrator = builder.AddProject<Projects.DNationalSystem_DbMigrator>($"{appPre
     .WithEnvironment("Seed__DefaultAdminPassword", "123Pa$$word!")
     .WithArgs("apply", "--seed");
 
-// Demo seeder (dev-only): provisions the acme/globex tenants + demo-login users via seed-demo. DOTNET_ENVIRONMENT=Development is required (console host ignores ASPNETCORE_ENVIRONMENT) or seed-demo refuses to run.
-var demoSeeder = builder.AddProject<Projects.DNationalSystem_DbMigrator>($"{appPrefix}-demo-seeder")
-    .WithReference(postgres)
-    .WaitFor(postgres)
-    .WaitForCompletion(migrator)
-    .WithEnvironment("DOTNET_ENVIRONMENT", "Development")
-    .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
-    .WithEnvironment("DatabaseOptions__ConnectionString", postgres.Resource.ConnectionStringExpression)
-    .WithEnvironment("DatabaseOptions__MigrationsAssembly", "DNationalSystem.Migrations.PostgreSQL")
-    .WithEnvironment("Seed__DemoPassword", "Password123!")
-    .WithArgs("seed-demo");
-
 // API Service
 var api = builder.AddProject<Projects.DNationalSystem_Api>($"{appPrefix}-api")
     .WithReference(postgres)
@@ -110,7 +98,6 @@ var api = builder.AddProject<Projects.DNationalSystem_Api>($"{appPrefix}-api")
     .WaitFor(redis)
     .WaitForCompletion(minioInit)
     .WaitForCompletion(migrator)
-    .WaitForCompletion(demoSeeder)
     .WithExternalHttpEndpoints()
     .WithEnvironment("DatabaseOptions__Provider", "POSTGRESQL")
     .WithEnvironment("DatabaseOptions__ConnectionString", apiPgConnection)
@@ -120,14 +107,6 @@ var api = builder.AddProject<Projects.DNationalSystem_Api>($"{appPrefix}-api")
     // Hangfire dashboard (/jobs) creds — [Required], Password [MinLength(12)], ValidateOnStart; API won't boot without them. Dev-only, mirrors appsettings.Development.json.
     .WithEnvironment("HangfireOptions__UserName", "admin")
     .WithEnvironment("HangfireOptions__Password", "Password123!")
-    // SMTP via Ethereal (https://ethereal.email) — fake catch-all inbox for local dev (nothing delivered); mirrors appsettings.Development.json. Safe to commit: throwaway test creds.
-    .WithEnvironment("MailOptions__UseSendGrid", "false")
-    .WithEnvironment("MailOptions__From", "nicole.lueilwitz0@ethereal.email")
-    .WithEnvironment("MailOptions__DisplayName", "DNationalSystem")
-    .WithEnvironment("MailOptions__Smtp__Host", "smtp.ethereal.email")
-    .WithEnvironment("MailOptions__Smtp__Port", "587")
-    .WithEnvironment("MailOptions__Smtp__UserName", "nicole.lueilwitz0@ethereal.email")
-    .WithEnvironment("MailOptions__Smtp__Password", "x4VJz2r9x2NDss9KpC")
     .WithEnvironment("Storage__Provider", "s3")
     .WithEnvironment("Storage__S3__Bucket", MinioBucket)
     .WithEnvironment("Storage__S3__Region", "us-east-1")
