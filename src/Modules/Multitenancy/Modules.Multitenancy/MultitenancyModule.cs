@@ -74,40 +74,13 @@ public sealed class MultitenancyModule : IModule
         builder.Services.Replace(
             ServiceDescriptor.Singleton<IEventTenantScope, FinbuckleEventTenantScope>());
 
+        // P0 single-tenant transition: keep the Finbuckle compatibility layer only until
+        // persistence/identity are fully detached from it. Resolution is hard-pinned to the
+        // root installation; request headers, claims and query strings can no longer select
+        // or override a tenant.
         builder.Services
-            .AddMultiTenant<AppTenantInfo>(options =>
-            {
-                options.Events.OnTenantResolveCompleted = async context =>
-                {
-                    if (context.MultiTenantContext.StoreInfo is null) return;
-                    if (context.MultiTenantContext.StoreInfo.StoreType != typeof(DistributedCacheStore<AppTenantInfo>))
-                    {
-                        var sp = ((HttpContext)context.Context!).RequestServices;
-                        var distributedStore = sp
-                            .GetRequiredService<IEnumerable<IMultiTenantStore<AppTenantInfo>>>()
-                            .FirstOrDefault(s => s.GetType() == typeof(DistributedCacheStore<AppTenantInfo>));
-
-                        await distributedStore!.AddAsync(context.MultiTenantContext.TenantInfo!);
-                    }
-                    await Task.CompletedTask;
-                };
-            })
-            // ── Strategy chain — first non-null identifier wins (registration order) ──
-            // ClaimStrategy no-ops here: UseMultiTenant() runs BEFORE UseAuthentication(), so User is
-            // anonymous at resolution. Tenant stays header-driven; root override is post-auth middleware below.
-            .WithClaimStrategy(ClaimConstants.Tenant)
-            .WithHeaderStrategy(MultitenancyConstants.Identifier)
-            .WithDelegateStrategy(async context =>
-            {
-                if (context is not HttpContext httpContext) return null;
-
-                if (!httpContext.Request.Query.TryGetValue("tenant", out var tenantIdentifier) ||
-                    string.IsNullOrEmpty(tenantIdentifier))
-                    return null;
-
-                return await Task.FromResult(tenantIdentifier.ToString());
-            })
-            .WithDistributedCacheStore(TimeSpan.FromMinutes(60))
+            .AddMultiTenant<AppTenantInfo>()
+            .WithDelegateStrategy(_ => Task.FromResult<string?>(MultitenancyConstants.Root.Id))
             .WithStore<EFCoreStore<TenantDbContext, AppTenantInfo>>(ServiceLifetime.Scoped);
 
         builder.Services.AddHealthChecks()
@@ -123,126 +96,16 @@ public sealed class MultitenancyModule : IModule
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        // ── Root-operator header override ──────────────────────────────
-        // A "root"-claim caller scopes one request to another tenant via the `tenant` header (post-auth, since
-        // Finbuckle's pre-auth chain has no User). Gated on claim==root + header set != root + target exists.
-        app.Use(async (ctx, next) =>
-        {
-            var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
-            if (string.Equals(callerTenant, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
-            {
-                var headerValue = ctx.Request.Headers[MultitenancyConstants.Identifier].FirstOrDefault();
-                if (!string.IsNullOrEmpty(headerValue) &&
-                    !string.Equals(headerValue, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
-                {
-                    var store = ctx.RequestServices.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-                    var target = await store.GetAsync(headerValue).ConfigureAwait(false);
-                    if (target is not null)
-                    {
-                        var setter = ctx.RequestServices.GetRequiredService<IMultiTenantContextSetter>();
-                        setter.MultiTenantContext = new MultiTenantContext<AppTenantInfo>(target);
-                    }
-                }
-            }
-            await next(ctx).ConfigureAwait(false);
-        });
-
-        // ── Deactivated-tenant guard ───────────────────────────────────
-        // Finbuckle resolves inactive tenants normally, so this post-auth guard rejects any request (incl.
-        // anonymous login/refresh) with a non-root inactive tenant; root operators are exempt.
-        app.Use(async (ctx, next) =>
-        {
-            var callerTenant = ctx.User?.FindFirstValue(ClaimConstants.Tenant);
-            var isOperator = string.Equals(callerTenant, MultitenancyConstants.Root.Id, StringComparison.Ordinal);
-            if (!isOperator)
-            {
-                var accessor = ctx.RequestServices.GetRequiredService<IMultiTenantContextAccessor<AppTenantInfo>>();
-                var tenant = accessor.MultiTenantContext?.TenantInfo;
-
-                // Claim strategy no-ops pre-auth, so a JWT-only (no header) request may have no resolved
-                // tenant here — fall back to the caller's claim.
-                if (tenant is null && !string.IsNullOrEmpty(callerTenant))
-                {
-                    var store = ctx.RequestServices.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-                    tenant = await store.GetAsync(callerTenant).ConfigureAwait(false);
-                }
-
-                if (tenant is not null &&
-                    !string.Equals(tenant.Id, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
-                {
-                    if (!tenant.IsActive)
-                    {
-                        throw new ForbiddenException("This tenant has been deactivated. Contact your administrator.");
-                    }
-
-                    // Expiry is enforced on every request (not just at login) with a grace window:
-                    // a tenant past ValidUpto still works until ValidUpto + grace, then is hard-blocked.
-                    var graceDays = ctx.RequestServices
-                        .GetRequiredService<IOptions<TenantBillingOptions>>().Value.GraceWindowDays;
-                    var nowUtc = ctx.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
-                    var graceEndsUtc = tenant.ValidUpto.AddDays(graceDays);
-                    if (nowUtc > graceEndsUtc)
-                    {
-                        throw new ForbiddenException("This tenant's subscription has expired. Please renew to continue.");
-                    }
-
-                    // Inside the grace window: surface days-left so clients can warn. Set via OnStarting so
-                    // the header survives even when an exception handler rewrites the response.
-                    if (nowUtc > tenant.ValidUpto)
-                    {
-                        var daysLeft = (int)Math.Ceiling((graceEndsUtc - nowUtc).TotalDays);
-                        var headerValue = daysLeft.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        ctx.Response.OnStarting(static state =>
-                        {
-                            var (response, value) = ((HttpResponse, string))state;
-                            response.Headers["X-Subscription-Grace"] = value;
-                            return Task.CompletedTask;
-                        }, (ctx.Response, headerValue));
-                    }
-                }
-            }
-
-            await next(ctx).ConfigureAwait(false);
-        });
+        // Single-tenant mode: no tenant override, activation, expiry, or subscription
+        // middleware is allowed to influence request routing.
     }
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var versionSet = endpoints.NewApiVersionSet()
-            .HasApiVersion(new ApiVersion(1))
-            .ReportApiVersions()
-            .Build();
-
-        var group = endpoints.MapGroup("api/v{version:apiVersion}/tenants")
-            .WithTags("Tenants")
-            .WithApiVersionSet(versionSet);
-        ChangeTenantActivationEndpoint.Map(group);
-        GetTenantsEndpoint.Map(group);
-        RenewTenantEndpoint.Map(group);
-        AdjustTenantValidityEndpoint.Map(group);
-        CreateTenantEndpoint.Map(group);
-        GetTenantStatusEndpoint.Map(group);
-        GetMyTenantStatusEndpoint.Map(group);
-        GetTenantProvisioningStatusEndpoint.Map(group);
-        RetryTenantProvisioningEndpoint.Map(group);
-        TenantMigrationsEndpoint.Map(group);
-
-        // Theme endpoints
-        GetTenantThemeEndpoint.Map(group);
-        UpdateTenantThemeEndpoint.Map(group);
-        ResetTenantThemeEndpoint.Map(group);
-
-        var jobManager = endpoints.ServiceProvider.GetService<IRecurringJobManager>();
-        if (jobManager is not null)
-        {
-            // Scan tenants daily at 02:00 UTC; publishes nearing-expiry / entered-grace / expired notices.
-            jobManager.AddOrUpdate(
-                "tenant-expiry-scan",
-                Job.FromExpression<TenantExpiryScanJob>(j => j.RunAsync(CancellationToken.None)),
-                "0 2 * * *",
-                new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
-        }
+        // Single-tenant installations do not expose tenant lifecycle, provisioning,
+        // migration-status, subscription, or tenant-theme administration endpoints.
     }
+
 }
