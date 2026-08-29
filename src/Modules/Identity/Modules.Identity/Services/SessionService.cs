@@ -1,6 +1,6 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
@@ -175,7 +175,7 @@ public sealed class SessionService : ISessionService
             throw new UnauthorizedAccessException("Cannot revoke session for another user");
         }
 
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         session.Revoke(revokedBy, reason ?? "User requested", tenantId);
 
         await _db.SaveChangesAsync(cancellationToken);
@@ -211,7 +211,7 @@ public sealed class SessionService : ISessionService
 
         var sessions = await query.ToListAsync(cancellationToken);
 
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         foreach (var session in sessions)
         {
             session.Revoke(revokedBy, reason ?? "User requested logout from all devices", tenantId);
@@ -237,7 +237,7 @@ public sealed class SessionService : ISessionService
             .Where(s => s.UserId == userId && !s.IsRevoked)
             .ToListAsync(cancellationToken);
 
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         foreach (var session in sessions)
         {
             session.Revoke(revokedBy, reason ?? "Admin requested", tenantId);
@@ -268,7 +268,7 @@ public sealed class SessionService : ISessionService
             return false;
         }
 
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         session.Revoke(revokedBy, reason ?? "Admin requested", tenantId);
 
         await _db.SaveChangesAsync(cancellationToken);
