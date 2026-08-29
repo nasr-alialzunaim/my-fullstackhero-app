@@ -1,4 +1,3 @@
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
 using Mediator;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using System.ComponentModel;
 
 namespace FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
 
@@ -30,21 +28,11 @@ public static class GenerateTokenEndpoint
         ArgumentNullException.ThrowIfNull(endpoint);
 
         return endpoint.MapPost("/token/issue",
-            [AllowAnonymous] async Task<Results<Ok<TokenResponse>, UnauthorizedHttpResult, ProblemHttpResult>>
+            [AllowAnonymous] async Task<Results<Ok<TokenResponse>, UnauthorizedHttpResult>>
             ([FromBody] GenerateTokenCommand command,
-            [DefaultValue("root")][FromHeader] string tenant,
-            [FromHeader(Name = AppHeader)] string? app,
             [FromServices] IMediator mediator,
             CancellationToken ct) =>
             {
-                if (IsRootViaDashboard(tenant, app))
-                {
-                    return TypedResults.Problem(
-                        statusCode: StatusCodes.Status403Forbidden,
-                        title: "App boundary",
-                        detail: "SuperAdmin accounts must use the admin app. Sign in there instead of the tenant dashboard.");
-                }
-
                 var token = await mediator.Send(command, ct);
                 return token is null
                     ? TypedResults.Unauthorized()
@@ -52,17 +40,11 @@ public static class GenerateTokenEndpoint
             })
             .WithName("IssueJwtTokens")
             .WithSummary("Issue JWT access and refresh tokens")
-            .WithDescription("Submit credentials to receive a JWT access token and a refresh token. Provide the 'tenant' header to select the tenant context (defaults to 'root'). The 'X-FSH-App' header (admin|dashboard) is used to enforce the SuperAdmin / dashboard boundary.")
+            .WithDescription("Submit credentials to receive a JWT access token and a refresh token for this single installation.")
             .Produces<TokenResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status500InternalServerError);
     }
 
-    private static bool IsRootViaDashboard(string tenant, string? app)
-    {
-        return string.Equals(tenant, MultitenancyConstants.Root.Id, StringComparison.OrdinalIgnoreCase)
-            && string.Equals(app, AppDashboard, StringComparison.OrdinalIgnoreCase);
-    }
 }
