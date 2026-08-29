@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
@@ -221,10 +222,6 @@ public sealed class AuditPayloadFilterTests
         using var scope = _factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        var rootTenant = await store.GetAsync(MultitenancyConstants.Root.Id);
-        rootTenant.ShouldNotBeNull();
-
-
         var db = sp.GetRequiredService<AuditDbContext>();
         db.AuditRecords.Add(new AuditRecord
         {
@@ -233,7 +230,7 @@ public sealed class AuditPayloadFilterTests
             ReceivedAtUtc = DateTime.UtcNow,
             EventType = (int)eventType,
             Severity = (byte)severity,
-            TenantId = MultitenancyConstants.Root.Id,
+            TenantId = InstallationConstants.Id,
             UserId = "proof-user",
             UserName = "proof-user",
             CorrelationId = correlationId,
