@@ -19,13 +19,14 @@ public sealed class GetInvoicePdfQueryHandler(
 
         var invoice = await db.Invoices
             .AsNoTracking()
+            .Include(i => i.LineItems)
             .FirstOrDefaultAsync(
                 i => i.Id == query.InvoiceId && i.TenantId == InstallationConstants.Id,
                 cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {query.InvoiceId} not found.");
 
-        var bytes = renderer.Render(invoice);
+        var bytes = renderer.Render(invoice.ToDto());
         return new InvoicePdfResult(bytes, $"invoice-{invoice.InvoiceNumber}.pdf");
     }
 }
