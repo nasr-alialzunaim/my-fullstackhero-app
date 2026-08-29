@@ -87,11 +87,11 @@ internal sealed class QuotaMeteredStorageService : IStorageService
 
     public async Task RemoveAsync(string path, CancellationToken cancellationToken = default)
     {
-        var installationId = _installationAccessor.MultiInstallationContext?.InstallationInfo?.Id;
+        const string installationId = InstallationConstants.Id;
 
         // Probe size before delete so we can debit the exact amount. Missing objects report 0.
         long size = 0;
-        if (!string.IsNullOrWhiteSpace(installationId) && !string.IsNullOrWhiteSpace(path))
+        if (!string.IsNullOrWhiteSpace(path))
         {
             size = await _inner.GetSizeAsync(path, cancellationToken).ConfigureAwait(false);
         }
