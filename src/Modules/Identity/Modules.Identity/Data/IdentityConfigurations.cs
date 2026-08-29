@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant.EntityFrameworkCore.Extensions;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,14 +10,8 @@ public class ApplicationUserConfig : IEntityTypeConfiguration<FshUser>
     public void Configure(EntityTypeBuilder<FshUser> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("Users", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
-
-        builder
-            .Property(u => u.ObjectId)
-                .HasMaxLength(256);
+        builder.ToTable("Users", IdentityModuleConstants.SchemaName);
+        builder.Property(u => u.ObjectId).HasMaxLength(256);
     }
 }
 
@@ -27,11 +20,7 @@ public class ApplicationRoleConfig : IEntityTypeConfiguration<FshRole>
     public void Configure(EntityTypeBuilder<FshRole> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("Roles", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant()
-                .AdjustUniqueIndexes();
+        builder.ToTable("Roles", IdentityModuleConstants.SchemaName);
     }
 }
 
@@ -40,10 +29,7 @@ public class ApplicationRoleClaimConfig : IEntityTypeConfiguration<FshRoleClaim>
     public void Configure(EntityTypeBuilder<FshRoleClaim> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("RoleClaims", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+        builder.ToTable("RoleClaims", IdentityModuleConstants.SchemaName);
     }
 }
 
@@ -52,10 +38,7 @@ public class IdentityUserRoleConfig : IEntityTypeConfiguration<IdentityUserRole<
     public void Configure(EntityTypeBuilder<IdentityUserRole<string>> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("UserRoles", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+        builder.ToTable("UserRoles", IdentityModuleConstants.SchemaName);
     }
 }
 
@@ -64,10 +47,7 @@ public class IdentityUserClaimConfig : IEntityTypeConfiguration<IdentityUserClai
     public void Configure(EntityTypeBuilder<IdentityUserClaim<string>> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("UserClaims", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+        builder.ToTable("UserClaims", IdentityModuleConstants.SchemaName);
     }
 }
 
@@ -76,10 +56,7 @@ public class IdentityUserLoginConfig : IEntityTypeConfiguration<IdentityUserLogi
     public void Configure(EntityTypeBuilder<IdentityUserLogin<string>> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("UserLogins", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+        builder.ToTable("UserLogins", IdentityModuleConstants.SchemaName);
     }
 }
 
@@ -88,9 +65,6 @@ public class IdentityUserTokenConfig : IEntityTypeConfiguration<IdentityUserToke
     public void Configure(EntityTypeBuilder<IdentityUserToken<string>> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        builder
-            .ToTable("UserTokens", IdentityModuleConstants.SchemaName)
-            .IsMultiTenant();
+        builder.ToTable("UserTokens", IdentityModuleConstants.SchemaName);
     }
 }
