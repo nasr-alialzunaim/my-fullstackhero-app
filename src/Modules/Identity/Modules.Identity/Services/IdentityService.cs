@@ -90,8 +90,7 @@ public sealed class IdentityService : IIdentityService
 
     public async Task StoreRefreshTokenAsync(string subject, string refreshToken, DateTime expiresAtUtc, CancellationToken ct = default)
     {
-        // Targeted UPDATE bypasses tracking + Finbuckle interceptors (which NRE on cross-tenant IgnoreQueryFilters).
-        // Safe: user IDs are globally unique GUIDs, so exactly one row matches Id == subject regardless of tenant.
+        // Targeted UPDATE keeps refresh-token persistence atomic. User IDs are globally unique in the installation.
         var hashedToken = HashToken(refreshToken);
         var updated = await _dbContext.Users
             .IgnoreQueryFilters()
@@ -121,11 +120,9 @@ public sealed class IdentityService : IIdentityService
         ArgumentNullException.ThrowIfNull(tenantId);
         tenantId = MultitenancyConstants.Root.Id;
 
-        // IgnoreQueryFilters bypasses Finbuckle's tenant filter so root-tenant callers can
-        // resolve users in other tenants during impersonation.
+        // Single-installation runtime: user identity is globally unique.
         var user = await _userManager.Users
-            .IgnoreQueryFilters()
-            .Where(u => u.Id == userId && EF.Property<string>(u, "TenantId") == tenantId)
+            .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(ct);
 
         if (user is null)
@@ -146,8 +143,7 @@ public sealed class IdentityService : IIdentityService
         if (userRoleIds.Count > 0)
         {
             var roleNames = await _dbContext.Roles
-                .IgnoreQueryFilters()
-                .Where(r => userRoleIds.Contains(r.Id) && EF.Property<string>(r, "TenantId") == tenantId)
+                .Where(r => userRoleIds.Contains(r.Id))
                 .Select(r => r.Name!)
                 .ToListAsync(ct);
 
