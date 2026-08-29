@@ -1,42 +1,57 @@
 using FSH.Framework.Shared.Installation;
+using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Billing.Contracts.Dtos;
 using FSH.Modules.Billing.Contracts.v1.Invoices;
 using FSH.Modules.Billing.Data;
-using Microsoft.EntityFrameworkCore;
-
 using Mediator;
+using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Billing.Features.v1.Invoices.GetMyInvoices;
 
-public sealed class GetMyInvoicesQueryHandler(BillingDbContext db)
-    : IQueryHandler<GetMyInvoicesQuery, IReadOnlyList<InvoiceDto>>
+public sealed class GetMyInvoicesQueryHandler(BillingDbContext dbContext)
+    : IQueryHandler<GetMyInvoicesQuery, PagedResponse<InvoiceDto>>
 {
-    public async ValueTask<IReadOnlyList<InvoiceDto>> Handle(
+    public async ValueTask<PagedResponse<InvoiceDto>> Handle(
         GetMyInvoicesQuery query,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        return await db.Invoices
+        var q = dbContext.Invoices
             .AsNoTracking()
-            .Where(i => i.TenantId == InstallationConstants.Id)
+            .Include(i => i.LineItems)
+            .Where(i => i.TenantId == InstallationConstants.Id);
+
+        if (query.Status is not null)
+        {
+            q = q.Where(i => i.Status == query.Status);
+        }
+
+        if (query.PeriodYear is not null)
+        {
+            q = q.Where(i => i.PeriodYear == query.PeriodYear);
+        }
+
+        if (query.PeriodMonth is not null)
+        {
+            q = q.Where(i => i.PeriodMonth == query.PeriodMonth);
+        }
+
+        var total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
+        var invoices = await q
             .OrderByDescending(i => i.CreatedAtUtc)
-            .Select(i => new InvoiceDto(
-                i.Id,
-                i.TenantId,
-                i.InvoiceNumber,
-                i.PeriodYear,
-                i.PeriodMonth,
-                i.Purpose,
-                i.Status,
-                i.Currency,
-                i.Subtotal,
-                i.Tax,
-                i.Total,
-                i.IssuedAtUtc,
-                i.PaidAtUtc,
-                i.CreatedAtUtc))
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        return new PagedResponse<InvoiceDto>
+        {
+            Items = invoices.Select(i => i.ToDto()).ToList(),
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalCount = total,
+            TotalPages = (int)Math.Ceiling(total / (double)query.PageSize)
+        };
     }
 }
