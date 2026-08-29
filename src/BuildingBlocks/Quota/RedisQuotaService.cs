@@ -1,5 +1,4 @@
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -8,7 +7,7 @@ namespace FSH.Framework.Quota;
 
 /// <summary>
 /// Redis-backed quota counter. Counter-based resources use atomic <c>INCRBY</c> on a key of the
-/// form <c>quota:{tenantId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
+/// form <c>quota:{installationId}:{resource}:{YYYYMM}</c> with a TTL that expires shortly after the
 /// billing period boundary. Gauge-based resources delegate to <see cref="IQuotaGaugeProvider"/>
 /// instances that modules register to report live usage from their own state stores.
 /// </summary>
@@ -17,7 +16,7 @@ public sealed class RedisQuotaService : IQuotaService
     private readonly IConnectionMultiplexer _redis;
     private readonly QuotaOptions _options;
     private readonly QuotaPlanResolver _planResolver;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo>? _tenantAccessor;
+    private readonly IInstallationContext _installationContext;
     private readonly Dictionary<QuotaResource, IQuotaGaugeProvider> _gauges;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<RedisQuotaService> _logger;
@@ -29,7 +28,7 @@ public sealed class RedisQuotaService : IQuotaService
         IEnumerable<IQuotaGaugeProvider> gauges,
         TimeProvider timeProvider,
         ILogger<RedisQuotaService> logger,
-        IMultiTenantContextAccessor<AppTenantInfo>? tenantAccessor = null)
+        IInstallationContext installationContext)
     {
         ArgumentNullException.ThrowIfNull(redis);
         ArgumentNullException.ThrowIfNull(options);
@@ -37,11 +36,12 @@ public sealed class RedisQuotaService : IQuotaService
         ArgumentNullException.ThrowIfNull(gauges);
         ArgumentNullException.ThrowIfNull(timeProvider);
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(installationContext);
 
         _redis = redis;
         _options = options;
         _planResolver = planResolver;
-        _tenantAccessor = tenantAccessor;
+        _installationContext = installationContext;
         _timeProvider = timeProvider;
         _logger = logger;
 
@@ -49,12 +49,12 @@ public sealed class RedisQuotaService : IQuotaService
         _gauges = gauges.ToDictionary(g => g.Resource);
     }
 
-    public async ValueTask<QuotaCheckResult> CheckAsync(string tenantId, QuotaResource resource, long amount, CancellationToken ct = default)
+    public async ValueTask<QuotaCheckResult> CheckAsync(string installationId, QuotaResource resource, long amount, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
 
-        var (limit, exempt) = ResolveLimit(tenantId, resource);
-        var current = await GetCurrentAsync(tenantId, resource, ct).ConfigureAwait(false);
+        var (limit, exempt) = ResolveLimit(installationId, resource);
+        var current = await GetCurrentAsync(installationId, resource, ct).ConfigureAwait(false);
 
         if (exempt || limit == long.MaxValue)
         {
@@ -65,18 +65,18 @@ public sealed class RedisQuotaService : IQuotaService
         return new QuotaCheckResult(allowed, resource, current, limit, GetPeriodResetUtc(resource));
     }
 
-    public async ValueTask<long> RecordAsync(string tenantId, QuotaResource resource, long amount, CancellationToken ct = default)
+    public async ValueTask<long> RecordAsync(string installationId, QuotaResource resource, long amount, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
 
         if (!IsCounterResource(resource))
         {
             // Gauges are read from module state; we have no counter to increment here.
-            return await GetCurrentAsync(tenantId, resource, ct).ConfigureAwait(false);
+            return await GetCurrentAsync(installationId, resource, ct).ConfigureAwait(false);
         }
 
         var db = _redis.GetDatabase();
-        var key = BuildCounterKey(tenantId, resource);
+        var key = BuildCounterKey(installationId, resource);
         var newValue = await db.StringIncrementAsync(key, amount).ConfigureAwait(false);
 
         // Set a TTL aligned to the period boundary the first time we touch this key. KeyExpireAsync
@@ -90,26 +90,26 @@ public sealed class RedisQuotaService : IQuotaService
         return newValue;
     }
 
-    public async ValueTask<QuotaCheckResult> CheckAndRecordAsync(string tenantId, QuotaResource resource, long amount, CancellationToken ct = default)
+    public async ValueTask<QuotaCheckResult> CheckAndRecordAsync(string installationId, QuotaResource resource, long amount, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
 
-        var (limit, exempt) = ResolveLimit(tenantId, resource);
+        var (limit, exempt) = ResolveLimit(installationId, resource);
 
         if (exempt || limit == long.MaxValue)
         {
-            var after = await RecordAsync(tenantId, resource, amount, ct).ConfigureAwait(false);
+            var after = await RecordAsync(installationId, resource, amount, ct).ConfigureAwait(false);
             return QuotaCheckResult.Unlimited(resource, after);
         }
 
         if (!IsCounterResource(resource))
         {
             // Gauges are not counters — we can't "record" them, so delegate to CheckAsync.
-            return await CheckAsync(tenantId, resource, amount, ct).ConfigureAwait(false);
+            return await CheckAsync(installationId, resource, amount, ct).ConfigureAwait(false);
         }
 
         var db = _redis.GetDatabase();
-        var key = BuildCounterKey(tenantId, resource);
+        var key = BuildCounterKey(installationId, resource);
         var newValue = await db.StringIncrementAsync(key, amount).ConfigureAwait(false);
         var reset = GetPeriodResetUtc(resource);
         if (reset is not null)
@@ -128,48 +128,41 @@ public sealed class RedisQuotaService : IQuotaService
         if (_logger.IsEnabled(LogLevel.Warning))
         {
             _logger.LogWarning(
-                "Quota exceeded for tenant {TenantId} resource {Resource}: {Current}/{Limit}",
-                tenantId, resource, newValue, limit);
+                "Quota exceeded for installation {InstallationId} resource {Resource}: {Current}/{Limit}",
+                installationId, resource, newValue, limit);
         }
 
         return new QuotaCheckResult(false, resource, newValue - amount, limit, reset);
     }
 
-    public async ValueTask<long> GetCurrentAsync(string tenantId, QuotaResource resource, CancellationToken ct = default)
+    public async ValueTask<long> GetCurrentAsync(string installationId, QuotaResource resource, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
 
         if (!IsCounterResource(resource))
         {
             if (_gauges.TryGetValue(resource, out var provider))
             {
-                return await provider.GetCurrentAsync(tenantId, ct).ConfigureAwait(false);
+                return await provider.GetCurrentAsync(installationId, ct).ConfigureAwait(false);
             }
 
             return 0;
         }
 
         var db = _redis.GetDatabase();
-        var value = await db.StringGetAsync(BuildCounterKey(tenantId, resource)).ConfigureAwait(false);
+        var value = await db.StringGetAsync(BuildCounterKey(installationId, resource)).ConfigureAwait(false);
         return value.TryParse(out long parsed) ? parsed : 0;
     }
 
-    private (long Limit, bool Exempt) ResolveLimit(string tenantId, QuotaResource resource)
+    private (long Limit, bool Exempt) ResolveLimit(string installationId, QuotaResource resource)
     {
-        if (_options.ExemptRootTenant && string.Equals(tenantId, MultitenancyConstants.Root.Id, StringComparison.Ordinal))
+        if (_options.ExemptRootTenant
+            && string.Equals(installationId, InstallationConstants.Id, StringComparison.Ordinal))
         {
             return (long.MaxValue, true);
         }
 
-        var tenant = _tenantAccessor?.MultiTenantContext?.TenantInfo;
-        // If the accessor resolved a different tenant than the one being checked (e.g. the caller
-        // passed an explicit tenantId for a cross-tenant operation), we fall back to plan defaults.
-        if (tenant is not null && !string.Equals(tenant.Id, tenantId, StringComparison.Ordinal))
-        {
-            tenant = null;
-        }
-
-        return (_planResolver.ResolveLimit(tenant, resource), false);
+        return (_planResolver.ResolveLimit(_installationContext.Current, resource), false);
     }
 
     private static bool IsCounterResource(QuotaResource resource) => resource switch
@@ -187,18 +180,18 @@ public sealed class RedisQuotaService : IQuotaService
         _ => false
     };
 
-    private string BuildCounterKey(string tenantId, QuotaResource resource)
+    private string BuildCounterKey(string installationId, QuotaResource resource)
     {
         if (!IsPeriodic(resource))
         {
-            return $"quota:{tenantId}:{resource}";
+            return $"quota:{installationId}:{resource}";
         }
 
         var now = _timeProvider.GetUtcNow();
         // Monthly billing period is the coarsest useful window for SaaS; hourly/daily windows can be
         // added as additional QuotaResource values if needed later.
         var period = $"{now.Year:D4}{now.Month:D2}";
-        return $"quota:{tenantId}:{resource}:{period}";
+        return $"quota:{installationId}:{resource}:{period}";
     }
 
     private DateTimeOffset? GetPeriodResetUtc(QuotaResource resource)
