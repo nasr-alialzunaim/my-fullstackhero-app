@@ -2,7 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
@@ -56,7 +56,7 @@ internal sealed class UserStatusService(
             Actor: actor,
             TargetUser: targetUser,
             ActivateUser: activateUser,
-            TenantId: MultitenancyConstants.Root.Id);
+            TenantId: InstallationConstants.Id);
     }
 
     private async Task ValidateTogglePermissionsAsync(
