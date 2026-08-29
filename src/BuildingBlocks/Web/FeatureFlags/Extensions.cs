@@ -7,17 +7,14 @@ namespace FSH.Framework.Web.FeatureFlags;
 public static class Extensions
 {
     /// <summary>
-    /// Adds feature management with tenant-aware feature filters.
-    /// Reads feature flags from the "FeatureManagement" configuration section.
+    /// Adds installation-wide feature management from the "FeatureManagement" configuration section.
     /// </summary>
     public static IServiceCollection AddHeroFeatureFlags(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.AddFeatureManagement(configuration.GetSection("FeatureManagement"))
-            .AddFeatureFilter<TenantFeatureFilter>();
-
+        services.AddFeatureManagement(configuration.GetSection("FeatureManagement"));
         return services;
     }
 }
