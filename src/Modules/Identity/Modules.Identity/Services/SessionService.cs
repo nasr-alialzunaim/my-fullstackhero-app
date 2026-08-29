@@ -100,14 +100,14 @@ public sealed class SessionService : ISessionService
         return sessions.Select(s => MapToDto(s, isCurrentSession: false)).ToList();
     }
 
-    public async Task<(List<UserSessionDto> Items, long TotalCount)> GetTenantSessionsAsync(
+    public async Task<(List<UserSessionDto> Items, long TotalCount)> GetAllSessionsAsync(
         bool includeInactive,
         string? search,
         int skip,
         int take,
         CancellationToken cancellationToken = default)
     {
-        // Cap server-side so an over-eager client can't pull a tenant's full
+        // Cap server-side so an over-eager client can't pull a installation's full
         // session table in one round-trip.
         if (take is < 1 or > 200) take = 50;
         if (skip < 0) skip = 0;
