@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Common;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Eventing.Outbox;
@@ -26,12 +25,10 @@ internal sealed class UserRegistrationService(
     IdentityDbContext db,
     IJobService jobService,
     IMailService mailService,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     IOutboxStore outboxStore) : IUserRegistrationService
 {
     public async Task<string> GetOrCreateFromPrincipalAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
-        EnsureValidTenant();
         ArgumentNullException.ThrowIfNull(principal);
 
         var email = ExtractEmailFromPrincipal(principal);
@@ -70,9 +67,8 @@ internal sealed class UserRegistrationService(
         return user.Id;
     }
 
-    public async Task<string> ConfirmEmailAsync(string userId, string code, string tenant, CancellationToken cancellationToken)
+    public async Task<string> ConfirmEmailAsync(string userId, string code, CancellationToken cancellationToken)
     {
-        EnsureValidTenant();
 
         var user = await userManager.Users
             .Where(u => u.Id == userId && !u.EmailConfirmed)
@@ -90,7 +86,6 @@ internal sealed class UserRegistrationService(
 
     public async Task AdminConfirmEmailAsync(string userId, CancellationToken cancellationToken = default)
     {
-        EnsureValidTenant();
 
         var user = await userManager.Users
             .Where(u => u.Id == userId)
@@ -117,7 +112,6 @@ internal sealed class UserRegistrationService(
 
     public async Task ResendConfirmationEmailAsync(string userId, string origin, CancellationToken cancellationToken = default)
     {
-        EnsureValidTenant();
 
         var user = await userManager.Users
             .Where(u => u.Id == userId)
@@ -137,7 +131,6 @@ internal sealed class UserRegistrationService(
 
     public async Task<string> ConfirmPhoneNumberAsync(string userId, string code, CancellationToken cancellationToken = default)
     {
-        EnsureValidTenant();
 
         var user = await userManager.Users
             .Where(u => u.Id == userId && !u.PhoneNumberConfirmed)
@@ -151,14 +144,6 @@ internal sealed class UserRegistrationService(
         return result.Succeeded
             ? string.Format(CultureInfo.InvariantCulture, "Phone number {0} confirmed successfully.", user.PhoneNumber)
             : throw new CustomException(string.Format(CultureInfo.InvariantCulture, "An error occurred while confirming phone number {0}", user.PhoneNumber));
-    }
-
-    private void EnsureValidTenant()
-    {
-        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
-        {
-            throw new UnauthorizedException("invalid tenant");
-        }
     }
 
     private static string ExtractEmailFromPrincipal(ClaimsPrincipal principal)
@@ -306,7 +291,7 @@ internal sealed class UserRegistrationService(
         string source,
         CancellationToken cancellationToken = default)
     {
-        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
+        const string tenantId = MultitenancyConstants.Root.Id;
         user.RecordRegistered(tenantId);
 
         await db.SaveChangesAsync(cancellationToken);
@@ -327,7 +312,6 @@ internal sealed class UserRegistrationService(
 
     private async Task<string> GetEmailVerificationUriAsync(FshUser user, string origin)
     {
-        EnsureValidTenant();
 
         string code = await userManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -337,11 +321,6 @@ internal sealed class UserRegistrationService(
 
         string verificationUri = QueryHelpers.AddQueryString(endpointUri.ToString(), QueryStringKeys.UserId, user.Id);
         verificationUri = QueryHelpers.AddQueryString(verificationUri, QueryStringKeys.Code, code);
-        verificationUri = QueryHelpers.AddQueryString(
-            verificationUri,
-            MultitenancyConstants.Identifier,
-            multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id!);
-
         return verificationUri;
     }
 
