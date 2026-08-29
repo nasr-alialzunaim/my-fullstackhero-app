@@ -1,6 +1,5 @@
 import {
   Activity,
-  Building2,
   LayoutDashboard,
   Receipt,
   ScrollText,
@@ -15,7 +14,6 @@ import {
   AuditingPermissions,
   BillingPermissions,
   IdentityPermissions,
-  MultitenancyPermissions,
   WebhooksPermissions,
 } from "@/lib/permissions";
 
@@ -51,21 +49,6 @@ export const topNavBottom: NavSpec[] = [
 // ─── Section accordions ──────────────────────────────────────────────────────
 
 export const sections: NavSection[] = [
-  {
-    id: "multitenancy",
-    caption: "Tenants",
-    captionKey: "navigation.tenants",
-    icon: Building2,
-    items: [
-      {
-        to: "/tenants",
-        label: "Tenants",
-        labelKey: "navigation.tenants",
-        icon: Building2,
-        perms: [MultitenancyPermissions.Tenants.View],
-      },
-    ],
-  },
   {
     id: "identity",
     caption: "Identity",
@@ -176,13 +159,6 @@ export type NavItem = NavSpec & { matchPrefix?: string };
 /** @deprecated Flat list kept only for call-sites still importing NAV_ITEMS. */
 export const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Overview", labelKey: "navigation.overview", icon: LayoutDashboard },
-  {
-    to: "/tenants",
-    label: "Tenants",
-    icon: Building2,
-    matchPrefix: "/tenants",
-    perms: [MultitenancyPermissions.Tenants.View],
-  },
   {
     to: "/users",
     label: "Users",
