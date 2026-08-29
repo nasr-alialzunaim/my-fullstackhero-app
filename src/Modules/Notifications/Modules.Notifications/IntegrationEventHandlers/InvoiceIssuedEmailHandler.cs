@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Abstractions;
 using FSH.Framework.Mailing.Services;
 using FSH.Framework.Shared.Multitenancy;
@@ -7,10 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace FSH.Modules.Notifications.IntegrationEventHandlers;
 
-/// <summary>Emails the tenant admin when an invoice is issued. Resolves the admin email from the tenant
-/// store (the event only carries the tenant id).</summary>
+/// <summary>Emails the installation admin when an invoice is issued.</summary>
 public sealed class InvoiceIssuedEmailHandler(
-    IMultiTenantStore<AppTenantInfo> tenantStore,
+    Finbuckle.MultiTenant.Abstractions.IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
     IMailService mailService,
     ILogger<InvoiceIssuedEmailHandler> logger)
     : IIntegrationEventHandler<InvoiceIssuedIntegrationEvent>
@@ -23,7 +21,7 @@ public sealed class InvoiceIssuedEmailHandler(
             return;
         }
 
-        var tenant = await tenantStore.GetAsync(@event.TenantId).ConfigureAwait(false);
+        var tenant = tenantAccessor.MultiTenantContext.TenantInfo;
         if (tenant is null)
         {
             return;
