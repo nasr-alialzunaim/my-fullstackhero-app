@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowRight,
-  Building2,
   Check,
   Loader2,
   Mail,
@@ -18,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { requestPasswordReset } from "@/api/users";
 import { ApiRequestError } from "@/lib/api-client";
 import { cn } from "@/lib/cn";
-import { env } from "@/env";
 
 /**
  * Forgot-password — admin variant.
@@ -30,12 +28,11 @@ import { env } from "@/env";
 export function ForgotPasswordPage() {
   const { isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
-  const [tenant, setTenant] = useState(env.defaultTenant);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
-    mutationFn: () => requestPasswordReset({ email, tenant }),
+    mutationFn: () => requestPasswordReset({ email }),
     onSuccess: () => setSubmitted(true),
     onError: (err: unknown) => {
       const detail =
@@ -113,8 +110,7 @@ export function ForgotPasswordPage() {
                   </h1>
                   <p className="text-[13px] leading-relaxed text-[var(--color-muted-foreground)]">
                     If an account exists for{" "}
-                    <span className="text-[var(--color-foreground)]">{email}</span> in tenant{" "}
-                    <span className="text-[var(--color-foreground)]">{tenant}</span>, a one-time
+                    <span className="text-[var(--color-foreground)]">{email}</span> a one-time
                     reset link is on its way. The link expires in 30 minutes.
                   </p>
                 </div>
@@ -125,7 +121,7 @@ export function ForgotPasswordPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--color-success)]" />
-                    Still nothing? Confirm the email + tenant and retry.
+                    Still nothing? Confirm the email and retry.
                   </li>
                 </ul>
                 <div className="flex items-center gap-2 pt-1">
@@ -154,7 +150,7 @@ export function ForgotPasswordPage() {
                     <span className="text-[var(--color-primary)]">password</span>
                   </h1>
                   <p className="text-[13px] text-[var(--color-muted-foreground)]">
-                    Enter the email + tenant you sign in with. We'll dispatch a one-time link.
+                    Enter the email you sign in with. We'll dispatch a one-time link.
                   </p>
                 </div>
 
@@ -164,28 +160,6 @@ export function ForgotPasswordPage() {
                   noValidate
                   aria-describedby={error ? "forgot-error" : undefined}
                 >
-                  <div className="space-y-1.5">
-                    <Label
-                      htmlFor="reset-tenant"
-                      className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
-                    >
-                      Tenant
-                    </Label>
-                    <div className="relative">
-                      <Building2 className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[oklch(from_var(--color-muted-foreground)_l_c_h_/_0.6)]" />
-                      <Input
-                        id="reset-tenant"
-                        value={tenant}
-                        onChange={(e) => setTenant(e.target.value)}
-                        required
-                        autoComplete="organization"
-                        placeholder="root"
-                        aria-invalid={error ? true : undefined}
-                        aria-describedby={error ? "forgot-error" : undefined}
-                        className="h-11 pl-10 text-[14px]"
-                      />
-                    </div>
-                  </div>
                   <div className="space-y-1.5">
                     <Label
                       htmlFor="reset-email"
@@ -230,7 +204,7 @@ export function ForgotPasswordPage() {
                   <div className="pt-1.5">
                     <Button
                       type="submit"
-                      disabled={mutation.isPending || !email || !tenant}
+                      disabled={mutation.isPending || !email}
                       className="group h-11 w-full text-[14px] font-semibold"
                     >
                       {mutation.isPending ? (
