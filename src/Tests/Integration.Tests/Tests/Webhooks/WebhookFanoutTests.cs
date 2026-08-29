@@ -91,18 +91,20 @@ public sealed class WebhookFanoutTests
     }
 
     [Fact]
-    public async Task Fanout_Should_Skip_When_EventHasNullTenantId()
+    public async Task Fanout_Should_Use_Installation_When_EventHasNullTenantId()
     {
-        // Arrange — a matching subscription exists, but the event is global (TenantId null).
+        // Arrange — a matching subscription exists and the event carries no legacy tenant id.
         var recorder = new RecordingDispatcher();
         await using var capturingFactory = CreateCapturingFactory(recorder);
         var subscriptionId = await CreateSubscriptionAsync(capturingFactory, new[] { nameof(FanoutTestEvent) });
 
-        // Act — global event must be skipped (webhooks are tenant-scoped by design).
+        // Act — the single-installation runtime supplies the installation identity.
         await PublishAsync(capturingFactory, new FanoutTestEvent(TenantId: null));
 
         // Assert
-        recorder.For(subscriptionId).ShouldBeEmpty();
+        var enqueued = recorder.For(subscriptionId);
+        enqueued.Count.ShouldBe(1);
+        enqueued[0].TenantId.ShouldBe(TestConstants.RootTenantId);
     }
 
     [Fact]
