@@ -1,7 +1,7 @@
 using FSH.Framework.Caching;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Shared.Identity.Claims;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +29,7 @@ public sealed class RolePermissionSyncer(
 
         int basicAdded = await SyncRoleAsync(RoleConstants.Basic, PermissionConstants.Basic, cancellationToken).ConfigureAwait(false);
 
-        // Admin gets all non-root permissions; the root tenant's Admin additionally gets Root permissions.
+        // Admin gets all non-root permissions; the installation's Admin additionally gets Root permissions.
         var adminPermissions = isRoot
             ? PermissionConstants.Admin.Concat(PermissionConstants.Root).Distinct().ToList()
             : PermissionConstants.Admin.ToList();
@@ -87,7 +87,7 @@ public sealed class RolePermissionSyncer(
                 "Synced {Count} new permission claim(s) to '{Role}' for tenant '{Tenant}'",
                 toAdd.Count,
                 roleName,
-                MultitenancyConstants.Root.Id);
+                InstallationConstants.Id);
         }
 
         return toAdd.Count;
