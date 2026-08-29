@@ -2,13 +2,11 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
-  Building2,
   FileText,
   LayoutDashboard,
   Receipt,
   UsersRound,
 } from "lucide-react";
-import { listTenants } from "@/api/tenants";
 import { listInvoices, getPlans } from "@/api/billing";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EntityPageHeader, Stat, StatStrip, ToneIconTile, type ToneIconTileTone } from "@/components/list";
@@ -25,10 +23,6 @@ export function DashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const tenantsQuery = useQuery({
-    queryKey: ["tenants", { pageNumber: 1, pageSize: 1 }],
-    queryFn: () => listTenants({ pageNumber: 1, pageSize: 1 }),
-  });
   const plansQuery = useQuery({
     queryKey: ["billing", "plans", { includeInactive: true }],
     queryFn: () => getPlans(true),
@@ -38,7 +32,6 @@ export function DashboardPage() {
     queryFn: () => listInvoices({ pageNumber: 1, pageSize: 50 }),
   });
 
-  const tenantsTotal = tenantsQuery.data?.totalCount;
   const plans = plansQuery.data ?? [];
   const activePlans = plans.filter((p) => p.isActive).length;
   const invoicesPage = invoicesQuery.data;
@@ -61,23 +54,12 @@ export function DashboardPage() {
             </>
           }
           tone="primary"
-          description={t("dashboard.description", { defaultValue: "Operate every tenant on this instance — identity, multitenancy, billing, and the rest of the system surface." })}
+          description={t("dashboard.description", { defaultValue: "Operate this installation — identity, billing, auditing, and the rest of the system surface." })}
         />
       </div>
 
       {/* ── KPI stat strip ───────────────────────────────────────────── */}
-      <StatStrip cols={4} className="fsh-enter fsh-enter-2">
-        <Stat
-          label={t("navigation.tenants", { defaultValue: "Tenants" })}
-          value={
-            tenantsQuery.isLoading ? (
-              <Skeleton className="h-7 w-16" />
-            ) : (
-              tenantsTotal?.toLocaleString() ?? "—"
-            )
-          }
-          hint={t("dashboard.registered", { defaultValue: "registered on this instance" })}
-        />
+      <StatStrip cols={3} className="fsh-enter fsh-enter-2">
         <Stat
           label={t("dashboard.plans", { defaultValue: "Plans" })}
           value={
@@ -123,20 +105,13 @@ export function DashboardPage() {
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
           {t("dashboard.entryPoints", { defaultValue: "Entry points" })}
         </p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <PivotCard
-            to="/tenants"
-            icon={Building2}
-            tone="info"
-            title={t("navigation.tenants", { defaultValue: "Tenants" })}
-            description={t("dashboard.tenantsDescription", { defaultValue: "Provision, suspend, and inspect tenants." })}
-          />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <PivotCard
             to="/users"
             icon={UsersRound}
             tone="primary"
             title={t("navigation.users", { defaultValue: "Users" })}
-            description={t("dashboard.usersDescription", { defaultValue: "Root-tenant operators and role management." })}
+            description={t("dashboard.usersDescription", { defaultValue: "Installation users and role management." })}
           />
           <PivotCard
             to="/billing/plans"
@@ -150,7 +125,7 @@ export function DashboardPage() {
             icon={FileText}
             tone="warning"
             title={t("billing.invoices", { defaultValue: "Invoices" })}
-            description={t("dashboard.invoicesDescription", { defaultValue: "Cross-tenant ledger. Issue, mark paid, void." })}
+            description={t("dashboard.invoicesDescription", { defaultValue: "Invoice ledger. Issue, mark paid, and void." })}
           />
         </div>
       </section>
@@ -168,7 +143,7 @@ function PivotCard({
   description,
 }: {
   to: string;
-  icon: typeof Building2;
+  icon: typeof UsersRound;
   tone: ToneIconTileTone;
   title: string;
   description: string;
