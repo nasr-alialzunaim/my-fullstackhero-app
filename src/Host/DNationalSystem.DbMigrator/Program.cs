@@ -185,7 +185,9 @@ try
     await Console.Out.WriteLineAsync("[migrator] finished successfully.").ConfigureAwait(false);
     return 0;
 }
+#pragma warning disable CA1031 // Top-level operator CLI intentionally converts any migration failure to exit code 1.
 catch (Exception ex)
+#pragma warning restore CA1031
 {
     logger.LogError(ex, "DbMigrator failed");
     await Console.Error.WriteLineAsync(
