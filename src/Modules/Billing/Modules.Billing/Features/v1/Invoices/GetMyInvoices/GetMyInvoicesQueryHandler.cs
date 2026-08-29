@@ -1,57 +1,40 @@
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Core.Exceptions;
-using FSH.Framework.Shared.Multitenancy;
-using FSH.Framework.Shared.Persistence;
-using FSH.Modules.Billing.Contracts.Dtos;
-using FSH.Modules.Billing.Contracts.v1.Invoices;
+using FSH.Framework.Shared.Installation;
+using FSH.Modules.Billing.Contracts;
+using FSH.Modules.Billing.Contracts.v1.Invoices.GetMyInvoices;
 using FSH.Modules.Billing.Data;
-using Mediator;
 using Microsoft.EntityFrameworkCore;
 
 namespace FSH.Modules.Billing.Features.v1.Invoices.GetMyInvoices;
 
-public sealed class GetMyInvoicesQueryHandler(
-    BillingDbContext dbContext,
-    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor)
-    : IQueryHandler<GetMyInvoicesQuery, PagedResponse<InvoiceDto>>
+public sealed class GetMyInvoicesQueryHandler(BillingDbContext db)
+    : IQueryHandler<GetMyInvoicesQuery, IReadOnlyList<InvoiceDto>>
 {
-    public async ValueTask<PagedResponse<InvoiceDto>> Handle(GetMyInvoicesQuery query, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyList<InvoiceDto>> Handle(
+        GetMyInvoicesQuery query,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var tenantId = tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
-
-        var q = dbContext.Invoices.AsNoTracking()
-            .Include(i => i.LineItems)
-            .Where(i => i.TenantId == tenantId);
-        if (query.Status is not null)
-        {
-            q = q.Where(i => i.Status == query.Status);
-        }
-        if (query.PeriodYear is not null)
-        {
-            q = q.Where(i => i.PeriodYear == query.PeriodYear);
-        }
-        if (query.PeriodMonth is not null)
-        {
-            q = q.Where(i => i.PeriodMonth == query.PeriodMonth);
-        }
-
-        var total = await q.LongCountAsync(cancellationToken).ConfigureAwait(false);
-        var invoices = await q
+        return await db.Invoices
+            .AsNoTracking()
+            .Where(i => i.TenantId == InstallationConstants.Id)
             .OrderByDescending(i => i.CreatedAtUtc)
-            .Skip((query.PageNumber - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
-
-        return new PagedResponse<InvoiceDto>
-        {
-            Items = invoices.Select(i => i.ToDto()).ToList(),
-            PageNumber = query.PageNumber,
-            PageSize = query.PageSize,
-            TotalCount = total,
-            TotalPages = (int)Math.Ceiling(total / (double)query.PageSize)
-        };
+            .Select(i => new InvoiceDto(
+                i.Id,
+                i.TenantId,
+                i.InvoiceNumber,
+                i.PeriodYear,
+                i.PeriodMonth,
+                i.Purpose,
+                i.Status,
+                i.Currency,
+                i.Subtotal,
+                i.Tax,
+                i.Total,
+                i.IssuedAtUtc,
+                i.PaidAtUtc,
+                i.CreatedAtUtc))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 }
