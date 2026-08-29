@@ -176,7 +176,7 @@ public sealed class WebhookFanoutHandlerTests
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns("Development");
 
-        return new WebhookDbContext(_tenantAccessor, options, settings, environment);
+        return new WebhookDbContext(options);
     }
 
     private async Task<Guid> SeedSubscriptionAsync(WebhookDbContext db, string[] events, bool isActive)
