@@ -1,4 +1,3 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Quota;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
@@ -14,20 +13,20 @@ public sealed class UsageReporter : IUsageReporter
     private readonly BillingDbContext _db;
     private readonly IQuotaService _quotas;
     private readonly QuotaPlanResolver _planResolver;
-    private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
+    private readonly Finbuckle.MultiTenant.Abstractions.IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly ILogger<UsageReporter> _logger;
 
     public UsageReporter(
         BillingDbContext db,
         IQuotaService quotas,
         QuotaPlanResolver planResolver,
-        IMultiTenantStore<AppTenantInfo> tenantStore,
+        Finbuckle.MultiTenant.Abstractions.IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         ILogger<UsageReporter> logger)
     {
         _db = db;
         _quotas = quotas;
         _planResolver = planResolver;
-        _tenantStore = tenantStore;
+        _tenantAccessor = tenantAccessor;
         _logger = logger;
     }
 
@@ -39,7 +38,8 @@ public sealed class UsageReporter : IUsageReporter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false);
+        tenantId = MultitenancyConstants.Root.Id;
+        var tenant = _tenantAccessor.MultiTenantContext.TenantInfo;
         var existing = await _db.UsageSnapshots
             .Where(s => s.TenantId == tenantId && s.PeriodYear == periodYear && s.PeriodMonth == periodMonth)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
