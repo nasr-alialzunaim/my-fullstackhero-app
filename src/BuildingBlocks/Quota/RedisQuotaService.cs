@@ -156,7 +156,7 @@ public sealed class RedisQuotaService : IQuotaService
 
     private (long Limit, bool Exempt) ResolveLimit(string installationId, QuotaResource resource)
     {
-        if (_options.ExemptRootTenant
+        if (_options.ExemptInstallation
             && string.Equals(installationId, InstallationConstants.Id, StringComparison.Ordinal))
         {
             return (long.MaxValue, true);
