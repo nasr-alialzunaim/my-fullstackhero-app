@@ -382,7 +382,6 @@ public sealed class NotificationsEndpointTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
@@ -414,7 +413,6 @@ public sealed class NotificationsEndpointTests
         for (int i = 0; i < count; i++)
         {
             using var scope = _factory.Services.CreateScope();
-            var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
             var db = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
             var notification = Notification.Create(
