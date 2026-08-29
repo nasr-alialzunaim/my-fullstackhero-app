@@ -43,7 +43,7 @@ public class HandlerValidatorPairingTests
         "FSH.Modules.Catalog.Features.v1.Categories.ListTrashedCategories.ListTrashedCategoriesQueryHandler",
         "FSH.Modules.Catalog.Features.v1.Brands.SearchBrands.SearchBrandsQueryHandler",
         "FSH.Modules.Catalog.Features.v1.Brands.ListTrashedBrands.ListTrashedBrandsQueryHandler",
-        "FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions.GetTenantSessionsQueryHandler",
+        "FSH.Modules.Identity.Features.v1.Sessions.GetAllSessions.GetAllSessionsQueryHandler",
         "FSH.Modules.Tickets.Features.v1.Tickets.SearchTickets.SearchTicketsQueryHandler",
         "FSH.Modules.Tickets.Features.v1.Tickets.ListTrashedTickets.ListTrashedTicketsQueryHandler"
     ];
