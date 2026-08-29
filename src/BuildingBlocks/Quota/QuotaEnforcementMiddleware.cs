@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Shared.Auditing;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,7 @@ namespace FSH.Framework.Quota;
 /// <summary>
 /// Per-request quota enforcement for <see cref="QuotaResource.ApiCalls"/>. Runs after auth and the
 /// rate limiter so only authenticated, counted calls charge the meter. Skips health probes, the
-/// root tenant, and unresolved tenants. Rejects with HTTP 429 + RFC 9457 ProblemDetails and a
+/// root installation, and unresolved installations. Rejects with HTTP 429 + RFC 9457 ProblemDetails and a
 /// <c>Retry-After</c> header; flags the request via <see cref="HttpContextItemKeys.QuotaRejected"/>
 /// so the audit middleware can tag the activity event with <c>AuditTag.OutOfQuota</c> without this
 /// middleware taking a dependency on the auditing module.
@@ -23,26 +22,22 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
     private const string QuotaExceededType = "https://datatracker.ietf.org/doc/html/rfc6585#section-4";
 
     private readonly IQuotaService _quotaService;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly QuotaOptions _options;
     private readonly ILogger<QuotaEnforcementMiddleware> _logger;
     private readonly TimeProvider _timeProvider;
 
     public QuotaEnforcementMiddleware(
         IQuotaService quotaService,
-        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         QuotaOptions options,
         ILogger<QuotaEnforcementMiddleware> logger,
         TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(quotaService);
-        ArgumentNullException.ThrowIfNull(tenantAccessor);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(timeProvider);
 
         _quotaService = quotaService;
-        _tenantAccessor = tenantAccessor;
         _options = options;
         _logger = logger;
         _timeProvider = timeProvider;
@@ -59,15 +54,10 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
             return;
         }
 
-        var tenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
-        if (string.IsNullOrWhiteSpace(tenantId))
-        {
-            await next(context).ConfigureAwait(false);
-            return;
-        }
+        const string installationId = InstallationConstants.Id;
 
         var result = await _quotaService
-            .CheckAndRecordAsync(tenantId, QuotaResource.ApiCalls, 1, context.RequestAborted)
+            .CheckAndRecordAsync(installationId, QuotaResource.ApiCalls, 1, context.RequestAborted)
             .ConfigureAwait(false);
 
         if (result.Allowed)
@@ -76,10 +66,10 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
             return;
         }
 
-        await RejectAsync(context, tenantId, result).ConfigureAwait(false);
+        await RejectAsync(context, installationId, result).ConfigureAwait(false);
     }
 
-    private async Task RejectAsync(HttpContext context, string tenantId, QuotaCheckResult result)
+    private async Task RejectAsync(HttpContext context, string installationId, QuotaCheckResult result)
     {
         context.Items[HttpContextItemKeys.QuotaRejected] = true;
 
@@ -119,8 +109,8 @@ public sealed class QuotaEnforcementMiddleware : IMiddleware
         if (_logger.IsEnabled(LogLevel.Warning))
         {
             _logger.LogWarning(
-                "Rejected request for tenant {TenantId} — {Resource} quota exceeded ({Current}/{Limit})",
-                tenantId, result.Resource, result.CurrentUsage, result.Limit);
+                "Rejected request for installation {InstallationId} — {Resource} quota exceeded ({Current}/{Limit})",
+                installationId, result.Resource, result.CurrentUsage, result.Limit);
         }
 
         await context.Response.WriteAsJsonAsync(problem, context.RequestAborted).ConfigureAwait(false);
