@@ -48,8 +48,7 @@ export function ResetPasswordPage() {
 
   const token = params.get("token") ?? "";
   const email = params.get("email") ?? "";
-  const tenant = params.get("tenant") ?? "";
-  const malformed = !token || !email || !tenant;
+  const malformed = !token || !email;
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -61,7 +60,7 @@ export function ResetPasswordPage() {
   const matches = password.length > 0 && password === confirm;
 
   const mutation = useMutation({
-    mutationFn: () => resetPassword({ email, password, token, tenant }),
+    mutationFn: () => resetPassword({ email, password, token }),
     onSuccess: () => {
       toast.success("Password updated", {
         description: "Sign in with your new password to continue.",
@@ -176,8 +175,7 @@ export function ResetPasswordPage() {
                   </h1>
                   <p className="text-[13px] text-[var(--color-muted-foreground)]">
                     Resetting password for{" "}
-                    <span className="text-[var(--color-foreground)]">{email}</span> on{" "}
-                    <span className="text-[var(--color-foreground)]">{tenant}</span>.
+                    <span className="text-[var(--color-foreground)]">{email}</span>.
                   </p>
                 </div>
 
