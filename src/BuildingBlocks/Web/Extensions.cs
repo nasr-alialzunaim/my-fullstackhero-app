@@ -5,6 +5,7 @@ using FSH.Framework.Mailing.Services;
 using FSH.Framework.Persistence;
 using FSH.Framework.Quota;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
@@ -45,6 +46,7 @@ public static class Extensions
         configure?.Invoke(options);
 
         PermissionConstants.Register(SystemPermissions.All);
+        builder.Services.AddSingleInstallationTenantContext();
 
         builder.Services.AddScoped<CurrentUserMiddleware>();
 
