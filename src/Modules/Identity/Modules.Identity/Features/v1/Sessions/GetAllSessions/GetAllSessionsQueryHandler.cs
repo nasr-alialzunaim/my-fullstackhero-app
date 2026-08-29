@@ -1,16 +1,16 @@
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
-using FSH.Modules.Identity.Contracts.v1.Sessions.GetTenantSessions;
+using FSH.Modules.Identity.Contracts.v1.Sessions.GetAllSessions;
 using Mediator;
 
-namespace FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions;
+namespace FSH.Modules.Identity.Features.v1.Sessions.GetAllSessions;
 
-public sealed class GetTenantSessionsQueryHandler(ISessionService sessionService)
-    : IQueryHandler<GetTenantSessionsQuery, PagedResponse<UserSessionDto>>
+public sealed class GetAllSessionsQueryHandler(ISessionService sessionService)
+    : IQueryHandler<GetAllSessionsQuery, PagedResponse<UserSessionDto>>
 {
     public async ValueTask<PagedResponse<UserSessionDto>> Handle(
-        GetTenantSessionsQuery query,
+        GetAllSessionsQuery query,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -18,7 +18,7 @@ public sealed class GetTenantSessionsQueryHandler(ISessionService sessionService
         int page = query.PageNumber < 1 ? 1 : query.PageNumber;
         int size = query.PageSize is < 1 or > 200 ? 50 : query.PageSize;
 
-        var (items, total) = await sessionService.GetTenantSessionsAsync(
+        var (items, total) = await sessionService.GetAllSessionsAsync(
             includeInactive: query.IncludeInactive,
             search: query.Search,
             skip: (page - 1) * size,

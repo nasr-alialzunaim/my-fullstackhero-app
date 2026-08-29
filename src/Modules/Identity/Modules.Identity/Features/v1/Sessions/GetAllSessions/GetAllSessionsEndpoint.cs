@@ -2,17 +2,17 @@ using FSH.Framework.Shared.Identity.Authorization;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Modules.Identity.Contracts.DTOs;
-using FSH.Modules.Identity.Contracts.v1.Sessions.GetTenantSessions;
+using FSH.Modules.Identity.Contracts.v1.Sessions.GetAllSessions;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace FSH.Modules.Identity.Features.v1.Sessions.GetTenantSessions;
+namespace FSH.Modules.Identity.Features.v1.Sessions.GetAllSessions;
 
-public static class GetTenantSessionsEndpoint
+public static class GetAllSessionsEndpoint
 {
-    internal static RouteHandlerBuilder MapGetTenantSessionsEndpoint(this IEndpointRouteBuilder endpoints)
+    internal static RouteHandlerBuilder MapGetAllSessionsEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapGet("/sessions",
                 async (
@@ -23,7 +23,7 @@ public static class GetTenantSessionsEndpoint
                     IMediator mediator,
                     CancellationToken ct) =>
                 {
-                    var query = new GetTenantSessionsQuery
+                    var query = new GetAllSessionsQuery
                     {
                         IncludeInactive = includeInactive ?? false,
                         Search = search,
@@ -32,9 +32,9 @@ public static class GetTenantSessionsEndpoint
                     };
                     return TypedResults.Ok(await mediator.Send(query, ct));
                 })
-            .WithName("GetTenantSessions")
-            .WithSummary("List all sessions in the current tenant (Admin)")
-            .WithDescription("Returns paged sessions across the tenant, filterable by active state and a free-text search across user name, email, and IP address.")
+            .WithName("GetAllSessions")
+            .WithSummary("List all sessions in this installation (Admin)")
+            .WithDescription("Returns paged sessions across the installation, filterable by active state and free-text search across user name, email, and IP address.")
             .RequirePermission(IdentityPermissions.Sessions.ViewAll)
             .Produces<PagedResponse<UserSessionDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
