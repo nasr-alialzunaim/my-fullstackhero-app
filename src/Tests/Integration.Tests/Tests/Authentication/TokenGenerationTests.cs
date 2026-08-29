@@ -32,7 +32,6 @@ public sealed class TokenGenerationTests
     {
         using var client = _factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
-        request.Headers.Add("tenant", TestConstants.RootTenantId);
         request.Content = JsonContent.Create(new
         {
             email = TestConstants.RootAdminEmail,
@@ -49,7 +48,6 @@ public sealed class TokenGenerationTests
     {
         using var client = _factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
-        request.Headers.Add("tenant", TestConstants.RootTenantId);
         request.Content = JsonContent.Create(new
         {
             email = "nonexistent@example.com",
@@ -66,7 +64,6 @@ public sealed class TokenGenerationTests
     {
         using var client = _factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
-        request.Headers.Add("tenant", TestConstants.RootTenantId);
         request.Content = JsonContent.Create(new
         {
             email = "",
@@ -96,7 +93,7 @@ public sealed class TokenGenerationTests
     }
 
     [Fact]
-    public async Task GenerateToken_Should_Fail_When_TenantHeaderIsMissing()
+    public async Task GenerateToken_Should_Succeed_Without_TenantHeader()
     {
         using var client = _factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
@@ -108,6 +105,6 @@ public sealed class TokenGenerationTests
 
         var response = await client.SendAsync(request);
 
-        response.IsSuccessStatusCode.ShouldBeFalse();
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

@@ -3,7 +3,6 @@ using FSH.Modules.Auditing.Contracts.Authorization;
 using FSH.Modules.Billing.Contracts.Authorization;
 using FSH.Modules.Catalog.Contracts.Authorization;
 using FSH.Modules.Identity.Contracts.Authorization;
-using FSH.Modules.Multitenancy.Contracts.Authorization;
 using FSH.Modules.Tickets.Contracts.Authorization;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
@@ -34,7 +33,6 @@ public sealed class PermissionRegistrationTests
 
         // Each module's static `All` list is the single source of truth.
         AssertAllRegistered(registered, IdentityPermissions.All.Select(p => p.Name), nameof(IdentityPermissions));
-        AssertAllRegistered(registered, MultitenancyPermissions.All.Select(p => p.Name), nameof(MultitenancyPermissions));
         AssertAllRegistered(registered, AuditingPermissions.All.Select(p => p.Name), nameof(AuditingPermissions));
         AssertAllRegistered(registered, BillingPermissions.All.Select(p => p.Name), nameof(BillingPermissions));
         AssertAllRegistered(registered, CatalogPermissions.All.Select(p => p.Name), nameof(CatalogPermissions));
@@ -98,9 +96,6 @@ public sealed class PermissionRegistrationTests
         permSet.ShouldContain(BillingPermissions.View);
         permSet.ShouldContain(AuditingPermissions.AuditTrails.View);
         permSet.ShouldContain(SystemPermissions.Dashboard.View);
-
-        // Tenants permissions are root-only — admin@root.com on the root tenant gets them.
-        permSet.ShouldContain(MultitenancyPermissions.Tenants.View);
     }
 
     private static void AssertAllRegistered(HashSet<string> registered, IEnumerable<string> expected, string moduleName)

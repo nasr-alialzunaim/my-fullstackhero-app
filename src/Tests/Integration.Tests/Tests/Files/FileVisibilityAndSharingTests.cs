@@ -1,7 +1,4 @@
 using System.Security.Cryptography;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
@@ -262,14 +259,9 @@ public sealed class FileVisibilityAndSharingTests
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var registered = await response.DeserializeAsync<RegisterResult>();
 
-        // Bypass email confirmation so the user can sign in. The Finbuckle tenant context must be set
         // INLINE in this method body (AsyncLocal) so the UserManager query filter resolves the tenant.
         using (var scope = _factory.Services.CreateScope())
         {
-            var tenant = await scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-                .GetAsync(TestConstants.RootTenantId);
-            scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-                new MultiTenantContext<AppTenantInfo>(tenant);
 
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
             var user = await userManager.FindByIdAsync(registered.UserId);

@@ -4,13 +4,10 @@ using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
 using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
 using FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
-using FSH.Modules.Multitenancy;
-using FSH.Modules.Multitenancy.Contracts.v1.GetTenantStatus;
 using FSH.Modules.Webhooks;
 using FSH.Modules.Billing;
 using FSH.Modules.Catalog;
 using FSH.Modules.Tickets;
-using FSH.Modules.Multitenancy.Features.v1.GetTenantStatus;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -45,8 +42,6 @@ builder.Services.AddMediator(o =>
     o.Assemblies = [
         typeof(GenerateTokenCommand),
         typeof(GenerateTokenCommandHandler),
-        typeof(GetTenantStatusQuery),
-        typeof(GetTenantStatusQueryHandler),
         typeof(FSH.Modules.Auditing.Contracts.AuditEnvelope),
         typeof(FSH.Modules.Auditing.Persistence.AuditDbContext),
         typeof(FSH.Modules.Webhooks.Contracts.v1.CreateWebhookSubscription.CreateWebhookSubscriptionCommand),
@@ -68,7 +63,6 @@ builder.Services.AddMediator(o =>
 var moduleAssemblies = new Assembly[]
 {
     typeof(IdentityModule).Assembly,
-    typeof(MultitenancyModule).Assembly,
     typeof(AuditingModule).Assembly,
     typeof(FSH.Modules.Files.FilesModule).Assembly,
     typeof(WebhooksModule).Assembly,
@@ -82,9 +76,9 @@ var moduleAssemblies = new Assembly[]
 builder.AddHeroPlatform(o =>
 {
     o.EnableCaching = true;
-    o.EnableMailing = true;
+    o.EnableMailing = false;
     o.EnableJobs = true;
-    o.EnableQuotas = true;
+    o.EnableQuotas = false;
     o.EnableSse = true;
     o.EnableRealtime = true;
 });
@@ -95,17 +89,13 @@ builder.AddModules(moduleAssemblies);
 // (the outbox is now dispatched by OutboxDispatcherHostedService). No-op once the storage is clean.
 builder.Services.AddHostedService<DNationalSystem.Api.OrphanedOutboxRecurringJobCleanupService>();
 
-// Demo data is provisioned by the DbMigrator's `seed-demo` verb, not the API — the API never mutates data on startup.
-// See src/Host/DNationalSystem.DbMigrator/README.md.
-
 var app = builder.Build();
 
-app.UseHeroMultiTenantDatabases();
 app.UseHeroPlatform(p =>
 {
     p.MapModules = true;
     p.ServeStaticFiles = true;
-    p.UseQuotas = true;
+    p.UseQuotas = false;
     p.MapSseEndpoints = true;
     p.MapRealtime = true;
 });

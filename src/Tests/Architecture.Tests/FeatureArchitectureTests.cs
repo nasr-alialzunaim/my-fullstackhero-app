@@ -1,6 +1,5 @@
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using NetArchTest.Rules;
 using Shouldly;
 using Xunit;
@@ -17,8 +16,7 @@ public class FeatureArchitectureTests
         var modules = new[]
         {
             typeof(AuditingModule).Assembly,
-            typeof(IdentityModule).Assembly,
-            typeof(MultitenancyModule).Assembly
+            typeof(IdentityModule).Assembly
         };
 
         foreach (var module in modules)

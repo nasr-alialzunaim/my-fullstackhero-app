@@ -22,8 +22,7 @@ export function ConfirmEmailPage() {
   const [params] = useSearchParams();
   const userId = params.get("userId") ?? "";
   const code = params.get("code") ?? "";
-  const tenant = params.get("tenant") ?? "";
-  const malformed = !userId || !code || !tenant;
+  const malformed = !userId || !code;
 
   const [status, setStatus] = useState<Status>({ kind: "loading" });
 
@@ -37,7 +36,7 @@ export function ConfirmEmailPage() {
       return;
     }
     let cancelled = false;
-    void confirmEmail({ userId, code, tenant })
+    void confirmEmail({ userId, code })
       .then((message) => {
         if (cancelled) return;
         setStatus({
@@ -59,7 +58,7 @@ export function ConfirmEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId, code, tenant, malformed]);
+  }, [userId, code, malformed]);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">

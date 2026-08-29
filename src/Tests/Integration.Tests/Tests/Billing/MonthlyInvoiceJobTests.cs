@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
@@ -90,18 +87,12 @@ public sealed class MonthlyInvoiceJobTests
 
     /// <summary>
     /// Activates the (non-DI-registered) job through ActivatorUtilities so its scoped IBillingService is
-    /// constructed inside the same scope, sets the Finbuckle tenant context inline (the store/billing
-    /// queries NRE on a null MultiTenantContext otherwise), and invokes RunAsync — the real production
+    /// constructed inside the same scope, and invokes RunAsync through the single-installation service scope — the real production
     /// entrypoint. RunAsync returns void, so callers assert via the period-scoped invoice queries below.
     /// </summary>
     private async Task RunJobAsync()
     {
         using var scope = _factory.Services.CreateScope();
-
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var job = ActivatorUtilities.CreateInstance<MonthlyInvoiceJob>(scope.ServiceProvider);
         await job.RunAsync(CancellationToken.None);
@@ -162,11 +153,6 @@ public sealed class MonthlyInvoiceJobTests
     private async Task SeedDirectAsync(Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
-
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         await action(db);
     }

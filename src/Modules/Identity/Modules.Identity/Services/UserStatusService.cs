@@ -1,9 +1,8 @@
 using System.Net;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Domain;
@@ -14,7 +13,6 @@ namespace FSH.Modules.Identity.Services;
 
 internal sealed class UserStatusService(
     UserManager<FshUser> userManager,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     ICurrentUser currentUser,
     IAuditClient auditClient) : IUserStatusService
 {
@@ -25,8 +23,6 @@ internal sealed class UserStatusService(
 
     public async Task ToggleStatusAsync(bool activateUser, string userId, CancellationToken cancellationToken)
     {
-        EnsureValidTenant();
-
         var context = await BuildToggleContextAsync(userId, activateUser, cancellationToken);
 
         await ValidateTogglePermissionsAsync(context, cancellationToken);
@@ -34,14 +30,6 @@ internal sealed class UserStatusService(
         ApplyStatusChange(context);
 
         await SaveAndAuditAsync(context, cancellationToken);
-    }
-
-    private void EnsureValidTenant()
-    {
-        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id))
-        {
-            throw new UnauthorizedException("invalid tenant");
-        }
     }
 
     private async Task<ToggleStatusContext> BuildToggleContextAsync(
@@ -68,7 +56,7 @@ internal sealed class UserStatusService(
             Actor: actor,
             TargetUser: targetUser,
             ActivateUser: activateUser,
-            TenantId: multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id);
+            TenantId: InstallationConstants.Id);
     }
 
     private async Task ValidateTogglePermissionsAsync(

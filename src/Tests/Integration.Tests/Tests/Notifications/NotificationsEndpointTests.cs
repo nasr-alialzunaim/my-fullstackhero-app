@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Domain;
 using FSH.Modules.Notifications.Contracts.v1.DTOs;
 using FSH.Modules.Notifications.Data;
@@ -385,10 +382,6 @@ public sealed class NotificationsEndpointTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(userId);
@@ -420,10 +413,6 @@ public sealed class NotificationsEndpointTests
         for (int i = 0; i < count; i++)
         {
             using var scope = _factory.Services.CreateScope();
-            var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-            var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-            scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-                new MultiTenantContext<AppTenantInfo>(tenant);
 
             var db = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
             var notification = Notification.Create(

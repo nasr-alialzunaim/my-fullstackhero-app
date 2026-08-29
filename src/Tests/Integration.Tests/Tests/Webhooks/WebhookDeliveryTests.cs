@@ -1,7 +1,4 @@
 using System.Net.Http.Headers;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Webhooks.Contracts.Dtos;
 using FSH.Modules.Webhooks.Data;
@@ -225,7 +222,6 @@ public sealed class WebhookDeliveryTests
             capturingFactory, otherAdminEmail, TestConstants.DefaultPassword, otherTenantId);
 
         // Act — the other tenant queries root's subscription id. The Deliveries table is
-        // IsMultiTenant(), so the Finbuckle filter scopes the read to the other tenant → empty.
         var crossDeliveries = await GetDeliveriesAsync(otherClient, rootSubId);
 
         // Assert — no leak.
@@ -250,7 +246,6 @@ public sealed class WebhookDeliveryTests
         var (subscriptionId, _) = await CreateSubscriptionAsync(client, secret: null);
 
         using var scope = capturingFactory.Services.CreateScope();
-        SetRootTenantContext(scope.ServiceProvider);
         var service = scope.ServiceProvider.GetRequiredService<IWebhookDeliveryService>();
 
         // Act
@@ -349,13 +344,6 @@ public sealed class WebhookDeliveryTests
         return result!;
     }
 
-    private static void SetRootTenantContext(IServiceProvider sp)
-    {
-        var tenant = sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId).GetAwaiter().GetResult();
-        sp.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
-    }
 
     private static async Task CreateTenantAsync(HttpClient rootClient, string tenantId, string adminEmail)
     {

@@ -1,5 +1,4 @@
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
@@ -20,7 +19,6 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
     private readonly Channel<AuditEnvelope> _security;
     private readonly int _defaultCapacity;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly TimeProvider _timeProvider;
 
     public IAuditScope CurrentScope =>
@@ -29,13 +27,11 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
 
     public ChannelAuditPublisher(
         IHttpContextAccessor httpContextAccessor,
-        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         TimeProvider timeProvider,
         int capacity = 50_000,
         int securityCapacity = 50_000)
     {
         _httpContextAccessor = httpContextAccessor;
-        _tenantAccessor = tenantAccessor;
         _timeProvider = timeProvider;
         _defaultCapacity = capacity;
 
@@ -145,14 +141,10 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
     }
 
     /// <summary>
-    /// Last-resort enrichment for envelopes published outside an HTTP
-    /// request — typically the SaveChanges interceptor running inside a
-    /// Hangfire job. Reads tenant from the ambient Finbuckle accessor and
-    /// trace info from <see cref="Activity.Current"/>; user attribution
-    /// stays whatever the scope provided (the activator-set
-    /// <c>ICurrentUser</c> is scoped, so the publisher can't see it).
+    /// Last-resort enrichment for envelopes published outside an HTTP request.
+    /// Installation identity is fixed; trace data comes from <see cref="Activity.Current"/>.
     /// </summary>
-    private AuditEnvelope BackfillAmbientContext(AuditEnvelope env)
+    private static AuditEnvelope BackfillAmbientContext(AuditEnvelope env)
     {
         bool needTenant = string.IsNullOrWhiteSpace(env.TenantId);
         bool needTrace = string.IsNullOrWhiteSpace(env.TraceId);
@@ -160,9 +152,7 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
 
         if (!needTenant && !needTrace && !needSpan) return env;
 
-        var ambientTenant = needTenant
-            ? _tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            : null;
+        var installationId = needTenant ? InstallationConstants.Id : null;
         var activity = Activity.Current;
 
         return new AuditEnvelope(
@@ -171,7 +161,7 @@ public sealed class ChannelAuditPublisher : IAuditPublisher
             receivedAtUtc: env.ReceivedAtUtc,
             eventType: env.EventType,
             severity: env.Severity,
-            tenantId: needTenant ? ambientTenant ?? env.TenantId : env.TenantId,
+            tenantId: needTenant ? installationId ?? env.TenantId : env.TenantId,
             userId: env.UserId,
             userName: env.UserName,
             traceId: needTrace ? activity?.TraceId.ToString() ?? env.TraceId : env.TraceId,

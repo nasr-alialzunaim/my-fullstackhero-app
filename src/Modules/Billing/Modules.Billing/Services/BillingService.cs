@@ -1,7 +1,6 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Eventing.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Contracts.Events;
@@ -16,8 +15,6 @@ public sealed class BillingService : IBillingService
 {
     private readonly BillingDbContext _db;
     private readonly IUsageReporter _usageReporter;
-    private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly IEventBus _eventBus;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<BillingService> _logger;
@@ -25,16 +22,12 @@ public sealed class BillingService : IBillingService
     public BillingService(
         BillingDbContext db,
         IUsageReporter usageReporter,
-        IMultiTenantStore<AppTenantInfo> tenantStore,
-        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         IEventBus eventBus,
         TimeProvider timeProvider,
         ILogger<BillingService> logger)
     {
         _db = db;
         _usageReporter = usageReporter;
-        _tenantStore = tenantStore;
-        _tenantAccessor = tenantAccessor;
         _eventBus = eventBus;
         _timeProvider = timeProvider;
         _logger = logger;
@@ -47,6 +40,7 @@ public sealed class BillingService : IBillingService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        tenantId = InstallationConstants.Id;
 
         // Scope the idempotency check to Purpose==Usage: a Subscription invoice may legitimately share
         // the month, and without this filter we'd match it and skip the usage/overage invoice (unbilled overage).
@@ -119,42 +113,38 @@ public sealed class BillingService : IBillingService
         int periodMonth,
         CancellationToken cancellationToken = default)
     {
-        var tenants = await _tenantStore.GetAllAsync().ConfigureAwait(false);
-        var activeTenantIds = tenants.Where(t => t.IsActive).Select(t => t.Id).ToList();
-        var subscribedTenantIds = await _db.Subscriptions
-            .Where(s => s.Status == SubscriptionStatus.Active && activeTenantIds.Contains(s.TenantId))
-            .Select(s => s.TenantId)
-            .ToListAsync(cancellationToken)
+        const string installationId = InstallationConstants.Id;
+
+        var hasActiveSubscription = await _db.Subscriptions
+            .AnyAsync(
+                s => s.TenantId == installationId && s.Status == SubscriptionStatus.Active,
+                cancellationToken)
             .ConfigureAwait(false);
+        if (!hasActiveSubscription)
+        {
+            return 0;
+        }
 
         var alreadyInvoiced = await _db.Invoices
-            .Where(i => i.PeriodYear == periodYear && i.PeriodMonth == periodMonth
-                && i.Purpose == InvoicePurpose.Usage && subscribedTenantIds.Contains(i.TenantId))
-            .Select(i => i.TenantId)
-            .ToListAsync(cancellationToken)
+            .AnyAsync(
+                i => i.TenantId == installationId
+                    && i.PeriodYear == periodYear
+                    && i.PeriodMonth == periodMonth
+                    && i.Purpose == InvoicePurpose.Usage,
+                cancellationToken)
             .ConfigureAwait(false);
-        var toGenerate = subscribedTenantIds.Except(alreadyInvoiced, StringComparer.Ordinal).ToList();
-
-        var generated = 0;
-        foreach (var tenantId in toGenerate)
+        if (alreadyInvoiced)
         {
-            try
-            {
-                var inv = await GenerateInvoiceForPeriodAsync(tenantId, periodYear, periodMonth, cancellationToken).ConfigureAwait(false);
-                if (inv is not null)
-                {
-                    generated++;
-                }
-            }
-#pragma warning disable CA1031 // One tenant's failure must not block the others
-            catch (Exception ex)
-#pragma warning restore CA1031
-            {
-                _logger.LogError(ex, "[Billing] failed generating invoice for tenant {TenantId} period {Year}-{Month:00}",
-                    tenantId, periodYear, periodMonth);
-            }
+            return 0;
         }
-        return generated;
+
+        var invoice = await GenerateInvoiceForPeriodAsync(
+            installationId,
+            periodYear,
+            periodMonth,
+            cancellationToken).ConfigureAwait(false);
+
+        return invoice is null ? 0 : 1;
     }
 
     public async Task IssueInvoiceAsync(Guid invoiceId, DateTime? dueAtUtc, CancellationToken cancellationToken = default)
@@ -178,16 +168,12 @@ public sealed class BillingService : IBillingService
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    // Issue/MarkPaid/Void load here. BillingDbContext isn't tenant-filtered, so scope to caller: root
-    // mutates any invoice; a tenant caller is pinned to its own (cross-tenant id → 404, can't mutate).
     private async Task<Invoice> LoadInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken)
     {
-        var callerTenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id
-            ?? throw new UnauthorizedException("Tenant context is required.");
-        var isRoot = callerTenantId == MultitenancyConstants.Root.Id;
-
         return await _db.Invoices
-            .FirstOrDefaultAsync(i => i.Id == invoiceId && (isRoot || i.TenantId == callerTenantId), cancellationToken)
+            .FirstOrDefaultAsync(
+                i => i.Id == invoiceId && i.TenantId == InstallationConstants.Id,
+                cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {invoiceId} not found.");
     }
@@ -200,6 +186,7 @@ public sealed class BillingService : IBillingService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        tenantId = InstallationConstants.Id;
 
         var plan = await _db.Plans.FirstOrDefaultAsync(p => p.Id == planId, cancellationToken).ConfigureAwait(false)
             ?? throw new NotFoundException($"Plan {planId} not found for tenant {tenantId}.");

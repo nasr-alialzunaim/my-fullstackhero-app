@@ -1,7 +1,9 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Web.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 using System.Net;
 
 namespace Framework.Tests.Web;
@@ -14,7 +16,20 @@ public sealed class GlobalExceptionHandlerTests
         context.Request.Path = "/api/v1/identity/forgot-password";
         context.Response.Body = new MemoryStream();
 
-        var handler = new GlobalExceptionHandler(NullLogger<GlobalExceptionHandler>.Instance);
+        var localizer = Substitute.For<IStringLocalizer<GlobalExceptionHandler>>();
+        localizer[Arg.Any<string>()]
+            .Returns(call => new LocalizedString(call.Arg<string>(), call.Arg<string>()));
+        localizer[Arg.Any<string>(), Arg.Any<object[]>()]
+            .Returns(call =>
+            {
+                var name = call.ArgAt<string>(0);
+                var arguments = call.ArgAt<object[]>(1);
+                return new LocalizedString(name, string.Format(System.Globalization.CultureInfo.InvariantCulture, name, arguments));
+            });
+
+        var handler = new GlobalExceptionHandler(
+            NullLogger<GlobalExceptionHandler>.Instance,
+            localizer);
         await handler.TryHandleAsync(context, exception, CancellationToken.None);
         return context;
     }

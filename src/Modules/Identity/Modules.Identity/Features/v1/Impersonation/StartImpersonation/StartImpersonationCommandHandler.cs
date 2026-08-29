@@ -1,7 +1,7 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Contracts.v1.Impersonation;
@@ -57,27 +57,17 @@ public sealed class StartImpersonationCommandHandler
         }
 
         var actorUserId = _currentUser.GetUserId().ToString();
-        var actorTenantId = _currentUser.GetTenant()
-            ?? throw new UnauthorizedException("missing tenant context");
+        const string installationId = InstallationConstants.Id;
         var actorUserName = _currentUser.Name;
 
-        // Cross-tenant impersonation requires the actor to be in the root tenant. Tenant admins
-        // can only impersonate users within their own tenant.
-        if (!string.Equals(actorTenantId, MultitenancyConstants.Root.Id, StringComparison.Ordinal)
-            && !string.Equals(actorTenantId, request.TargetTenantId, StringComparison.Ordinal))
+        if (string.Equals(actorUserId, request.TargetUserId, StringComparison.Ordinal))
         {
-            throw new ForbiddenException("cross-tenant impersonation is restricted to platform operators");
+            throw new CustomException(
+                "cannot impersonate yourself",
+                errors: null,
+                System.Net.HttpStatusCode.BadRequest);
         }
 
-        // Prevent self-impersonation (pointless, confuses the audit trail). Caller error → explicit 4xx,
-        // not the 500 CustomException defaults to.
-        if (string.Equals(actorUserId, request.TargetUserId, StringComparison.Ordinal)
-            && string.Equals(actorTenantId, request.TargetTenantId, StringComparison.Ordinal))
-        {
-            throw new CustomException("cannot impersonate yourself", errors: null, System.Net.HttpStatusCode.BadRequest);
-        }
-
-        // Prevent nesting: if the caller is already impersonating, require end-impersonation first.
         var callerClaims = _currentUser.GetUserClaims();
         if (callerClaims is not null
             && callerClaims.Any(c => c.Type == ClaimConstants.ActorSubject))
@@ -89,7 +79,7 @@ public sealed class StartImpersonationCommandHandler
         }
 
         var targetClaimsResult = await _identityService
-            .BuildClaimsForUserAsync(request.TargetUserId, request.TargetTenantId, cancellationToken);
+            .BuildClaimsForUserAsync(request.TargetUserId, installationId, cancellationToken);
 
         if (targetClaimsResult is null)
         {
@@ -100,40 +90,37 @@ public sealed class StartImpersonationCommandHandler
         var targetUserName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
             ?? claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
 
-        // Strip the auto-generated jti from BuildClaimsForUserAsync and inject our own, so the persisted
-        // ImpersonationGrant row and the issued JWT share the same jti.
         var jti = Guid.NewGuid().ToString("N");
         var impersonationClaims = claims
             .Where(c => c.Type != JwtRegisteredClaimNames.Jti)
             .Concat(
             [
                 new Claim(JwtRegisteredClaimNames.Jti, jti),
-                // RFC 8693 actor claims so the issued token carries who is acting.
                 new Claim(ClaimConstants.ActorSubject, actorUserId),
-                new Claim(ClaimConstants.ActorTenant, actorTenantId)
+                new Claim(ClaimConstants.ActorTenant, installationId)
             ])
             .ToList();
 
-        // Cap the caller-supplied duration server-side (defense in depth: the validator already rejects
-        // out-of-range, but a future caller bypassing it must not escape the cap).
         var lifetime = request.DurationMinutes is { } minutes
-            ? TimeSpan.FromMinutes(Math.Clamp(minutes, 1, StartImpersonationCommandValidator.MaxImpersonationMinutes))
+            ? TimeSpan.FromMinutes(
+                Math.Clamp(minutes, 1, StartImpersonationCommandValidator.MaxImpersonationMinutes))
             : (TimeSpan?)null;
 
         var startedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
         var (accessToken, expiresAt) = await _tokenService.IssueAccessOnlyAsync(
-            subject, impersonationClaims, lifetime, cancellationToken);
+            subject,
+            impersonationClaims,
+            lifetime,
+            cancellationToken);
 
-        // Persist the grant AFTER issuance so a failed issue leaves no orphan grant. CreateAsync primes the
-        // cache so the JWT validation hook sees status=Active on the next request without a DB hit.
         await _grantService.CreateAsync(new CreateGrantInput(
             Jti: jti,
             ActorUserId: actorUserId,
             ActorUserName: actorUserName,
-            ActorTenantId: actorTenantId,
+            ActorTenantId: installationId,
             ImpersonatedUserId: subject,
             ImpersonatedUserName: targetUserName,
-            ImpersonatedTenantId: request.TargetTenantId,
+            ImpersonatedTenantId: installationId,
             Reason: request.Reason ?? string.Empty,
             StartedAtUtc: startedAtUtc,
             ExpiresAtUtc: expiresAt,
@@ -143,9 +130,9 @@ public sealed class StartImpersonationCommandHandler
 
         await _securityAudit.ImpersonationStartedAsync(
             actorUserId: actorUserId,
-            actorTenantId: actorTenantId,
+            actorTenantId: installationId,
             targetUserId: subject,
-            targetTenantId: request.TargetTenantId,
+            targetTenantId: installationId,
             clientId: _requestContext.ClientId ?? "unknown",
             ip: _requestContext.IpAddress ?? "unknown",
             userAgent: _requestContext.UserAgent ?? "unknown",
@@ -153,15 +140,17 @@ public sealed class StartImpersonationCommandHandler
             ct: cancellationToken);
 
         _logger.LogWarning(
-            "Impersonation started: actor {ActorUserId}@{ActorTenant} -> target {TargetUserId}@{TargetTenant} jti={Jti}",
-            actorUserId, actorTenantId, subject, request.TargetTenantId, jti);
+            "Impersonation started: actor {ActorUserId} -> target {TargetUserId} jti={Jti}",
+            actorUserId,
+            subject,
+            jti);
 
         return new ImpersonationResponse(
             AccessToken: accessToken,
             AccessTokenExpiresAt: expiresAt,
             ActorUserId: actorUserId,
-            ActorTenantId: actorTenantId,
+            ActorTenantId: installationId,
             ImpersonatedUserId: subject,
-            ImpersonatedTenantId: request.TargetTenantId);
+            ImpersonatedTenantId: installationId);
     }
 }

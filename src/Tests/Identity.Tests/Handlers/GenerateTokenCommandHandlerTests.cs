@@ -1,8 +1,6 @@
 using AutoFixture;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Eventing.Outbox;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
@@ -25,7 +23,6 @@ public sealed class GenerateTokenCommandHandlerTests
     private readonly ISecurityAudit _securityAudit;
     private readonly IRequestContext _requestContext;
     private readonly IOutboxStore _outboxStore;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _multiTenantContextAccessor;
     private readonly ISessionService _sessionService;
     private readonly ILogger<GenerateTokenCommandHandler> _logger;
     private readonly GenerateTokenCommandHandler _sut;
@@ -38,7 +35,6 @@ public sealed class GenerateTokenCommandHandlerTests
         _securityAudit = Substitute.For<ISecurityAudit>();
         _requestContext = Substitute.For<IRequestContext>();
         _outboxStore = Substitute.For<IOutboxStore>();
-        _multiTenantContextAccessor = Substitute.For<IMultiTenantContextAccessor<AppTenantInfo>>();
         _sessionService = Substitute.For<ISessionService>();
         _logger = Substitute.For<ILogger<GenerateTokenCommandHandler>>();
 
@@ -48,7 +44,6 @@ public sealed class GenerateTokenCommandHandlerTests
             _securityAudit,
             _requestContext,
             _outboxStore,
-            _multiTenantContextAccessor,
             _sessionService,
             _logger);
 
@@ -293,8 +288,8 @@ public sealed class GenerateTokenCommandHandlerTests
             userId,
             Arg.Any<string>(),
             "test-client",
-            "unknown", // IP should default to "unknown"
-            "unknown", // UserAgent should default to "unknown"
+            "unknown",
+            "unknown",
             Arg.Any<CancellationToken>());
     }
 

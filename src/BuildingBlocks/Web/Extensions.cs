@@ -1,9 +1,11 @@
 ﻿using FSH.Framework.Caching;
 using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
+using FSH.Framework.Mailing.Services;
 using FSH.Framework.Persistence;
 using FSH.Framework.Quota;
 using FSH.Framework.Shared.Constants;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Web.Auth;
 using FSH.Framework.Web.Cors;
 using FSH.Framework.Web.Exceptions;
@@ -27,6 +29,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Mediator;
@@ -43,6 +46,7 @@ public static class Extensions
         configure?.Invoke(options);
 
         PermissionConstants.Register(SystemPermissions.All);
+        builder.Services.AddSingleInstallationContext();
 
         builder.Services.AddScoped<CurrentUserMiddleware>();
 
@@ -95,6 +99,10 @@ public static class Extensions
         {
             builder.Services.AddHeroMailing();
         }
+        else
+        {
+            builder.Services.AddTransient<IMailService, NoOpMailService>();
+        }
 
         if (options.EnableCaching)
         {
@@ -129,6 +137,22 @@ public static class Extensions
         if (options.EnableQuotas)
         {
             builder.Services.AddHeroQuotas(builder.Configuration);
+        }
+        else
+        {
+            // Keep quota-aware application services resolvable in offline/single-installation
+            // mode without enabling enforcement or requiring Redis.
+            builder.Services
+                .AddOptions<QuotaOptions>()
+                .BindConfiguration(nameof(QuotaOptions));
+            var quotaOptions =
+                builder.Configuration.GetSection(nameof(QuotaOptions)).Get<QuotaOptions>()
+                ?? new QuotaOptions { Enabled = false };
+            quotaOptions.Enabled = false;
+            builder.Services.TryAddSingleton(TimeProvider.System);
+            builder.Services.AddSingleton(quotaOptions);
+            builder.Services.AddSingleton<QuotaPlanResolver>();
+            builder.Services.AddScoped<IQuotaService, NoopQuotaService>();
         }
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

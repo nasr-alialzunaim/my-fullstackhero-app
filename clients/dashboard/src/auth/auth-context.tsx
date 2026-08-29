@@ -41,7 +41,7 @@ export type AuthContextValue = {
   permissionsHydrated: boolean;
   /** Truthy iff the current access token carries act_sub (impersonation mode). */
   impersonation: ImpersonationInfo | null;
-  login: (input: { email: string; password: string; tenant: string }) => Promise<void>;
+  login: (input: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   /** Re-fetch the permission set for the signed-in user (e.g. after a role change). */
   refreshPermissions: () => Promise<void>;
@@ -216,25 +216,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: { email: string; password: string; tenant: string }) => {
-      tokenStore.setTenant(input.tenant);
+    async (input: { email: string; password: string }) => {
       // Stale permissions from a previous user must not leak into the new
       // session — clear before issuing the token so the hydration effect
       // re-fetches from scratch.
       tokenStore.setPermissions([]);
       setPermissionsHydrated(false);
       const tokens = await issueToken(input);
-      // Defence-in-depth: even though the API rejects root-tenant logins
-      // submitted with X-FSH-App=dashboard, double-check the issued token
-      // so a future API regression can't quietly drop a root token into
-      // a tenant-dashboard session.
-      const claims = decodeJwt(tokens.accessToken);
-      if (claims?.tenant === "root") {
-        tokenStore.clear();
-        throw new Error(
-          "SuperAdmin accounts must use the admin app. Sign in there instead.",
-        );
-      }
       tokenStore.setTokens(tokens.accessToken, tokens.refreshToken);
       // Drop any cached query state from before login. Without this, a
       // failed pre-login probe (e.g. OverviewPage's billing fetch

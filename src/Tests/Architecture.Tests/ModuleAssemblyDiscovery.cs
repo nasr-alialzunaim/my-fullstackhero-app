@@ -1,6 +1,5 @@
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using Shouldly;
 using System.Reflection;
 using Xunit;

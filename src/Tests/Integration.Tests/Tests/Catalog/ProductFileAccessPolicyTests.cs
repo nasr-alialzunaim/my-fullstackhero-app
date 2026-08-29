@@ -1,7 +1,4 @@
 using System.Security.Cryptography;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Files.Contracts.v1.DTOs;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
@@ -199,7 +196,6 @@ public sealed class ProductFileAccessPolicyTests
 
     /// <summary>
     /// Register a second user under the root tenant and confirm their email so they can log in.
-    /// Mirrors <see cref="Chat.ChatChannelFileAccessTests"/>: the Finbuckle tenant context is set
     /// inline inside the DI scope to avoid the AsyncLocal NRE in the tenant query filter.
     /// </summary>
     private async Task<(string email, string password)> RegisterAndConfirmAsync(HttpClient adminClient, string prefix)
@@ -222,10 +218,6 @@ public sealed class ProductFileAccessPolicyTests
         var registered = await response.DeserializeAsync<RegisterResult>();
 
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(registered.UserId);
         user.ShouldNotBeNull();

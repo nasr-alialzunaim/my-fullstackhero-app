@@ -1,14 +1,12 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -19,29 +17,22 @@ public sealed class IdentityService : IIdentityService
 {
     private readonly UserManager<FshUser> _userManager;
     private readonly ILogger<IdentityService> _logger;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo>? _multiTenantContextAccessor;
     private readonly IGroupRoleService _groupRoleService;
     private readonly TimeProvider _timeProvider;
     private readonly IdentityDbContext _dbContext;
-    private readonly int _graceWindowDays;
 
     public IdentityService(
         UserManager<FshUser> userManager,
-        IMultiTenantContextAccessor<AppTenantInfo>? multiTenantContextAccessor,
         ILogger<IdentityService> logger,
         IGroupRoleService groupRoleService,
         TimeProvider timeProvider,
-        IdentityDbContext dbContext,
-        IOptions<TenantGraceOptions> graceOptions)
+        IdentityDbContext dbContext)
     {
-        ArgumentNullException.ThrowIfNull(graceOptions);
         _userManager = userManager;
-        _multiTenantContextAccessor = multiTenantContextAccessor;
         _logger = logger;
         _groupRoleService = groupRoleService;
         _timeProvider = timeProvider;
         _dbContext = dbContext;
-        _graceWindowDays = graceOptions.Value.GraceWindowDays;
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
@@ -50,18 +41,16 @@ public sealed class IdentityService : IIdentityService
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(password);
 
-        var tenant = GetValidatedTenant();
         var user = await FindAndValidateUserByCredentialsAsync(email, password);
 
         ValidateUserStatus(user);
-        ValidateTenantStatus(tenant);
 
         if (user.TwoFactorEnabled)
         {
             await VerifyTwoFactorOrThrowAsync(user, twoFactorCode);
         }
 
-        var claims = await BuildUserClaimsAsync(user, tenant.Id, ct);
+        var claims = await BuildUserClaimsAsync(user, InstallationConstants.Id, ct);
         return (user.Id, claims);
     }
 
@@ -90,21 +79,18 @@ public sealed class IdentityService : IIdentityService
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
         ValidateRefreshTokenAsync(string refreshToken, CancellationToken ct = default)
     {
-        var tenant = GetValidatedTenant();
-        var user = await FindUserByRefreshTokenAsync(refreshToken, tenant.Id, ct);
+        var user = await FindUserByRefreshTokenAsync(refreshToken, InstallationConstants.Id, ct);
 
         ValidateRefreshTokenExpiry(user);
         ValidateUserStatus(user);
-        ValidateTenantStatus(tenant);
 
-        var claims = await BuildUserClaimsAsync(user, tenant.Id, ct);
+        var claims = await BuildUserClaimsAsync(user, InstallationConstants.Id, ct);
         return (user.Id, claims);
     }
 
     public async Task StoreRefreshTokenAsync(string subject, string refreshToken, DateTime expiresAtUtc, CancellationToken ct = default)
     {
-        // Targeted UPDATE bypasses tracking + Finbuckle interceptors (which NRE on cross-tenant IgnoreQueryFilters).
-        // Safe: user IDs are globally unique GUIDs, so exactly one row matches Id == subject regardless of tenant.
+        // Targeted UPDATE keeps refresh-token persistence atomic. User IDs are globally unique in the installation.
         var hashedToken = HashToken(refreshToken);
         var updated = await _dbContext.Users
             .IgnoreQueryFilters()
@@ -132,12 +118,11 @@ public sealed class IdentityService : IIdentityService
     {
         ArgumentNullException.ThrowIfNull(userId);
         ArgumentNullException.ThrowIfNull(tenantId);
+        tenantId = InstallationConstants.Id;
 
-        // IgnoreQueryFilters bypasses Finbuckle's tenant filter so root-tenant callers can
-        // resolve users in other tenants during impersonation.
+        // Single-installation runtime: user identity is globally unique.
         var user = await _userManager.Users
-            .IgnoreQueryFilters()
-            .Where(u => u.Id == userId && EF.Property<string>(u, "TenantId") == tenantId)
+            .Where(u => u.Id == userId)
             .FirstOrDefaultAsync(ct);
 
         if (user is null)
@@ -158,8 +143,7 @@ public sealed class IdentityService : IIdentityService
         if (userRoleIds.Count > 0)
         {
             var roleNames = await _dbContext.Roles
-                .IgnoreQueryFilters()
-                .Where(r => userRoleIds.Contains(r.Id) && EF.Property<string>(r, "TenantId") == tenantId)
+                .Where(r => userRoleIds.Contains(r.Id))
                 .Select(r => r.Name!)
                 .ToListAsync(ct);
 
@@ -167,19 +151,6 @@ public sealed class IdentityService : IIdentityService
         }
 
         return (user.Id, claims);
-    }
-
-    private AppTenantInfo GetValidatedTenant()
-    {
-        var tenant = _multiTenantContextAccessor!.MultiTenantContext.TenantInfo
-            ?? throw new UnauthorizedException();
-
-        if (string.IsNullOrWhiteSpace(tenant.Id))
-        {
-            throw new UnauthorizedException();
-        }
-
-        return tenant;
     }
 
     private async Task<FshUser> FindAndValidateUserByCredentialsAsync(string email, string password)
@@ -271,26 +242,6 @@ public sealed class IdentityService : IIdentityService
         if (!user.EmailConfirmed)
         {
             throw new UnauthorizedException("email not confirmed");
-        }
-    }
-
-    private void ValidateTenantStatus(AppTenantInfo tenant)
-    {
-        if (tenant.Id == MultitenancyConstants.Root.Id)
-        {
-            return;
-        }
-
-        if (!tenant.IsActive)
-        {
-            throw new UnauthorizedException($"tenant {tenant.Id} is deactivated");
-        }
-
-        // Honor the billing grace window: a lapsed tenant can still authenticate until
-        // ValidUpto + grace (matching the request-time guard in MultitenancyModule).
-        if (_timeProvider.GetUtcNow().UtcDateTime > tenant.ValidUpto.AddDays(_graceWindowDays))
-        {
-            throw new UnauthorizedException($"tenant {tenant.Id} validity has expired");
         }
     }
 

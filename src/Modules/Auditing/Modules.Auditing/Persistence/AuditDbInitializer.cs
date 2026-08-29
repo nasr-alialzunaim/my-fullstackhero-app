@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Persistence;
+using FSH.Framework.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +15,7 @@ internal sealed class AuditDbInitializer(
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("[{Tenant}] applied database migrations for audit module", context.TenantInfo?.Identifier);
+                logger.LogInformation("Applied database migrations for audit module");
             }
         }
     }

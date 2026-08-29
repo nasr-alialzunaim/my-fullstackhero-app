@@ -26,21 +26,6 @@ export class ApiRequestError extends Error {
 }
 
 /**
- * True when an error is the API's "tenant has been deactivated" 403. The
- * deactivated-tenant guard (MultitenancyModule) rejects *every* request once a
- * tenant is switched off, so this can surface from any query/mutation while a
- * user is mid-session. There is no machine-readable code on the ProblemDetails,
- * so we match the guard's detail text. A global query/mutation error hook uses
- * this to route the user to the dedicated `/tenant-deactivated` page rather than
- * leaving the dead 403 banner stuck under a half-loaded surface.
- */
-export function isTenantDeactivatedError(error: unknown): boolean {
-  if (!(error instanceof ApiRequestError) || error.status !== 403) return false;
-  const detail = error.problem?.detail ?? error.message ?? "";
-  return detail.toLowerCase().includes("tenant has been deactivated");
-}
-
-/**
  * True when an error is a 401 fired against an *impersonation* session — i.e.
  * the operator's grant was revoked (via /impersonation/revoke) or the
  * short-lived impersonation token expired. Both surface as a 401 from the
@@ -112,12 +97,10 @@ export async function refreshAccessToken() {
   // Server's RefreshTokenCommand requires both `token` (the existing, possibly expired
   // access token, used to cross-check the subject) and `refreshToken`. Sending only one
   // of them fails FluentValidation and surfaces as 500.
-  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
   const response = await fetch(`${env.apiBase}/api/v1/identity/token/refresh`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(tenant ? { tenant } : {}),
     },
     body: JSON.stringify({ token: accessToken, refreshToken }),
     // A stalled refresh would otherwise hang forever and block every queued
@@ -181,11 +164,6 @@ export async function apiFetch<T = unknown>(
         detail: "Your session is no longer available. Please sign in again.",
       });
     }
-  }
-
-  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
-  if (tenant && !mergedHeaders.has("tenant")) {
-    mergedHeaders.set("tenant", tenant);
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;

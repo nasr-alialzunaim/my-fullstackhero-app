@@ -1,8 +1,7 @@
 using System.Net;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Quota;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using FSH.Framework.Shared.Storage;
 using FSH.Framework.Storage.DTOs;
@@ -12,33 +11,29 @@ using Microsoft.Extensions.Logging;
 namespace FSH.Framework.Storage;
 
 /// <summary>
-/// Decorates <see cref="IStorageService"/> so every upload charges the tenant's
-/// <see cref="QuotaResource.StorageBytes"/> meter and every delete refunds it. When no tenant is
+/// Decorates <see cref="IStorageService"/> so every upload charges the installation's
+/// <see cref="QuotaResource.StorageBytes"/> meter and every delete refunds it. When no installation is
 /// resolved on the request we pass through unmetered — this matches the middleware's posture of
-/// only enforcing for tenanted traffic. Upload failures roll the counter back so a partial PUT
+/// only enforcing for installationed traffic. Upload failures roll the counter back so a partial PUT
 /// can't leave an inflated balance.
 /// </summary>
 internal sealed class QuotaMeteredStorageService : IStorageService
 {
     private readonly IStorageService _inner;
     private readonly IQuotaService _quotas;
-    private readonly IMultiTenantContextAccessor<AppTenantInfo> _tenantAccessor;
     private readonly ILogger<QuotaMeteredStorageService> _logger;
 
     public QuotaMeteredStorageService(
         IStorageService inner,
         IQuotaService quotas,
-        IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
         ILogger<QuotaMeteredStorageService> logger)
     {
         ArgumentNullException.ThrowIfNull(inner);
         ArgumentNullException.ThrowIfNull(quotas);
-        ArgumentNullException.ThrowIfNull(tenantAccessor);
         ArgumentNullException.ThrowIfNull(logger);
 
         _inner = inner;
         _quotas = quotas;
-        _tenantAccessor = tenantAccessor;
         _logger = logger;
     }
 
@@ -46,15 +41,10 @@ internal sealed class QuotaMeteredStorageService : IStorageService
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var tenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
-        if (string.IsNullOrWhiteSpace(tenantId))
-        {
-            return await _inner.UploadAsync<T>(request, fileType, cancellationToken).ConfigureAwait(false);
-        }
-
+        const string installationId = InstallationConstants.Id;
         var bytes = request.Data.Count;
         var check = await _quotas
-            .CheckAndRecordAsync(tenantId, QuotaResource.StorageBytes, bytes, cancellationToken)
+            .CheckAndRecordAsync(installationId, QuotaResource.StorageBytes, bytes, cancellationToken)
             .ConfigureAwait(false);
 
         if (!check.Allowed)
@@ -62,8 +52,8 @@ internal sealed class QuotaMeteredStorageService : IStorageService
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning(
-                    "Rejected upload for tenant {TenantId} — storage quota exceeded ({Current}/{Limit} bytes)",
-                    tenantId, check.CurrentUsage, check.Limit);
+                    "Rejected upload for installation {InstallationId} — storage quota exceeded ({Current}/{Limit} bytes)",
+                    installationId, check.CurrentUsage, check.Limit);
             }
 
             throw new CustomException(
@@ -80,7 +70,7 @@ internal sealed class QuotaMeteredStorageService : IStorageService
         {
             // Roll the charge back so a failed write doesn't permanently consume quota.
             await _quotas
-                .RecordAsync(tenantId, QuotaResource.StorageBytes, -bytes, CancellationToken.None)
+                .RecordAsync(installationId, QuotaResource.StorageBytes, -bytes, CancellationToken.None)
                 .ConfigureAwait(false);
             throw;
         }
@@ -97,21 +87,21 @@ internal sealed class QuotaMeteredStorageService : IStorageService
 
     public async Task RemoveAsync(string path, CancellationToken cancellationToken = default)
     {
-        var tenantId = _tenantAccessor.MultiTenantContext?.TenantInfo?.Id;
+        const string installationId = InstallationConstants.Id;
 
         // Probe size before delete so we can debit the exact amount. Missing objects report 0.
         long size = 0;
-        if (!string.IsNullOrWhiteSpace(tenantId) && !string.IsNullOrWhiteSpace(path))
+        if (!string.IsNullOrWhiteSpace(path))
         {
             size = await _inner.GetSizeAsync(path, cancellationToken).ConfigureAwait(false);
         }
 
         await _inner.RemoveAsync(path, cancellationToken).ConfigureAwait(false);
 
-        if (size > 0 && !string.IsNullOrWhiteSpace(tenantId))
+        if (size > 0)
         {
             await _quotas
-                .RecordAsync(tenantId, QuotaResource.StorageBytes, -size, CancellationToken.None)
+                .RecordAsync(installationId, QuotaResource.StorageBytes, -size, CancellationToken.None)
                 .ConfigureAwait(false);
         }
     }

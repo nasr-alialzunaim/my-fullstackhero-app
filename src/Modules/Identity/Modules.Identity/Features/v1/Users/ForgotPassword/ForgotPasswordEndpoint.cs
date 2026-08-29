@@ -1,4 +1,3 @@
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.v1.Users.ForgotPassword;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
@@ -13,8 +12,6 @@ public static class ForgotPasswordEndpoint
     internal static RouteHandlerBuilder MapForgotPasswordEndpoint(this IEndpointRouteBuilder endpoints)
     {
         return endpoints.MapPost("/forgot-password", async (
-            HttpRequest request,
-            [FromHeader(Name = MultitenancyConstants.Identifier)] string tenant,
             [FromBody] ForgotPasswordCommand command,
             IMediator mediator,
             CancellationToken cancellationToken) =>

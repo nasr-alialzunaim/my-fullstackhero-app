@@ -27,7 +27,7 @@ public sealed class ConfirmEmailCommandHandlerTests
         // Arrange
         var command = _fixture.Create<ConfirmEmailCommand>();
         var expectedResponse = "Email confirmed.";
-        _userService.ConfirmEmailAsync(command.UserId, command.Code, command.Tenant, Arg.Any<CancellationToken>())
+        _userService.ConfirmEmailAsync(command.UserId, command.Code, Arg.Any<CancellationToken>())
             .Returns(expectedResponse);
 
         // Act
@@ -35,7 +35,7 @@ public sealed class ConfirmEmailCommandHandlerTests
 
         // Assert
         result.ShouldBe(expectedResponse);
-        await _userService.Received(1).ConfirmEmailAsync(command.UserId, command.Code, command.Tenant, Arg.Any<CancellationToken>());
+        await _userService.Received(1).ConfirmEmailAsync(command.UserId, command.Code, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -57,6 +57,6 @@ public sealed class ConfirmEmailCommandHandlerTests
         await _sut.Handle(command, cts.Token);
 
         // Assert
-        await _userService.Received(1).ConfirmEmailAsync(command.UserId, command.Code, command.Tenant, cts.Token);
+        await _userService.Received(1).ConfirmEmailAsync(command.UserId, command.Code, cts.Token);
     }
 }

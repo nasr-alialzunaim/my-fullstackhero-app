@@ -1,7 +1,6 @@
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Chat.Contracts;
 using FSH.Modules.Identity.Contracts;
-using FSH.Modules.Multitenancy.Contracts;
 using NetArchTest.Rules;
 using Shouldly;
 using System.Reflection;
@@ -19,8 +18,7 @@ public class ContractsPurityTests
     [
         typeof(AuditingContractsMarker).Assembly,
         typeof(ChatContractsMarker).Assembly,
-        typeof(IdentityContractsMarker).Assembly,
-        typeof(MultitenancyContractsMarker).Assembly
+        typeof(IdentityContractsMarker).Assembly
     ];
 
     [Fact]
@@ -95,10 +93,7 @@ public class ContractsPurityTests
             "FSH.Modules.Chat.Domain",
             "FSH.Modules.Identity.Features",
             "FSH.Modules.Identity.Data",
-            "FSH.Modules.Identity.Persistence",
-            "FSH.Modules.Multitenancy.Features",
-            "FSH.Modules.Multitenancy.Data",
-            "FSH.Modules.Multitenancy.Persistence"
+            "FSH.Modules.Identity.Persistence"
         ];
 
         foreach (var assembly in ContractsAssemblies)

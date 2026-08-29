@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Webhooks.Data;
 using FSH.Modules.Webhooks.Services;
 using Integration.Tests.Infrastructure;
@@ -165,12 +162,7 @@ public sealed class WebhookDispatchOutcomeTests
         using var scope = capturingFactory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        // Set Finbuckle tenant context INLINE and BEFORE resolving the DbContext: the AsyncLocal mutation
         // must happen in this method body (not an awaited helper) or its tenant query filter NREs on a null.
-        var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId).ConfigureAwait(false);
-        sp.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var db = sp.GetRequiredService<WebhookDbContext>();
         return await db.Deliveries

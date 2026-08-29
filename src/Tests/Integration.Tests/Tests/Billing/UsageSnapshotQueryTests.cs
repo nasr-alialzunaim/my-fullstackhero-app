@@ -1,7 +1,4 @@
 using System.Text.Json;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts.Dtos;
 using FSH.Modules.Billing.Data;
@@ -78,18 +75,18 @@ public sealed class UsageSnapshotQueryTests
         // Arrange — two periods for the same tenant; newer period must sort first.
         var (olderYear, olderMonth) = NextPeriod();
         var (newerYear, newerMonth) = NextPeriod();
-        var tenantId = $"snap-order-{Guid.NewGuid().ToString("N")[..8]}";
-        await SeedSnapshotAsync(tenantId, olderYear, olderMonth, QuotaResource.ApiCalls, used: 1, limit: 10);
-        await SeedSnapshotAsync(tenantId, newerYear, newerMonth, QuotaResource.ApiCalls, used: 2, limit: 10);
+        var olderId = await SeedSnapshotAsync(TestConstants.RootTenantId, olderYear, olderMonth, QuotaResource.ApiCalls, used: 1, limit: 10);
+        var newerId = await SeedSnapshotAsync(TestConstants.RootTenantId, newerYear, newerMonth, QuotaResource.ApiCalls, used: 2, limit: 10);
         using var client = await _auth.CreateRootAdminClientAsync();
 
-        // Act — filter by tenant so ordering is deterministic regardless of other rows.
-        var snaps = await GetSnapshotsAsync(client, tenantId: tenantId);
+        // Act — the installation-scoped list is ordered deterministically by period.
+        var snaps = await GetSnapshotsAsync(client);
 
         // Assert
-        snaps.Count.ShouldBe(2);
-        var first = snaps[0];
-        (first.PeriodYear, first.PeriodMonth).ShouldBe((newerYear, newerMonth),
+        var relevant = snaps.Where(s => s.Id == olderId || s.Id == newerId).ToList();
+        relevant.Count.ShouldBe(2);
+        relevant[0].Id.ShouldBe(newerId);
+        (relevant[0].PeriodYear, relevant[0].PeriodMonth).ShouldBe((newerYear, newerMonth),
             "OrderByDescending(Year).ThenByDescending(Month) must surface the newest period first");
     }
 
@@ -98,45 +95,42 @@ public sealed class UsageSnapshotQueryTests
     #region Filters
 
     [Fact]
-    public async Task GetUsageSnapshots_Should_Filter_By_TenantId()
+    public async Task GetUsageSnapshots_Should_Remain_Scoped_To_The_Installation_When_Legacy_TenantId_Is_Supplied()
     {
-        // Arrange — same period, two tenants; the tenantId filter must isolate one of them.
         var (year, month) = NextPeriod();
-        var tenantA = $"snap-a-{Guid.NewGuid().ToString("N")[..8]}";
-        var tenantB = $"snap-b-{Guid.NewGuid().ToString("N")[..8]}";
-        await SeedSnapshotAsync(tenantA, year, month, QuotaResource.ApiCalls, used: 5, limit: 10);
-        await SeedSnapshotAsync(tenantB, year, month, QuotaResource.ApiCalls, used: 9, limit: 10);
+        var snapshotId = await SeedSnapshotAsync(
+            TestConstants.RootTenantId, year, month, QuotaResource.ApiCalls, used: 5, limit: 10);
         using var client = await _auth.CreateRootAdminClientAsync();
 
-        // Act
-        var onlyA = await GetSnapshotsAsync(client, tenantId: tenantA);
+        var snapshots = await GetSnapshotsAsync(
+            client,
+            tenantId: $"legacy-{Guid.NewGuid():N}",
+            periodYear: year,
+            periodMonth: month);
 
-        // Assert
-        onlyA.ShouldNotBeEmpty();
-        onlyA.ShouldAllBe(s => s.TenantId == tenantA);
-        onlyA.ShouldNotContain(s => s.TenantId == tenantB);
+        snapshots.ShouldContain(s => s.Id == snapshotId);
+        snapshots.ShouldAllBe(s => s.TenantId == TestConstants.RootTenantId);
     }
 
     [Fact]
     public async Task GetUsageSnapshots_Should_Filter_By_Year_And_Month_Independently()
     {
-        // Arrange — same tenant, two distinct periods.
-        var tenantId = $"snap-period-{Guid.NewGuid().ToString("N")[..8]}";
+        // Arrange — two distinct installation periods.
         var (year1, month1) = NextPeriod();
         var (year2, month2) = NextPeriod();
-        await SeedSnapshotAsync(tenantId, year1, month1, QuotaResource.ApiCalls, used: 1, limit: 10);
-        await SeedSnapshotAsync(tenantId, year2, month2, QuotaResource.ApiCalls, used: 2, limit: 10);
+        await SeedSnapshotAsync(TestConstants.RootTenantId, year1, month1, QuotaResource.ApiCalls, used: 1, limit: 10);
+        await SeedSnapshotAsync(TestConstants.RootTenantId, year2, month2, QuotaResource.ApiCalls, used: 2, limit: 10);
         using var client = await _auth.CreateRootAdminClientAsync();
 
-        // Act — month filter alone narrows to the matching period for this tenant.
-        var byMonth = await GetSnapshotsAsync(client, tenantId: tenantId, periodMonth: month1);
+        // Act — month filter alone narrows to the matching installation period.
+        var byMonth = await GetSnapshotsAsync(client, periodMonth: month1);
 
         // Assert
         byMonth.ShouldAllBe(s => s.PeriodMonth == month1);
         byMonth.ShouldContain(s => s.PeriodYear == year1 && s.PeriodMonth == month1);
 
         // Act — year + month together pin the exact period.
-        var byYearMonth = await GetSnapshotsAsync(client, tenantId: tenantId, periodYear: year2, periodMonth: month2);
+        var byYearMonth = await GetSnapshotsAsync(client, periodYear: year2, periodMonth: month2);
 
         // Assert
         byYearMonth.Count.ShouldBe(1);
@@ -147,15 +141,15 @@ public sealed class UsageSnapshotQueryTests
     [Fact]
     public async Task GetUsageSnapshots_Should_Return_Empty_When_No_Match()
     {
-        // Arrange — a tenant id that no test ever seeds.
-        var ghostTenant = $"snap-ghost-{Guid.NewGuid():N}";
+        // Arrange — reserve a unique period without seeding a snapshot.
+        var (year, month) = NextPeriod();
         using var client = await _auth.CreateRootAdminClientAsync();
 
         // Act
-        var snaps = await GetSnapshotsAsync(client, tenantId: ghostTenant);
+        var snaps = await GetSnapshotsAsync(client, periodYear: year, periodMonth: month);
 
         // Assert
-        snaps.ShouldBeEmpty("an unmatched tenant filter must yield an empty list, not an error");
+        snaps.ShouldBeEmpty("an unmatched installation period must yield an empty list, not an error");
     }
 
     #endregion
@@ -199,29 +193,18 @@ public sealed class UsageSnapshotQueryTests
     #region Cross-tenant (documented admin posture)
 
     [Fact]
-    public async Task GetUsageSnapshots_Is_PlatformWide_And_Surfaces_OtherTenant_Rows_To_Admin()
+    public async Task GetUsageSnapshots_Should_Not_Surface_Legacy_OtherTenant_Rows()
     {
-        // GetUsageSnapshots mirrors GetInvoices: a platform-wide admin list NOT auto-scoped to the caller's
-        // tenant. Pins that another tenant's snapshot shows unfiltered and the tenantId filter isolates one.
-        // Arrange
         var (year, month) = NextPeriod();
-        var otherTenant = $"snap-cross-{Guid.NewGuid().ToString("N")[..8]}";
-        var otherSnapshotId = await SeedSnapshotAsync(otherTenant, year, month, QuotaResource.StorageBytes, used: 500, limit: 100);
+        var otherTenant = $"legacy-{Guid.NewGuid():N}";
+        var otherSnapshotId = await SeedSnapshotAsync(
+            otherTenant, year, month, QuotaResource.StorageBytes, used: 500, limit: 100);
         using var client = await _auth.CreateRootAdminClientAsync();
 
-        // Act — unfiltered admin read for this period.
-        var all = await GetSnapshotsAsync(client, periodYear: year, periodMonth: month);
+        var snapshots = await GetSnapshotsAsync(client, periodYear: year, periodMonth: month);
 
-        // Assert — the other tenant's row is present in the platform-wide list.
-        all.ShouldContain(s => s.Id == otherSnapshotId && s.TenantId == otherTenant,
-            "the admin usage list is platform-wide; another tenant's snapshot must be visible");
-
-        // Act — the tenantId filter narrows to exactly that tenant.
-        var filtered = await GetSnapshotsAsync(client, tenantId: otherTenant, periodYear: year, periodMonth: month);
-
-        // Assert
-        filtered.ShouldAllBe(s => s.TenantId == otherTenant);
-        filtered.ShouldContain(s => s.Id == otherSnapshotId);
+        snapshots.ShouldNotContain(s => s.Id == otherSnapshotId);
+        snapshots.ShouldAllBe(s => s.TenantId == TestConstants.RootTenantId);
     }
 
     #endregion
@@ -313,10 +296,6 @@ public sealed class UsageSnapshotQueryTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
@@ -332,10 +311,6 @@ public sealed class UsageSnapshotQueryTests
     private async Task SeedDirectAsync(Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenantStore = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         await action(db);

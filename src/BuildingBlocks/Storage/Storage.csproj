@@ -11,13 +11,7 @@
 		<ProjectReference Include="..\Quota\Quota.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Finbuckle.MultiTenant" />
-		<PackageReference Include="Finbuckle.MultiTenant.Abstractions" />
-	</ItemGroup>
-	
-	<ItemGroup>
+<ItemGroup>
 	  <Folder Include="AWS\" />
 	</ItemGroup>
 	

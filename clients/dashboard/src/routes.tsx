@@ -60,10 +60,6 @@ const ProductDetailPage = lazyNamed(
   "ProductDetailPage",
 );
 const NotFoundPage = lazyNamed(() => import("@/pages/not-found"), "NotFoundPage");
-const TenantDeactivatedPage = lazyNamed(
-  () => import("@/pages/tenant-deactivated"),
-  "TenantDeactivatedPage",
-);
 const ImpersonationEndedPage = lazyNamed(
   () => import("@/pages/impersonation-ended"),
   "ImpersonationEndedPage",
@@ -164,15 +160,6 @@ export const router = createBrowserRouter([
   {
     path: "/confirm-email",
     element: withSuspense(<ConfirmEmailPage />),
-    errorElement: <RouteError />,
-  },
-  {
-    // Terminal state when the signed-in user's tenant is deactivated mid-session.
-    // Top-level (outside ProtectedRoute/AppShell) — the token is still valid but
-    // every request 403s, so there is no shell to render. query-client.ts routes
-    // here on detecting the deactivated-tenant 403.
-    path: "/tenant-deactivated",
-    element: withSuspense(<TenantDeactivatedPage />),
     errorElement: <RouteError />,
   },
   {

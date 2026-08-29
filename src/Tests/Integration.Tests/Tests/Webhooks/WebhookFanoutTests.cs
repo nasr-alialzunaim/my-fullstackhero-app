@@ -1,8 +1,5 @@
 using System.Collections.Concurrent;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Eventing.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Webhooks.Services;
 using Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -94,18 +91,20 @@ public sealed class WebhookFanoutTests
     }
 
     [Fact]
-    public async Task Fanout_Should_Skip_When_EventHasNullTenantId()
+    public async Task Fanout_Should_Use_Installation_When_EventHasNullTenantId()
     {
-        // Arrange — a matching subscription exists, but the event is global (TenantId null).
+        // Arrange — a matching subscription exists and the event carries no legacy tenant id.
         var recorder = new RecordingDispatcher();
         await using var capturingFactory = CreateCapturingFactory(recorder);
         var subscriptionId = await CreateSubscriptionAsync(capturingFactory, new[] { nameof(FanoutTestEvent) });
 
-        // Act — global event must be skipped (webhooks are tenant-scoped by design).
+        // Act — the single-installation runtime supplies the installation identity.
         await PublishAsync(capturingFactory, new FanoutTestEvent(TenantId: null));
 
         // Assert
-        recorder.For(subscriptionId).ShouldBeEmpty();
+        var enqueued = recorder.For(subscriptionId);
+        enqueued.Count.ShouldBe(1);
+        enqueued[0].TenantId.ShouldBe(TestConstants.RootTenantId);
     }
 
     [Fact]
@@ -176,19 +175,6 @@ public sealed class WebhookFanoutTests
     {
         using var scope = capturingFactory.Services.CreateScope();
         var sp = scope.ServiceProvider;
-
-        // Install the tenant context on the calling scope for safety (the fanout handler installs
-        // its own from the event's TenantId, but the in-memory bus creates a child scope).
-        if (!string.IsNullOrWhiteSpace(@event.TenantId))
-        {
-            var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-                .GetAsync(@event.TenantId).ConfigureAwait(false);
-            if (tenant is not null)
-            {
-                sp.GetRequiredService<IMultiTenantContextSetter>()
-                    .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
-            }
-        }
 
         var bus = sp.GetRequiredService<IEventBus>();
         await bus.PublishAsync(@event).ConfigureAwait(false);

@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Tickets.Data;
 using Integration.Tests.Infrastructure;
 using Integration.Tests.Infrastructure.Extensions;
@@ -295,13 +292,6 @@ public sealed class TicketsEndpointTests
     private async Task SoftDeleteTicketAsync(Guid ticketId)
     {
         using var scope = _factory.Services.CreateScope();
-        var store = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await store.GetAsync(MultitenancyConstants.Root.Id)
-            ?? throw new InvalidOperationException("Root tenant not found.");
-
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
-
         var dbContext = scope.ServiceProvider.GetRequiredService<TicketsDbContext>();
         var ticket = await dbContext.Tickets.FirstAsync(t => t.Id == ticketId);
         dbContext.Tickets.Remove(ticket);

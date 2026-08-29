@@ -1,7 +1,6 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +15,6 @@ internal sealed class IdentityDbInitializer(
     RoleManager<FshRole> roleManager,
     UserManager<FshUser> userManager,
     TimeProvider timeProvider,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
-    ITenantInitialPasswordBuffer passwordBuffer,
     IConfiguration configuration) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
@@ -27,7 +24,7 @@ internal sealed class IdentityDbInitializer(
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("[{Tenant}] applied database migrations for identity module", context.TenantInfo?.Identifier);
+                logger.LogInformation("[{Installation}] applied database migrations for identity module", InstallationConstants.Id);
             }
         }
     }
@@ -47,7 +44,7 @@ internal sealed class IdentityDbInitializer(
                 is not FshRole role)
             {
                 // create role
-                role = new FshRole(roleName, $"{roleName} Role for {multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id} Tenant");
+                role = new FshRole(roleName, $"{roleName} role for this installation");
                 await roleManager.CreateAsync(role);
             }
 
@@ -59,11 +56,7 @@ internal sealed class IdentityDbInitializer(
             else if (roleName == RoleConstants.Admin)
             {
                 await AssignPermissionsToRoleAsync(context, PermissionConstants.Admin, role, cancellationToken);
-
-                if (multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id == MultitenancyConstants.Root.Id)
-                {
-                    await AssignPermissionsToRoleAsync(context, PermissionConstants.Root, role, cancellationToken);
-                }
+                await AssignPermissionsToRoleAsync(context, PermissionConstants.Root, role, cancellationToken);
             }
         }
     }
@@ -87,7 +80,7 @@ internal sealed class IdentityDbInitializer(
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Seeding {Role} Permission '{Permission}' for '{TenantId}' Tenant.", role.Name, claim.ClaimValue, multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+                logger.LogInformation("Seeding {Role} permission '{Permission}' for installation '{InstallationId}'.", role.Name, claim.ClaimValue, InstallationConstants.Id);
             }
             await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
@@ -102,11 +95,7 @@ internal sealed class IdentityDbInitializer(
 
     private async Task SeedSystemGroupsAsync(CancellationToken cancellationToken = default)
     {
-        var tenantId = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id;
-        if (string.IsNullOrWhiteSpace(tenantId))
-        {
-            return;
-        }
+        const string tenantId = InstallationConstants.Id;
 
         // Seed "All Users" default group - all new users are automatically added to this group
         const string allUsersGroupName = "All Users";
@@ -177,80 +166,69 @@ internal sealed class IdentityDbInitializer(
 
     private async Task SeedAdminUserAsync(CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id) || string.IsNullOrWhiteSpace(multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail))
-        {
-            return;
-        }
+        const string installationId = InstallationConstants.Id;
+        const string adminEmail = InstallationConstants.AdminEmail;
 
-        if (await userManager.Users.FirstOrDefaultAsync(u => u.Email == multiTenantContextAccessor.MultiTenantContext.TenantInfo!.AdminEmail, cancellationToken)
-            is not FshUser adminUser)
+        if (await userManager.Users
+            .FirstOrDefaultAsync(u => u.Email == adminEmail, cancellationToken)
+            .ConfigureAwait(false) is not FshUser adminUser)
         {
-            string adminUserName = $"{multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim()}.{RoleConstants.Admin}".ToUpperInvariant();
+            string adminUserName = $"{installationId}.{RoleConstants.Admin}".ToUpperInvariant();
             adminUser = new FshUser
             {
-                FirstName = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id.Trim().ToUpperInvariant(),
+                FirstName = InstallationConstants.Name,
                 LastName = RoleConstants.Admin,
-                Email = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail,
+                Email = adminEmail,
                 UserName = adminUserName,
                 EmailConfirmed = true,
                 PhoneNumberConfirmed = true,
-                NormalizedEmail = multiTenantContextAccessor.MultiTenantContext.TenantInfo?.AdminEmail!.ToUpperInvariant(),
+                NormalizedEmail = adminEmail.ToUpperInvariant(),
                 NormalizedUserName = adminUserName.ToUpperInvariant(),
-                // No default avatar: the asset was never shipped, and baking an absolute
-                // {OriginUrl}/… URL at seed time pinned it to the seeder's localhost origin
-                // (migrator has no OriginOptions). Leave null → the SPA renders initials.
                 ImageUrl = null,
                 IsActive = true
             };
 
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Seeding Default Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+                logger.LogInformation(
+                    "Seeding default admin user for installation '{InstallationId}'.",
+                    installationId);
             }
-            var initialPassword = ResolveInitialAdminPassword(multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id!);
+
+            string initialPassword = ResolveInitialAdminPassword(installationId);
             var password = new PasswordHasher<FshUser>();
             adminUser.PasswordHash = password.HashPassword(adminUser, initialPassword);
-            // MUST check IdentityResult: a silent failure (password-policy reject, transient DB error)
-            // would mark provisioning "Completed" with no admin user; throwing makes it a retryable Failed.
-            var createResult = await userManager.CreateAsync(adminUser);
+
+            IdentityResult createResult = await userManager.CreateAsync(adminUser).ConfigureAwait(false);
             if (!createResult.Succeeded)
             {
                 throw new InvalidOperationException(
-                    $"Failed to seed admin user for tenant '{multiTenantContextAccessor.MultiTenantContext.TenantInfo!.Id}': "
+                    $"Failed to seed admin user for installation '{installationId}': "
                     + string.Join("; ", createResult.Errors.Select(e => e.Description)));
             }
         }
 
-        // Assign role to user
-        if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
+        if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin).ConfigureAwait(false))
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Assigning Admin Role to Admin User for '{TenantId}' Tenant.", multiTenantContextAccessor.MultiTenantContext.TenantInfo?.Id);
+                logger.LogInformation(
+                    "Assigning Admin role to installation admin '{InstallationId}'.",
+                    installationId);
             }
-            await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
+
+            await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin).ConfigureAwait(false);
         }
     }
 
     /// <summary>
-    /// Resolve the initial password for the admin user being seeded into a tenant.
-    /// Lookup order:
-    ///   1. <see cref="ITenantInitialPasswordBuffer"/> — set by <c>CreateTenantCommandHandler</c>
-    ///      for runtime-created tenants (atomic consume, gone after this call).
-    ///   2. <c>Seed:DefaultAdminPassword</c> from configuration — covers the framework's
-    ///      root-tenant seed at startup and any test-host bootstrap. Operators set this
-    ///      via env var / user-secrets / production secrets manager.
-    /// Throws if neither source supplies a password — refusing to seed is safer than
-    /// minting an admin user with a predictable secret.
+    /// Resolve the initial password for the installation admin.
+    /// The single-installation runtime accepts it only from <c>Seed:DefaultAdminPassword</c>.
+    /// Operators provide the value through environment variables, user-secrets, or a
+    /// production secrets manager. Refusing to seed is safer than minting a predictable secret.
     /// </summary>
     private string ResolveInitialAdminPassword(string tenantId)
     {
-        var buffered = passwordBuffer.TryConsume(tenantId);
-        if (!string.IsNullOrWhiteSpace(buffered))
-        {
-            return buffered;
-        }
-
         var fromConfig = configuration["Seed:DefaultAdminPassword"];
         if (!string.IsNullOrWhiteSpace(fromConfig))
         {
@@ -258,8 +236,7 @@ internal sealed class IdentityDbInitializer(
         }
 
         throw new InvalidOperationException(
-            $"No initial admin password available for tenant '{tenantId}'. " +
-            "Supply AdminPassword on the CreateTenant request, or set " +
-            "'Seed:DefaultAdminPassword' in configuration for the root/startup seed.");
+            $"No initial admin password available for installation '{tenantId}'. " +
+            "Set 'Seed:DefaultAdminPassword' in configuration for the installation seed.");
     }
 }

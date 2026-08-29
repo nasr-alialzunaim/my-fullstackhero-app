@@ -1,6 +1,5 @@
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Quota;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
@@ -14,20 +13,20 @@ public sealed class UsageReporter : IUsageReporter
     private readonly BillingDbContext _db;
     private readonly IQuotaService _quotas;
     private readonly QuotaPlanResolver _planResolver;
-    private readonly IMultiTenantStore<AppTenantInfo> _tenantStore;
+    private readonly IInstallationContext _installationContext;
     private readonly ILogger<UsageReporter> _logger;
 
     public UsageReporter(
         BillingDbContext db,
         IQuotaService quotas,
         QuotaPlanResolver planResolver,
-        IMultiTenantStore<AppTenantInfo> tenantStore,
+        IInstallationContext installationContext,
         ILogger<UsageReporter> logger)
     {
         _db = db;
         _quotas = quotas;
         _planResolver = planResolver;
-        _tenantStore = tenantStore;
+        _installationContext = installationContext;
         _logger = logger;
     }
 
@@ -39,7 +38,8 @@ public sealed class UsageReporter : IUsageReporter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
-        var tenant = await _tenantStore.GetAsync(tenantId).ConfigureAwait(false);
+        tenantId = InstallationConstants.Id;
+        var installation = _installationContext.Current;
         var existing = await _db.UsageSnapshots
             .Where(s => s.TenantId == tenantId && s.PeriodYear == periodYear && s.PeriodMonth == periodMonth)
             .ToListAsync(cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ public sealed class UsageReporter : IUsageReporter
             }
 
             var used = await _quotas.GetCurrentAsync(tenantId, resource, cancellationToken).ConfigureAwait(false);
-            var limit = _planResolver.ResolveLimit(tenant, resource);
+            var limit = _planResolver.ResolveLimit(installation, resource);
             var snap = UsageSnapshot.Capture(tenantId, periodYear, periodMonth, resource, used, limit);
             _db.UsageSnapshots.Add(snap);
             snapshots.Add(snap);
@@ -64,7 +64,7 @@ public sealed class UsageReporter : IUsageReporter
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            _logger.LogInformation("[Billing] captured {Count} usage snapshots for tenant {TenantId} period {Year}-{Month:00}",
+            _logger.LogInformation("[Billing] captured {Count} usage snapshots for installation {InstallationId} period {Year}-{Month:00}",
                 snapshots.Count, tenantId, periodYear, periodMonth);
         }
         return snapshots;
