@@ -1,6 +1,6 @@
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +24,7 @@ internal sealed class IdentityDbInitializer(
             await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("[{Installation}] applied database migrations for identity module", MultitenancyConstants.Root.Id);
+                logger.LogInformation("[{Installation}] applied database migrations for identity module", InstallationConstants.Id);
             }
         }
     }
@@ -80,7 +80,7 @@ internal sealed class IdentityDbInitializer(
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                logger.LogInformation("Seeding {Role} permission '{Permission}' for installation '{InstallationId}'.", role.Name, claim.ClaimValue, MultitenancyConstants.Root.Id);
+                logger.LogInformation("Seeding {Role} permission '{Permission}' for installation '{InstallationId}'.", role.Name, claim.ClaimValue, InstallationConstants.Id);
             }
             await dbContext.RoleClaims.AddAsync(claim, cancellationToken);
         }
@@ -95,7 +95,7 @@ internal sealed class IdentityDbInitializer(
 
     private async Task SeedSystemGroupsAsync(CancellationToken cancellationToken = default)
     {
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
 
         // Seed "All Users" default group - all new users are automatically added to this group
         const string allUsersGroupName = "All Users";
@@ -166,8 +166,8 @@ internal sealed class IdentityDbInitializer(
 
     private async Task SeedAdminUserAsync(CancellationToken cancellationToken = default)
     {
-        const string installationId = MultitenancyConstants.Root.Id;
-        const string adminEmail = MultitenancyConstants.Root.EmailAddress;
+        const string installationId = InstallationConstants.Id;
+        const string adminEmail = InstallationConstants.AdminEmail;
 
         if (await userManager.Users
             .FirstOrDefaultAsync(u => u.Email == adminEmail, cancellationToken)
@@ -176,7 +176,7 @@ internal sealed class IdentityDbInitializer(
             string adminUserName = $"{installationId}.{RoleConstants.Admin}".ToUpperInvariant();
             adminUser = new FshUser
             {
-                FirstName = MultitenancyConstants.Root.Name,
+                FirstName = InstallationConstants.Name,
                 LastName = RoleConstants.Admin,
                 Email = adminEmail,
                 UserName = adminUserName,
