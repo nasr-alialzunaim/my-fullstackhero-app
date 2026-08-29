@@ -1,0 +1,36 @@
+name: P0 Validation
+
+on:
+  push:
+    branches:
+      - feat/p0-single-tenant-offline
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore src/DNationalSystem.slnx
+
+      - name: Build
+        run: dotnet build src/DNationalSystem.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test src/DNationalSystem.slnx --configuration Release --no-build --no-restore
