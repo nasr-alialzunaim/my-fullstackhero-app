@@ -10,52 +10,50 @@ namespace DNationalSystem.Migrations.PostgreSQL.Chat;
 [Migration("20260829190002_RemoveChatTenantIsolation")]
 public sealed class RemoveChatTenantIsolation : Migration
 {
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.Sql("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM chat."ChannelMembers" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM chat."Channels" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM chat."Messages" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM chat."MessageAttachments" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM chat."MessageMentions" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM chat."MessageReactions" WHERE "TenantId" NOT IN ('', 'root')
-                ) THEN
-                    RAISE EXCEPTION 'Single-tenant migration refused: chat contains non-root tenant data.';
-                END IF;
-            END $$;
-            """);
+    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM chat."ChannelMembers" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM chat."Channels" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM chat."Messages" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM chat."MessageAttachments" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM chat."MessageMentions" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM chat."MessageReactions" WHERE "TenantId" NOT IN ('', 'root')
+            ) THEN
+                RAISE EXCEPTION 'Single-tenant migration refused: chat contains non-root tenant data.';
+            END IF;
+        END $$;
 
-        migrationBuilder.DropColumn("TenantId", "chat", "ChannelMembers");
-        migrationBuilder.DropColumn("TenantId", "chat", "Channels");
-        migrationBuilder.DropColumn("TenantId", "chat", "Messages");
-        migrationBuilder.DropColumn("TenantId", "chat", "MessageAttachments");
-        migrationBuilder.DropColumn("TenantId", "chat", "MessageMentions");
-        migrationBuilder.DropColumn("TenantId", "chat", "MessageReactions");
+        ALTER TABLE chat."ChannelMembers" DROP COLUMN "TenantId";
+        ALTER TABLE chat."Channels" DROP COLUMN "TenantId";
+        ALTER TABLE chat."Messages" DROP COLUMN "TenantId";
+        ALTER TABLE chat."MessageAttachments" DROP COLUMN "TenantId";
+        ALTER TABLE chat."MessageMentions" DROP COLUMN "TenantId";
+        ALTER TABLE chat."MessageReactions" DROP COLUMN "TenantId";
 
-        migrationBuilder.CreateIndex("IX_ChannelMembers_UserId_ChannelId", "chat", "ChannelMembers", new[] { "UserId", "ChannelId" }, unique: true);
-        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", "DirectKey", unique: true, filter: "\"Type\" = 0 AND \"IsDeleted\" = FALSE");
-        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", "Slug", unique: true, filter: "\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
-        migrationBuilder.CreateIndex("UX_MessageReactions_Message_User_Emoji", "chat", "MessageReactions", new[] { "MessageId", "UserId", "Emoji" }, unique: true);
-    }
+        CREATE UNIQUE INDEX "IX_ChannelMembers_UserId_ChannelId" ON chat."ChannelMembers" ("UserId", "ChannelId");
+        CREATE UNIQUE INDEX "IX_Channels_DirectKey" ON chat."Channels" ("DirectKey") WHERE "Type" = 0 AND "IsDeleted" = FALSE;
+        CREATE UNIQUE INDEX "IX_Channels_Slug" ON chat."Channels" ("Slug") WHERE "Slug" IS NOT NULL AND "IsDeleted" = FALSE;
+        CREATE UNIQUE INDEX "UX_MessageReactions_Message_User_Emoji" ON chat."MessageReactions" ("MessageId", "UserId", "Emoji");
+        """);
 
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.DropIndex("IX_ChannelMembers_UserId_ChannelId", "chat", "ChannelMembers");
-        migrationBuilder.DropIndex("IX_Channels_DirectKey", "chat", "Channels");
-        migrationBuilder.DropIndex("IX_Channels_Slug", "chat", "Channels");
-        migrationBuilder.DropIndex("UX_MessageReactions_Message_User_Emoji", "chat", "MessageReactions");
+    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DROP INDEX IF EXISTS chat."IX_ChannelMembers_UserId_ChannelId";
+        DROP INDEX IF EXISTS chat."IX_Channels_DirectKey";
+        DROP INDEX IF EXISTS chat."IX_Channels_Slug";
+        DROP INDEX IF EXISTS chat."UX_MessageReactions_Message_User_Emoji";
 
-        foreach (var table in new[] { "ChannelMembers", "Channels", "Messages", "MessageAttachments", "MessageMentions", "MessageReactions" })
-        {
-            migrationBuilder.AddColumn<string>("TenantId", "chat", table, "text", nullable: false, defaultValue: "root");
-        }
+        ALTER TABLE chat."ChannelMembers" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE chat."Channels" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE chat."Messages" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE chat."MessageAttachments" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE chat."MessageMentions" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE chat."MessageReactions" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
 
-        migrationBuilder.CreateIndex("IX_ChannelMembers_UserId_ChannelId", "chat", "ChannelMembers", new[] { "UserId", "ChannelId", "TenantId" }, unique: true);
-        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", new[] { "DirectKey", "TenantId" }, unique: true, filter: "\"Type\" = 0 AND \"IsDeleted\" = FALSE");
-        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", new[] { "Slug", "TenantId" }, unique: true, filter: "\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
-        migrationBuilder.CreateIndex("UX_MessageReactions_Message_User_Emoji", "chat", "MessageReactions", new[] { "MessageId", "UserId", "Emoji", "TenantId" }, unique: true);
-    }
+        CREATE UNIQUE INDEX "IX_ChannelMembers_UserId_ChannelId" ON chat."ChannelMembers" ("UserId", "ChannelId", "TenantId");
+        CREATE UNIQUE INDEX "IX_Channels_DirectKey" ON chat."Channels" ("DirectKey", "TenantId") WHERE "Type" = 0 AND "IsDeleted" = FALSE;
+        CREATE UNIQUE INDEX "IX_Channels_Slug" ON chat."Channels" ("Slug", "TenantId") WHERE "Slug" IS NOT NULL AND "IsDeleted" = FALSE;
+        CREATE UNIQUE INDEX "UX_MessageReactions_Message_User_Emoji" ON chat."MessageReactions" ("MessageId", "UserId", "Emoji", "TenantId");
+        """);
 }
