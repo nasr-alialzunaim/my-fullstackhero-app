@@ -1,8 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Webhooks.Services;
 using Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -179,12 +176,7 @@ public sealed class WebhookSignatureTests
         using var scope = capturingFactory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        // Set Finbuckle tenant context INLINE (AsyncLocal must not cross an awaited helper, else the
         // DbContext filter sees a null TenantInfo). The job sets its own context too; this guards this scope.
-        var tenant = await sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId);
-        sp.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var job = sp.GetRequiredService<WebhookDispatchJob>();
         await job.DispatchAsync(
