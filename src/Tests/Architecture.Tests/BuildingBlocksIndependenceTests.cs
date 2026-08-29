@@ -1,6 +1,6 @@
 using FSH.Framework.Core;
 using FSH.Framework.Persistence;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Web;
 using NetArchTest.Rules;
 using Shouldly;
@@ -22,7 +22,7 @@ public class BuildingBlocksIndependenceTests
     [
         typeof(IFshCore).Assembly,               // Core
         typeof(IConnectionStringValidator).Assembly,  // Persistence
-        typeof(IAppTenantInfo).Assembly,         // Shared
+        typeof(IInstallationContext).Assembly,    // Shared
         typeof(IFshWeb).Assembly                 // Web
     ];
 
