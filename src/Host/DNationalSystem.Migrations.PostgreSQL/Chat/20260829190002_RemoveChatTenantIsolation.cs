@@ -36,8 +36,8 @@ public sealed class RemoveChatTenantIsolation : Migration
         migrationBuilder.DropColumn("TenantId", "chat", "MessageReactions");
 
         migrationBuilder.CreateIndex("IX_ChannelMembers_UserId_ChannelId", "chat", "ChannelMembers", new[] { "UserId", "ChannelId" }, unique: true);
-        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", "DirectKey", unique: true, filter: "\\\"Type\\\" = 0 AND \\\"IsDeleted\\\" = FALSE");
-        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", "Slug", unique: true, filter: "\\\"Slug\\\" IS NOT NULL AND \\\"IsDeleted\\\" = FALSE");
+        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", "DirectKey", unique: true, filter: "\"Type\" = 0 AND \"IsDeleted\" = FALSE");
+        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", "Slug", unique: true, filter: "\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
         migrationBuilder.CreateIndex("UX_MessageReactions_Message_User_Emoji", "chat", "MessageReactions", new[] { "MessageId", "UserId", "Emoji" }, unique: true);
     }
 
@@ -54,8 +54,8 @@ public sealed class RemoveChatTenantIsolation : Migration
         }
 
         migrationBuilder.CreateIndex("IX_ChannelMembers_UserId_ChannelId", "chat", "ChannelMembers", new[] { "UserId", "ChannelId", "TenantId" }, unique: true);
-        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", new[] { "DirectKey", "TenantId" }, unique: true, filter: "\\\"Type\\\" = 0 AND \\\"IsDeleted\\\" = FALSE");
-        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", new[] { "Slug", "TenantId" }, unique: true, filter: "\\\"Slug\\\" IS NOT NULL AND \\\"IsDeleted\\\" = FALSE");
+        migrationBuilder.CreateIndex("IX_Channels_DirectKey", "chat", "Channels", new[] { "DirectKey", "TenantId" }, unique: true, filter: "\"Type\" = 0 AND \"IsDeleted\" = FALSE");
+        migrationBuilder.CreateIndex("IX_Channels_Slug", "chat", "Channels", new[] { "Slug", "TenantId" }, unique: true, filter: "\"Slug\" IS NOT NULL AND \"IsDeleted\" = FALSE");
         migrationBuilder.CreateIndex("UX_MessageReactions_Message_User_Emoji", "chat", "MessageReactions", new[] { "MessageId", "UserId", "Emoji", "TenantId" }, unique: true);
     }
 }
