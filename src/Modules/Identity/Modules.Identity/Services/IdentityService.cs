@@ -7,7 +7,6 @@ using FSH.Modules.Identity.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -21,23 +20,19 @@ public sealed class IdentityService : IIdentityService
     private readonly IGroupRoleService _groupRoleService;
     private readonly TimeProvider _timeProvider;
     private readonly IdentityDbContext _dbContext;
-    private readonly int _graceWindowDays;
 
     public IdentityService(
         UserManager<FshUser> userManager,
         ILogger<IdentityService> logger,
         IGroupRoleService groupRoleService,
         TimeProvider timeProvider,
-        IdentityDbContext dbContext,
-        IOptions<TenantGraceOptions> graceOptions)
+        IdentityDbContext dbContext)
     {
-        ArgumentNullException.ThrowIfNull(graceOptions);
         _userManager = userManager;
         _logger = logger;
         _groupRoleService = groupRoleService;
         _timeProvider = timeProvider;
         _dbContext = dbContext;
-        _graceWindowDays = graceOptions.Value.GraceWindowDays;
     }
 
     public async Task<(string Subject, IEnumerable<Claim> Claims)?>
