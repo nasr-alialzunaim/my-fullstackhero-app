@@ -1,7 +1,4 @@
 using System.Net.Http.Json;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Chat.Contracts.v1.DTOs;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
@@ -139,10 +136,6 @@ public sealed class SearchMessagesTests
         var registered = await register.DeserializeAsync<RegisterResult>();
 
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByIdAsync(registered.UserId);
