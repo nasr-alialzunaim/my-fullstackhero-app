@@ -10,25 +10,21 @@ namespace DNationalSystem.Migrations.PostgreSQL.Files;
 [Migration("20260829190003_RemoveFilesTenantIsolation")]
 public sealed class RemoveFilesTenantIsolation : Migration
 {
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.Sql("""
-            DO $$
-            BEGIN
-                IF EXISTS (SELECT 1 FROM files."FileAssets" WHERE "TenantId" NOT IN ('', 'root')) THEN
-                    RAISE EXCEPTION 'Single-tenant migration refused: files contains non-root tenant data.';
-                END IF;
-            END $$;
-            """);
+    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM files."FileAssets" WHERE "TenantId" NOT IN ('', 'root')) THEN
+                RAISE EXCEPTION 'Single-tenant migration refused: files contains non-root tenant data.';
+            END IF;
+        END $$;
 
-        migrationBuilder.DropColumn("TenantId", "files", "FileAssets");
-        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", "StorageKey", unique: true, filter: "\"IsDeleted\" = FALSE");
-    }
+        ALTER TABLE files."FileAssets" DROP COLUMN "TenantId";
+        CREATE UNIQUE INDEX "UX_FileAsset_StorageKey" ON files."FileAssets" ("StorageKey") WHERE "IsDeleted" = FALSE;
+        """);
 
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.DropIndex("UX_FileAsset_StorageKey", "files", "FileAssets");
-        migrationBuilder.AddColumn<string>("TenantId", "files", "FileAssets", "text", nullable: false, defaultValue: "root");
-        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", new[] { "StorageKey", "TenantId" }, unique: true, filter: "\"IsDeleted\" = FALSE");
-    }
+    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DROP INDEX IF EXISTS files."UX_FileAsset_StorageKey";
+        ALTER TABLE files."FileAssets" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        CREATE UNIQUE INDEX "UX_FileAsset_StorageKey" ON files."FileAssets" ("StorageKey", "TenantId") WHERE "IsDeleted" = FALSE;
+        """);
 }
