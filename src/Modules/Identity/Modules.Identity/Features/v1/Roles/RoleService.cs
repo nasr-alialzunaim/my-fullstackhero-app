@@ -1,9 +1,7 @@
 using System.Net;
-using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Framework.Shared.Persistence;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
@@ -16,7 +14,6 @@ namespace FSH.Modules.Identity.Features.v1.Roles;
 
 public sealed class RoleService(RoleManager<FshRole> roleManager,
     IdentityDbContext context,
-    IMultiTenantContextAccessor<AppTenantInfo> multiTenantContextAccessor,
     ICurrentUser currentUser,
     IUserPermissionService userPermissionService) : IRoleService
 {
@@ -168,7 +165,6 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
             ?? throw new NotFoundException("role not found");
 
         EnsureNotSystemRole(role.Name, "System role permissions are managed by the framework and cannot be modified.");
-        FilterRootPermissions(permissions);
 
         var currentClaims = await roleManager.GetClaimsAsync(role);
         await RemoveRevokedPermissionsAsync(role, currentClaims, permissions, cancellationToken);
@@ -187,20 +183,6 @@ public sealed class RoleService(RoleManager<FshRole> roleManager,
         {
             throw new CustomException(message, Array.Empty<string>(), HttpStatusCode.BadRequest);
         }
-    }
-
-    private void FilterRootPermissions(List<string> permissions)
-    {
-        if (multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id == MultitenancyConstants.Root.Id)
-        {
-            // The root operator may manage root-only permissions.
-            return;
-        }
-
-        // Strip every permission flagged IsRoot in the registry. (A prior prefix check on "Permissions.Root."
-        // was a no-op — no root perm uses that prefix — letting a tenant admin grant themselves root perms.)
-        var rootOnly = PermissionConstants.Root.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
-        permissions.RemoveAll(rootOnly.Contains);
     }
 
     private async Task RemoveRevokedPermissionsAsync(FshRole role, IList<System.Security.Claims.Claim> currentClaims, List<string> permissions, CancellationToken cancellationToken = default)
