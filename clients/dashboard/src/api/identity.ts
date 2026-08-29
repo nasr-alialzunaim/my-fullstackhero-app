@@ -419,31 +419,28 @@ export async function updateMyProfile(input: UpdateProfileInput): Promise<void> 
 }
 
 // -----------------------------
-// Password reset trio (anonymous; require explicit tenant header)
+// Password reset trio (anonymous; require no tenant header)
 // -----------------------------
 
 /**
  * Step 1 of the forgot-password flow. The server resolves the user by
- * (email, tenant), generates a reset token, and emails a link of the form
- * `<host>/reset-password?token=...&email=...&tenant=...`. Server always
+ * email, generates a reset token, and emails a link of the form
+ * `<host>/reset-password?token=...&email=...`. Server always
  * returns 200 regardless of whether the email exists — never leak account
  * presence to the caller.
  */
 export async function requestPasswordReset(input: {
   email: string;
-  tenant: string;
 }): Promise<void> {
   await apiFetch<string>(`/api/v1/identity/forgot-password`, {
     method: "POST",
     skipAuth: true,
-    headers: { tenant: input.tenant },
     body: JSON.stringify({ email: input.email }),
   });
 }
 
 /**
- * Step 2 of the forgot-password flow. The caller carries (token, email,
- * tenant) from the emailed link plus a new password from the form. The
+ * Step 2 of the forgot-password flow. The caller carries (token, email) from the emailed link plus a new password from the form. The
  * server validates the token via UserManager.ResetPasswordAsync and
  * persists the new hash. Existing JWTs remain valid until natural expiry —
  * the UI should bounce the user to /login to acquire a fresh session.
@@ -452,12 +449,10 @@ export async function resetPassword(input: {
   email: string;
   password: string;
   token: string;
-  tenant: string;
 }): Promise<void> {
   await apiFetch<string>(`/api/v1/identity/reset-password`, {
     method: "POST",
     skipAuth: true,
-    headers: { tenant: input.tenant },
     body: JSON.stringify({
       email: input.email,
       password: input.password,
@@ -467,7 +462,7 @@ export async function resetPassword(input: {
 }
 
 /**
- * Confirm-email link landing. The server expects (userId, code, tenant)
+ * Confirm-email link landing. The server expects (userId, code)
  * as query parameters — these come from the email-confirmation link
  * produced by the registration flow. Returns the server's confirmation
  * message on 2xx.
@@ -475,17 +470,14 @@ export async function resetPassword(input: {
 export async function confirmEmail(input: {
   userId: string;
   code: string;
-  tenant: string;
 }): Promise<string> {
   const qs = new URLSearchParams({
     userId: input.userId,
     code: input.code,
-    tenant: input.tenant,
   }).toString();
   return apiFetch<string>(`/api/v1/identity/confirm-email?${qs}`, {
     method: "GET",
     skipAuth: true,
-    headers: { tenant: input.tenant },
   });
 }
 
