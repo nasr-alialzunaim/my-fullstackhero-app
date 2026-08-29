@@ -1,7 +1,4 @@
 using System.Text.Json;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Auditing;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Auditing.Contracts.Dtos;
@@ -216,7 +213,6 @@ public sealed class AuditPayloadFilterTests
 
     /// <summary>
     /// Inserts a single AuditRecord for the root tenant straight into Postgres. The Finbuckle
-    /// tenant context is set INLINE in this method (AsyncLocal gotcha: setting it elsewhere does
     /// not flow into the EF call's scope and the tenant filter NREs).
     /// </summary>
     private async Task SeedAuditRecordAsync(
@@ -225,12 +221,9 @@ public sealed class AuditPayloadFilterTests
         using var scope = _factory.Services.CreateScope();
         var sp = scope.ServiceProvider;
 
-        var store = sp.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
         var rootTenant = await store.GetAsync(MultitenancyConstants.Root.Id);
         rootTenant.ShouldNotBeNull();
 
-        sp.GetRequiredService<IMultiTenantContextSetter>().MultiTenantContext =
-            new MultiTenantContext<AppTenantInfo>(rootTenant);
 
         var db = sp.GetRequiredService<AuditDbContext>();
         db.AuditRecords.Add(new AuditRecord
