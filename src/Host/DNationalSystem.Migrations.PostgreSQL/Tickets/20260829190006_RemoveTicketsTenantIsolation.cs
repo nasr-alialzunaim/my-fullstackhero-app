@@ -26,7 +26,7 @@ public sealed class RemoveTicketsTenantIsolation : Migration
 
         migrationBuilder.DropColumn("TenantId", "tickets", "Tickets");
         migrationBuilder.DropColumn("TenantId", "tickets", "TicketComments");
-        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", "Number", unique: true, filter: ""IsDeleted" = FALSE");
+        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", "Number", unique: true, filter: "\\\"IsDeleted\\\" = FALSE");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
@@ -34,6 +34,6 @@ public sealed class RemoveTicketsTenantIsolation : Migration
         migrationBuilder.DropIndex("IX_Tickets_Number", "tickets", "Tickets");
         migrationBuilder.AddColumn<string>("TenantId", "tickets", "Tickets", "text", nullable: false, defaultValue: "root");
         migrationBuilder.AddColumn<string>("TenantId", "tickets", "TicketComments", "text", nullable: false, defaultValue: "root");
-        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", new[] { "Number", "TenantId" }, unique: true, filter: ""IsDeleted" = FALSE");
+        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", new[] { "Number", "TenantId" }, unique: true, filter: "\\\"IsDeleted\\\" = FALSE");
     }
 }
