@@ -35,15 +35,11 @@ export async function refreshAccessToken() {
     throw new ApiRequestError(401, "No refresh token");
   }
 
-  // Server's RefreshTokenCommand requires both `token` (the current, possibly
-  // expired access token, used to cross-check the subject) and `refreshToken`.
-  // Tenant header must match the token's tenant or refresh fails.
-  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
+  // Refresh is installation-scoped: no tenant selector is sent.
   const response = await fetch(`${env.apiBase}/api/v1/identity/token/refresh`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(tenant ? { tenant } : {}),
     },
     body: JSON.stringify({ token: accessToken, refreshToken }),
     signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
@@ -112,11 +108,6 @@ export async function apiFetch<T = unknown>(
         detail: "Your session is no longer available. Please sign in again.",
       });
     }
-  }
-
-  const tenant = tokenStore.getTenant() ?? env.defaultTenant;
-  if (tenant && !mergedHeaders.has("tenant")) {
-    mergedHeaders.set("tenant", tenant);
   }
 
   const url = path.startsWith("http") ? path : `${env.apiBase}${path}`;
