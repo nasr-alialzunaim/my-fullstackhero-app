@@ -18,26 +18,13 @@ public sealed class GetInvoiceByIdQueryHandler(BillingDbContext db)
 
         var invoice = await db.Invoices
             .AsNoTracking()
+            .Include(i => i.LineItems)
             .FirstOrDefaultAsync(
                 i => i.Id == query.InvoiceId && i.TenantId == InstallationConstants.Id,
                 cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {query.InvoiceId} not found.");
 
-        return new InvoiceDto(
-            invoice.Id,
-            invoice.TenantId,
-            invoice.InvoiceNumber,
-            invoice.PeriodYear,
-            invoice.PeriodMonth,
-            invoice.Purpose,
-            invoice.Status,
-            invoice.Currency,
-            invoice.Subtotal,
-            invoice.Tax,
-            invoice.Total,
-            invoice.IssuedAtUtc,
-            invoice.PaidAtUtc,
-            invoice.CreatedAtUtc);
+        return invoice.ToDto();
     }
 }
