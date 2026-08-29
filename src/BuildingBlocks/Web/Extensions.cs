@@ -137,6 +137,18 @@ public static class Extensions
         }
         else
         {
+            // Keep quota-aware application services resolvable in offline/single-installation
+            // mode without enabling enforcement or requiring Redis.
+            builder.Services
+                .AddOptions<QuotaOptions>()
+                .BindConfiguration(nameof(QuotaOptions));
+            var quotaOptions =
+                builder.Configuration.GetSection(nameof(QuotaOptions)).Get<QuotaOptions>()
+                ?? new QuotaOptions { Enabled = false };
+            quotaOptions.Enabled = false;
+            builder.Services.TryAddSingleton(TimeProvider.System);
+            builder.Services.AddSingleton(quotaOptions);
+            builder.Services.AddSingleton<QuotaPlanResolver>();
             builder.Services.AddScoped<IQuotaService, NoopQuotaService>();
         }
 
