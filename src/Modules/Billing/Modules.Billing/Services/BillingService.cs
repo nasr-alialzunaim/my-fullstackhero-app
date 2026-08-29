@@ -1,6 +1,6 @@
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Eventing.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Framework.Shared.Quota;
 using FSH.Modules.Billing.Contracts;
 using FSH.Modules.Billing.Contracts.Events;
@@ -40,7 +40,7 @@ public sealed class BillingService : IBillingService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
-        tenantId = MultitenancyConstants.Root.Id;
+        tenantId = InstallationConstants.Id;
 
         // Scope the idempotency check to Purpose==Usage: a Subscription invoice may legitimately share
         // the month, and without this filter we'd match it and skip the usage/overage invoice (unbilled overage).
@@ -113,7 +113,7 @@ public sealed class BillingService : IBillingService
         int periodMonth,
         CancellationToken cancellationToken = default)
     {
-        const string installationId = MultitenancyConstants.Root.Id;
+        const string installationId = InstallationConstants.Id;
 
         var hasActiveSubscription = await _db.Subscriptions
             .AnyAsync(
@@ -172,7 +172,7 @@ public sealed class BillingService : IBillingService
     {
         return await _db.Invoices
             .FirstOrDefaultAsync(
-                i => i.Id == invoiceId && i.TenantId == MultitenancyConstants.Root.Id,
+                i => i.Id == invoiceId && i.TenantId == InstallationConstants.Id,
                 cancellationToken)
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Invoice {invoiceId} not found.");
@@ -186,7 +186,7 @@ public sealed class BillingService : IBillingService
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
-        tenantId = MultitenancyConstants.Root.Id;
+        tenantId = InstallationConstants.Id;
 
         var plan = await _db.Plans.FirstOrDefaultAsync(p => p.Id == planId, cancellationToken).ConfigureAwait(false)
             ?? throw new NotFoundException($"Plan {planId} not found for tenant {tenantId}.");
