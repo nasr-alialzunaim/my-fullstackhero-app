@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Contracts.Authorization;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
@@ -223,7 +220,6 @@ public sealed class PermissionCacheInvalidationTests
 
     /// <summary>
     /// Seeds a confirmed + active user (both flags are required to log in) directly via
-    /// UserManager. The Finbuckle tenant context is set INLINE in this method body because
     /// it is AsyncLocal — setting it in a separate awaited helper would lose it and the
     /// tenant query filter would throw.
     /// </summary>
@@ -235,10 +231,6 @@ public sealed class PermissionCacheInvalidationTests
         using var scope = _factory.Services.CreateScope();
 
         var tenant = await scope.ServiceProvider
-            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>()
-            .GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
