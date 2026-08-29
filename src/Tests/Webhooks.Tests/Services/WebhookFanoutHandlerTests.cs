@@ -166,15 +166,11 @@ public sealed class WebhookFanoutHandlerTests
     private WebhookFanoutHandler<FakeIntegrationEvent> CreateHandler(WebhookDbContext db) =>
         new(db, _dispatcher, _serializer, _tenantAccessor, _logger);
 
-    private WebhookDbContext CreateContext()
+    private static WebhookDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<WebhookDbContext>()
             .UseInMemoryDatabase($"webhooks-{Guid.NewGuid():N}")
             .Options;
-
-        var settings = Options.Create(new DatabaseOptions());
-        var environment = Substitute.For<IHostEnvironment>();
-        environment.EnvironmentName.Returns("Development");
 
         return new WebhookDbContext(options);
     }
