@@ -109,8 +109,6 @@ public sealed class PasswordResetTests
     private async Task CreateActiveUserAsync(string email, string password)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
         {
@@ -128,8 +126,6 @@ public sealed class PasswordResetTests
     private async Task<string> GenerateResetTokenAsync(string email)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
         user.ShouldNotBeNull();
