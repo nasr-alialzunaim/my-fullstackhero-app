@@ -96,8 +96,6 @@ public sealed class ChangePasswordTests
     private async Task CreateActiveUserAsync(string email, string password)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
         {
