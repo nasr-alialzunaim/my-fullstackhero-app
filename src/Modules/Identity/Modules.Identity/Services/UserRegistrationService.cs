@@ -5,7 +5,7 @@ using FSH.Framework.Jobs.Services;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.Events;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
@@ -291,15 +291,15 @@ internal sealed class UserRegistrationService(
         string source,
         CancellationToken cancellationToken = default)
     {
-        const string tenantId = MultitenancyConstants.Root.Id;
-        user.RecordRegistered(tenantId);
+        const string installationId = InstallationConstants.Id;
+        user.RecordRegistered(installationId);
 
         await db.SaveChangesAsync(cancellationToken);
 
         var integrationEvent = new UserRegisteredIntegrationEvent(
             Id: Guid.NewGuid(),
             OccurredOnUtc: TimeProvider.System.GetUtcNow().UtcDateTime,
-            TenantId: tenantId,
+            TenantId: installationId,
             CorrelationId: Guid.NewGuid().ToString(),
             Source: source,
             UserId: user.Id,
