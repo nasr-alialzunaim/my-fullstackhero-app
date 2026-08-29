@@ -2,7 +2,7 @@ using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Jobs.Services;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
@@ -72,7 +72,7 @@ internal sealed class UserPasswordService(
         }
 
         // Raise domain event for password reset
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         user.RecordPasswordChanged(wasReset: true, tenantId);
         await db.SaveChangesAsync(cancellationToken);
     }
@@ -92,7 +92,7 @@ internal sealed class UserPasswordService(
         }
 
         // Raise domain event for password change
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         user.RecordPasswordChanged(wasReset: false, tenantId);
         await db.SaveChangesAsync(cancellationToken);
 
