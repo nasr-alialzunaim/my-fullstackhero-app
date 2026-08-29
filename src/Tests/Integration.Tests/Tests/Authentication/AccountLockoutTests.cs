@@ -83,8 +83,6 @@ public sealed class AccountLockoutTests
         // Admin-registered users aren't auto-confirmed; force-confirm via UserManager so login reaches the
         // password/lockout check. Set tenant context first so Finbuckle's filter has a real TenantInfo.
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
