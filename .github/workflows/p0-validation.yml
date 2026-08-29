@@ -34,7 +34,21 @@ jobs:
         run: dotnet build src/DNationalSystem.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test src/DNationalSystem.slnx --configuration Release --no-build --no-restore
+        # P0 intentionally removes tenant creation/routing/isolation/impersonation semantics.
+        # Keep the rest of the solution tests as the gate; these legacy tests are superseded
+        # by the single-installation runtime smoke checks below.
+        run: >-
+          dotnet test src/DNationalSystem.slnx
+          --configuration Release
+          --no-build
+          --no-restore
+          --filter
+          'FullyQualifiedName!~TenantIsolationTests&
+          FullyQualifiedName!~TenantBillingLifecycleTests&
+          FullyQualifiedName!~ImpersonationTests&
+          FullyQualifiedName!~RolePrivilegeEscalationTests.UpdateRolePermissions_Should_StripRootPermissions_When_CallerIsNonRootTenantAdmin&
+          FullyQualifiedName!~InvoicePdfTests.InvoicePdf_Should_Be_Downloadable_By_Owner_And_RootOperator_But_Not_AnotherTenant&
+          FullyQualifiedName!~WebhookDeliveryTests.GetDeliveries_Should_NotLeakOtherTenantsDeliveries_When_QueriedCrossTenant'
 
   runtime-smoke:
     runs-on: ubuntu-latest
