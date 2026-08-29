@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Identity;
@@ -108,15 +105,11 @@ public sealed class PasswordResetTests
 
     #region Helpers
 
-    // Set the tenant context INLINE, not via an awaited helper: the Finbuckle setter writes an AsyncLocal
     // that's lost on return from a separate method, NREing the tenant query filter during CreateAsync.
     private async Task CreateActiveUserAsync(string email, string password)
     {
         using var scope = _factory.Services.CreateScope();
         var tenant = await scope.ServiceProvider
-            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>().GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
@@ -136,9 +129,6 @@ public sealed class PasswordResetTests
     {
         using var scope = _factory.Services.CreateScope();
         var tenant = await scope.ServiceProvider
-            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>().GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = await userManager.FindByEmailAsync(email);
