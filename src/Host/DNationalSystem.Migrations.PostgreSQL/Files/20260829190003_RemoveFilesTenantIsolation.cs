@@ -22,13 +22,13 @@ public sealed class RemoveFilesTenantIsolation : Migration
             """);
 
         migrationBuilder.DropColumn("TenantId", "files", "FileAssets");
-        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", "StorageKey", unique: true, filter: "\\\"IsDeleted\\\" = FALSE");
+        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", "StorageKey", unique: true, filter: "\"IsDeleted\" = FALSE");
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropIndex("UX_FileAsset_StorageKey", "files", "FileAssets");
         migrationBuilder.AddColumn<string>("TenantId", "files", "FileAssets", "text", nullable: false, defaultValue: "root");
-        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", new[] { "StorageKey", "TenantId" }, unique: true, filter: "\\\"IsDeleted\\\" = FALSE");
+        migrationBuilder.CreateIndex("UX_FileAsset_StorageKey", "files", "FileAssets", new[] { "StorageKey", "TenantId" }, unique: true, filter: "\"IsDeleted\" = FALSE");
     }
 }
