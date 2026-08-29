@@ -209,8 +209,6 @@ public sealed class TwoFactorAuthTests
     private async Task WithRootTenantScopeAsync(Func<UserManager<FshUser>, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await scope.ServiceProvider
-
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         await action(userManager);
     }
