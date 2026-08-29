@@ -1,10 +1,12 @@
 using System.Reflection;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Finbuckle.MultiTenant.Abstractions;
 using FSH.Framework.Jobs.Services;
 using FSH.Framework.Mailing;
 using FSH.Framework.Mailing.Services;
 using FSH.Framework.Persistence;
+using FSH.Framework.Shared.Multitenancy;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using FSH.Framework.Web.Modules;
@@ -17,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using NSubstitute;
 using Testcontainers.Minio;
 using Testcontainers.PostgreSql;
 
@@ -179,6 +182,28 @@ public sealed class FshWebApplicationFactory : WebApplicationFactory<Program>, I
             // Replace real mail service with a no-op to avoid SMTP errors and Hangfire retries
             services.RemoveAll<IMailService>();
             services.AddSingleton<IMailService, NoOpMailService>();
+
+            // Test-only immutable root store: legacy test helpers still ask Finbuckle for
+            // the current installation, but P0 no longer has a tenant catalog/database.
+            var rootInstallation = new AppTenantInfo(
+                MultitenancyConstants.Root.Id,
+                MultitenancyConstants.Root.Id,
+                MultitenancyConstants.Root.Name)
+            {
+                AdminEmail = MultitenancyConstants.Root.EmailAddress,
+                IsActive = true,
+                ValidUpto = DateTime.MaxValue,
+                Issuer = MultitenancyConstants.Root.Issuer
+            };
+            var installationStore = Substitute.For<IMultiTenantStore<AppTenantInfo>>();
+            installationStore
+                .GetAsync(Arg.Any<string>())
+                .Returns(call => Task.FromResult<AppTenantInfo?>(
+                    string.Equals(call.Arg<string>(), MultitenancyConstants.Root.Id, StringComparison.Ordinal)
+                        ? rootInstallation
+                        : null));
+            services.RemoveAll<IMultiTenantStore<AppTenantInfo>>();
+            services.AddSingleton(installationStore);
 
             // Detailed errors in tests instead of generic "An unexpected error occurred"
             var existingHandlers = services.Where(d =>
