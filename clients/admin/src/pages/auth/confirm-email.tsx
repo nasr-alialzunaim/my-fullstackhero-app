@@ -58,7 +58,7 @@ export function ConfirmEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [userId and code, malformed]);
+  }, [userId, code, malformed]);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--color-background)] px-5 py-8 sm:py-12">
