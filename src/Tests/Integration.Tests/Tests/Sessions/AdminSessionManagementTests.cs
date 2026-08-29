@@ -6,7 +6,7 @@ using Integration.Tests.Infrastructure.Extensions;
 namespace Integration.Tests.Tests.Sessions;
 
 /// <summary>
-/// Covers the admin-facing session surface: GetUserSessions, GetTenantSessions,
+/// Covers the admin-facing session surface: GetUserSessions, GetAllSessions,
 /// AdminRevokeSession, AdminRevokeAllSessions, and the user-facing RevokeAllSessions.
 /// Sessions are created on token issuance, so each test logs a user in to populate
 /// the session table before querying / revoking.
@@ -80,10 +80,10 @@ public sealed class AdminSessionManagementTests
 
     #endregion
 
-    #region GetTenantSessions (admin, paged)
+    #region GetAllSessions (admin, paged)
 
     [Fact]
-    public async Task GetTenantSessions_Should_ReturnPagedSessions_When_AdminRequests()
+    public async Task GetAllSessions_Should_ReturnPagedSessions_When_AdminRequests()
     {
         // Arrange
         using var adminClient = await _auth.CreateRootAdminClientAsync();
@@ -104,7 +104,7 @@ public sealed class AdminSessionManagementTests
     }
 
     [Fact]
-    public async Task GetTenantSessions_Should_FilterByActiveUser_When_SearchProvided()
+    public async Task GetAllSessions_Should_FilterByActiveUser_When_SearchProvided()
     {
         // Arrange
         using var adminClient = await _auth.CreateRootAdminClientAsync();
@@ -124,7 +124,7 @@ public sealed class AdminSessionManagementTests
     }
 
     [Fact]
-    public async Task GetTenantSessions_Should_Return403_When_CallerLacksViewAllPermission()
+    public async Task GetAllSessions_Should_Return403_When_CallerLacksViewAllPermission()
     {
         // Arrange
         using var adminClient = await _auth.CreateRootAdminClientAsync();
@@ -139,7 +139,7 @@ public sealed class AdminSessionManagementTests
     }
 
     [Fact]
-    public async Task GetTenantSessions_Should_Return401_When_NotAuthenticated()
+    public async Task GetAllSessions_Should_Return401_When_NotAuthenticated()
     {
         // Arrange
         using var client = _factory.CreateClient();
