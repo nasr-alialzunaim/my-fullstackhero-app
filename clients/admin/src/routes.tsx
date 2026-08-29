@@ -11,7 +11,6 @@ import {
   AuditingPermissions,
   BillingPermissions,
   IdentityPermissions,
-  MultitenancyPermissions,
   WebhooksPermissions,
 } from "@/lib/permissions";
 
@@ -27,8 +26,6 @@ const lazyNamed = <T extends string>(
     return { default: mod[named] as React.ComponentType };
   });
 
-const TenantsListPage = lazyNamed(() => import("@/pages/tenants/list"), "TenantsListPage");
-const TenantDetailPage = lazyNamed(() => import("@/pages/tenants/detail"), "TenantDetailPage");
 const UsersListPage = lazyNamed(() => import("@/pages/users/list"), "UsersListPage");
 const UserDetailPage = lazyNamed(() => import("@/pages/users/detail"), "UserDetailPage");
 const RolesListPage = lazyNamed(() => import("@/pages/roles/list"), "RolesListPage");
@@ -79,30 +76,6 @@ export const router = createBrowserRouter([
         errorElement: <RouteError />,
         children: [
           { index: true, element: <DashboardPage /> },
-
-          // Tenants — root-only
-          {
-            path: "tenants",
-            element: (
-              <RouteGuard perms={[MultitenancyPermissions.Tenants.View]}>
-                <TenantsListPage />
-              </RouteGuard>
-            ),
-          },
-          {
-            // /tenants/new — creation is now a dialog on the list page.
-            // Redirect any bookmarked links back to /tenants.
-            path: "tenants/new",
-            element: <Navigate to="/tenants" replace />,
-          },
-          {
-            path: "tenants/:id",
-            element: (
-              <RouteGuard perms={[MultitenancyPermissions.Tenants.View]}>
-                <TenantDetailPage />
-              </RouteGuard>
-            ),
-          },
 
           // Users
           {
