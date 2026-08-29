@@ -1,8 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Webhooks.Data;
 using FSH.Modules.Webhooks.Domain;
 using Hangfire;
@@ -49,31 +47,25 @@ public sealed class WebhookDispatchJob
         OnAttemptsExceeded = AttemptsExceededAction.Fail)]
     public async Task DispatchAsync(
         Guid subscriptionId,
-        string tenantId,
+        string installationId,
         string eventType,
         string payloadJson,
         PerformContext? context,
         CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
         ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
         ArgumentException.ThrowIfNullOrWhiteSpace(payloadJson);
 
-        // Like SqlAuditSink: fresh scope, set tenant context first, then resolve the DbContext so its
-        // Finbuckle filter reads a real TenantInfo instead of a null one from the outer scope.
-        using var scope = _scopeFactory.CreateScope();
-        var store = scope.ServiceProvider.GetRequiredService<IMultiTenantStore<AppTenantInfo>>();
-        var tenant = await store.GetAsync(tenantId).ConfigureAwait(false);
-        if (tenant is null)
+        if (!string.Equals(installationId, InstallationConstants.Id, StringComparison.Ordinal))
         {
             _logger.LogWarning(
-                "Skipping webhook dispatch for subscription {SubscriptionId}: tenant '{TenantId}' not found.",
-                subscriptionId, tenantId);
+                "Skipping webhook dispatch for subscription {SubscriptionId}: unknown installation '{InstallationId}'.",
+                subscriptionId, installationId);
             return;
         }
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
+        using var scope = _scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<WebhookDbContext>();
 
         var subscription = await dbContext.Subscriptions
