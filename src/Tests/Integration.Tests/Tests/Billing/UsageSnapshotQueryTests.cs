@@ -114,7 +114,9 @@ public sealed class UsageSnapshotQueryTests
     [Fact]
     public async Task GetUsageSnapshots_Should_Filter_By_Year_And_Month_Independently()
     {
-        // Arrange — same tenant, two distinct periods.
+        // Arrange — two distinct installation periods.
+        var (year1, month1) = NextPeriod();
+        var (year2, month2) = NextPeriod();
         await SeedSnapshotAsync(TestConstants.RootTenantId, year1, month1, QuotaResource.ApiCalls, used: 1, limit: 10);
         await SeedSnapshotAsync(TestConstants.RootTenantId, year2, month2, QuotaResource.ApiCalls, used: 2, limit: 10);
         using var client = await _auth.CreateRootAdminClientAsync();
