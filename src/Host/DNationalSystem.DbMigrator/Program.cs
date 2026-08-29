@@ -9,7 +9,6 @@ using FSH.Modules.Catalog;
 using FSH.Modules.Identity;
 using FSH.Modules.Identity.Contracts.v1.Tokens.TokenGeneration;
 using FSH.Modules.Identity.Features.v1.Tokens.TokenGeneration;
-using FSH.Modules.Multitenancy;
 using FSH.Modules.Tickets;
 using FSH.Modules.Webhooks;
 using Microsoft.Extensions.Configuration;
@@ -84,9 +83,6 @@ builder.Services.AddMediator(o =>
 var moduleAssemblies = new Assembly[]
 {
     typeof(IdentityModule).Assembly,
-    // Temporary compatibility registration only. No tenant endpoints/middleware are exposed.
-    // It currently supplies a small number of shared services that are being retired from runtime.
-    typeof(MultitenancyModule).Assembly,
     typeof(AuditingModule).Assembly,
     typeof(FSH.Modules.Files.FilesModule).Assembly,
     typeof(WebhooksModule).Assembly,
