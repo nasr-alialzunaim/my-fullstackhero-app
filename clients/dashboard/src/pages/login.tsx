@@ -112,25 +112,6 @@ export function LoginPage() {
         >
           <div className="space-y-1.5">
             <Label
-              htmlFor="tenant"
-              className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
-            >
-              {t("auth.tenant")}
-            </Label>
-            <Input
-              id="tenant"
-              value={tenant}
-              onChange={(e) => setTenant(e.target.value)}
-              placeholder="root"
-              autoComplete="organization"
-              required
-              aria-invalid={error ? true : undefined}
-              className="h-11 text-[14px]"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label
               htmlFor="email"
               className="block text-[11.5px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]"
             >
