@@ -1,6 +1,3 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Domain;
 using Integration.Tests.Infrastructure;
 using Microsoft.AspNetCore.Identity;
@@ -100,9 +97,6 @@ public sealed class ChangePasswordTests
     {
         using var scope = _factory.Services.CreateScope();
         var tenant = await scope.ServiceProvider
-            .GetRequiredService<IMultiTenantStore<AppTenantInfo>>().GetAsync(TestConstants.RootTenantId);
-        scope.ServiceProvider.GetRequiredService<IMultiTenantContextSetter>()
-            .MultiTenantContext = new MultiTenantContext<AppTenantInfo>(tenant);
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<FshUser>>();
         var user = new FshUser
