@@ -22,8 +22,7 @@ public sealed class AuthHelper
         return GetTokenAsync(
             TestConstants.RootAdminEmail,
             TestConstants.DefaultPassword,
-            TestConstants.RootTenantId,
-            ct);
+            ct: ct);
     }
 
     public async Task<TokenResult> GetTokenAsync(
@@ -34,7 +33,6 @@ public sealed class AuthHelper
     {
         using var client = _factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, $"{TestConstants.IdentityBasePath}/token/issue");
-        request.Headers.Add("tenant", tenant);
         request.Content = JsonContent.Create(new { email, password });
 
         var response = await client.SendAsync(request, ct).ConfigureAwait(false);
@@ -51,7 +49,6 @@ public sealed class AuthHelper
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token.AccessToken);
-        client.DefaultRequestHeaders.Add("tenant", TestConstants.RootTenantId);
         return client;
     }
 
@@ -65,7 +62,6 @@ public sealed class AuthHelper
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token.AccessToken);
-        client.DefaultRequestHeaders.Add("tenant", tenant);
         return client;
     }
 }
