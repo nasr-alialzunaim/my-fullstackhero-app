@@ -310,7 +310,6 @@ public sealed class UsageSnapshotQueryTests
     private async Task ConfirmEmailAsync(string userId)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
         var userManager = scope.ServiceProvider
             .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<FSH.Modules.Identity.Domain.FshUser>>();
@@ -326,7 +325,6 @@ public sealed class UsageSnapshotQueryTests
     private async Task SeedDirectAsync(Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         await action(db);
