@@ -1,6 +1,7 @@
 ﻿using FSH.Framework.Caching;
 using FSH.Framework.Jobs;
 using FSH.Framework.Mailing;
+using FSH.Framework.Mailing.Services;
 using FSH.Framework.Persistence;
 using FSH.Framework.Quota;
 using FSH.Framework.Shared.Constants;
@@ -95,6 +96,10 @@ public static class Extensions
         {
             builder.Services.AddHeroMailing();
         }
+        else
+        {
+            builder.Services.AddTransient<IMailService, NoOpMailService>();
+        }
 
         if (options.EnableCaching)
         {
@@ -129,6 +134,10 @@ public static class Extensions
         if (options.EnableQuotas)
         {
             builder.Services.AddHeroQuotas(builder.Configuration);
+        }
+        else
+        {
+            builder.Services.AddScoped<IQuotaService, NoopQuotaService>();
         }
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
