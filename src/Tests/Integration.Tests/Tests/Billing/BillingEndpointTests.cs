@@ -672,7 +672,6 @@ public sealed class BillingEndpointTests
     private async Task SeedDirectAsync(Func<BillingDbContext, Task> action)
     {
         using var scope = _factory.Services.CreateScope();
-        var tenant = await tenantStore.GetAsync(TestConstants.RootTenantId);
 
         var db = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         await action(db);
