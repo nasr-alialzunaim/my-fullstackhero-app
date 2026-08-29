@@ -1,6 +1,6 @@
 using FSH.Framework.Core.Context;
 using FSH.Framework.Eventing.Outbox;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Events;
@@ -117,7 +117,7 @@ public sealed class GenerateTokenCommandHandler
             ct: cancellationToken);
 
         // 4) Enqueue integration event for token generation (sample event for testing eventing)
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         var correlationId = Guid.NewGuid().ToString();
 
         var integrationEvent = new TokenGeneratedIntegrationEvent(
