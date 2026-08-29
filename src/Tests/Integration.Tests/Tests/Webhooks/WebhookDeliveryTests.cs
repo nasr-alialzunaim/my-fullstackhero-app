@@ -246,7 +246,6 @@ public sealed class WebhookDeliveryTests
         var (subscriptionId, _) = await CreateSubscriptionAsync(client, secret: null);
 
         using var scope = capturingFactory.Services.CreateScope();
-        SetRootTenantContext(scope.ServiceProvider);
         var service = scope.ServiceProvider.GetRequiredService<IWebhookDeliveryService>();
 
         // Act
@@ -345,9 +344,6 @@ public sealed class WebhookDeliveryTests
         return result!;
     }
 
-    private static void SetRootTenantContext(IServiceProvider sp)
-    {
-    }
 
     private static async Task CreateTenantAsync(HttpClient rootClient, string tenantId, string adminEmail)
     {
