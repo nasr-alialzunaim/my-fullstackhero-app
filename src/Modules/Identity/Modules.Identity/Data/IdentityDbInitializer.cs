@@ -15,7 +15,6 @@ internal sealed class IdentityDbInitializer(
     RoleManager<FshRole> roleManager,
     UserManager<FshUser> userManager,
     TimeProvider timeProvider,
-    ITenantInitialPasswordBuffer passwordBuffer,
     IConfiguration configuration) : IDbInitializer
 {
     public async Task MigrateAsync(CancellationToken cancellationToken)
@@ -223,24 +222,13 @@ internal sealed class IdentityDbInitializer(
     }
 
     /// <summary>
-    /// Resolve the initial password for the admin user being seeded into the installation.
-    /// Lookup order:
-    ///   1. <see cref="ITenantInitialPasswordBuffer"/> — set by <c>CreateTenantCommandHandler</c>
-    ///      for legacy provisioning compatibility (atomic consume, gone after this call).
-    ///   2. <c>Seed:DefaultAdminPassword</c> from configuration — covers the framework's
-    ///      installation seed at startup and any test-host bootstrap. Operators set this
-    ///      via env var / user-secrets / production secrets manager.
-    /// Throws if neither source supplies a password — refusing to seed is safer than
-    /// minting an admin user with a predictable secret.
+    /// Resolve the initial password for the installation admin.
+    /// The single-installation runtime accepts it only from <c>Seed:DefaultAdminPassword</c>.
+    /// Operators provide the value through environment variables, user-secrets, or a
+    /// production secrets manager. Refusing to seed is safer than minting a predictable secret.
     /// </summary>
     private string ResolveInitialAdminPassword(string tenantId)
     {
-        var buffered = passwordBuffer.TryConsume(tenantId);
-        if (!string.IsNullOrWhiteSpace(buffered))
-        {
-            return buffered;
-        }
-
         var fromConfig = configuration["Seed:DefaultAdminPassword"];
         if (!string.IsNullOrWhiteSpace(fromConfig))
         {
@@ -249,7 +237,6 @@ internal sealed class IdentityDbInitializer(
 
         throw new InvalidOperationException(
             $"No initial admin password available for installation '{tenantId}'. " +
-            "Supply AdminPassword on the legacy provisioning request, or set " +
-            "'Seed:DefaultAdminPassword' in configuration for the root/startup seed.");
+            "Set 'Seed:DefaultAdminPassword' in configuration for the installation seed.");
     }
 }
