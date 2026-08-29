@@ -1,6 +1,5 @@
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
-using FSH.Modules.Multitenancy;
 using System.Reflection;
 
 namespace Generic.Tests.Architecture;
@@ -19,7 +18,6 @@ internal static class ModuleAssemblyDiscovery
         // Force-load seed assemblies
         _ = typeof(AuditingModule);
         _ = typeof(IdentityModule);
-        _ = typeof(MultitenancyModule);
 
         return AppDomain.CurrentDomain
             .GetAssemblies()
