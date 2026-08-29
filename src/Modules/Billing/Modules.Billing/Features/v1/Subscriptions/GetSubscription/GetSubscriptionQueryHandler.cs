@@ -1,8 +1,10 @@
 using FSH.Framework.Shared.Installation;
-using FSH.Modules.Billing.Contracts;
-using FSH.Modules.Billing.Contracts.v1.Subscriptions.GetSubscription;
+using FSH.Modules.Billing.Contracts.Dtos;
+using FSH.Modules.Billing.Contracts.v1.Subscriptions;
 using FSH.Modules.Billing.Data;
 using Microsoft.EntityFrameworkCore;
+
+using Mediator;
 
 namespace FSH.Modules.Billing.Features.v1.Subscriptions.GetSubscription;
 
