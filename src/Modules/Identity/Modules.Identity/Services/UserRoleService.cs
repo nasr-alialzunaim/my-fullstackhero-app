@@ -2,7 +2,7 @@ using System.Net;
 using FSH.Framework.Core.Context;
 using FSH.Framework.Core.Exceptions;
 using FSH.Framework.Shared.Constants;
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Identity.Contracts.DTOs;
 using FSH.Modules.Identity.Contracts.Services;
 using FSH.Modules.Identity.Data;
@@ -91,10 +91,10 @@ internal sealed class UserRoleService(
                 HttpStatusCode.BadRequest);
         }
 
-        // The root tenant's seed admin is the framework's last-resort recovery account.
+        // The installation's seed admin is the framework's last-resort recovery account.
         if (IsRootTenantAdmin(user))
         {
-            throw new ForbiddenException("The root tenant administrator cannot be demoted.");
+            throw new ForbiddenException("The installation administrator cannot be demoted.");
         }
 
         // After this removal, at least one admin must remain in the tenant — matches
@@ -104,7 +104,7 @@ internal sealed class UserRoleService(
 
     private static bool IsRootTenantAdmin(FshUser user)
     {
-        return user.Email == MultitenancyConstants.Root.EmailAddress;
+        return user.Email == InstallationConstants.AdminEmail;
     }
 
     private async Task EnsureMinimumAdminCountAsync()
@@ -113,7 +113,7 @@ internal sealed class UserRoleService(
         if (adminCount <= 1)
         {
             throw new CustomException(
-                "Tenant must retain at least one administrator.",
+                "Installation must retain at least one administrator.",
                 Array.Empty<string>(),
                 HttpStatusCode.BadRequest);
         }
@@ -154,7 +154,7 @@ internal sealed class UserRoleService(
             return;
         }
 
-        const string tenantId = MultitenancyConstants.Root.Id;
+        const string tenantId = InstallationConstants.Id;
         user.RecordRolesAssigned(assignedRoles, tenantId);
         await db.SaveChangesAsync(cancellationToken);
     }
