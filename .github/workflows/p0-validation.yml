@@ -1,13 +1,14 @@
 name: P0 Validation
 
 on:
-  push:
-    branches:
-      - feat/p0-single-tenant-offline
   pull_request:
     branches:
       - main
   workflow_dispatch:
+
+concurrency:
+  group: p0-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
