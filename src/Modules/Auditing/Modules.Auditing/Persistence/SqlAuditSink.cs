@@ -1,4 +1,4 @@
-using FSH.Framework.Shared.Multitenancy;
+using FSH.Framework.Shared.Installation;
 using FSH.Modules.Auditing.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -35,7 +35,7 @@ public sealed class SqlAuditSink : IAuditSink
             ReceivedAtUtc = e.ReceivedAtUtc,
             EventType = (int)e.EventType,
             Severity = (byte)e.Severity,
-            TenantId = MultitenancyConstants.Root.Id,
+            TenantId = InstallationConstants.Id,
             UserId = e.UserId,
             UserName = e.UserName,
             TraceId = e.TraceId,
@@ -55,7 +55,7 @@ public sealed class SqlAuditSink : IAuditSink
             _log.LogInformation(
                 "Wrote {Count} audit records for installation {InstallationId}.",
                 records.Count,
-                MultitenancyConstants.Root.Id);
+                InstallationConstants.Id);
         }
     }
 }
