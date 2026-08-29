@@ -4,7 +4,6 @@ using FSH.Framework.Shared.Identity.Claims;
 using FSH.Framework.Shared.Multitenancy;
 using FSH.Modules.Identity.Data;
 using FSH.Modules.Identity.Domain;
-using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -20,15 +19,13 @@ namespace FSH.Modules.Identity.Authorization;
 public sealed class RolePermissionSyncer(
     IdentityDbContext context,
     RoleManager<FshRole> roleManager,
-    IMultiTenantContextAccessor<AppTenantInfo> tenantAccessor,
     HybridCache cache,
     TimeProvider timeProvider,
     ILogger<RolePermissionSyncer> logger)
 {
     public async Task SyncAsync(CancellationToken cancellationToken)
     {
-        var tenantId = tenantAccessor.MultiTenantContext.TenantInfo?.Id;
-        bool isRoot = tenantId == MultitenancyConstants.Root.Id;
+        const bool isRoot = true;
 
         int basicAdded = await SyncRoleAsync(RoleConstants.Basic, PermissionConstants.Basic, cancellationToken).ConfigureAwait(false);
 
@@ -90,7 +87,7 @@ public sealed class RolePermissionSyncer(
                 "Synced {Count} new permission claim(s) to '{Role}' for tenant '{Tenant}'",
                 toAdd.Count,
                 roleName,
-                tenantAccessor.MultiTenantContext.TenantInfo?.Id);
+                MultitenancyConstants.Root.Id);
         }
 
         return toAdd.Count;
