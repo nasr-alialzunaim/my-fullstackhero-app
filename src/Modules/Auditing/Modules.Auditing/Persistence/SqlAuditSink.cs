@@ -8,7 +8,7 @@ namespace FSH.Modules.Auditing.Persistence;
 /// <summary>
 /// Persists audit envelopes into SQL for the single installation.
 /// </summary>
-public sealed class SqlAuditSink
+public sealed class SqlAuditSink : IAuditSink
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IAuditSerializer _serializer;
