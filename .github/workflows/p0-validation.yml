@@ -36,6 +36,78 @@ jobs:
       - name: Test
         run: dotnet test src/DNationalSystem.slnx --configuration Release --no-build --no-restore
 
+  runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fsh_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fsh_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DatabaseOptions__Provider: POSTGRESQL
+      DatabaseOptions__ConnectionString: Host=localhost;Port=5432;Database=fsh_test;Username=postgres;Password=postgres
+      DatabaseOptions__MigrationsAssembly: DNationalSystem.Migrations.PostgreSQL
+      Seed__DefaultAdminPassword: Test1234!
+      JwtOptions__SigningKey: p0-runtime-smoke-signing-key-32-bytes-minimum-value
+      JwtOptions__Issuer: fsh.test
+      JwtOptions__Audience: fsh.test.clients
+      CachingOptions__Redis: ""
+      HangfireOptions__UserName: admin
+      HangfireOptions__Password: TestPassword123!
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore migrator and API
+        run: |
+          dotnet restore src/Host/DNationalSystem.DbMigrator/DNationalSystem.DbMigrator.csproj
+          dotnet restore src/Host/DNationalSystem.Api/DNationalSystem.Api.csproj
+
+      - name: Apply migrations and seed installation
+        run: dotnet run --project src/Host/DNationalSystem.DbMigrator/DNationalSystem.DbMigrator.csproj --configuration Release -- apply --seed
+
+      - name: Start API
+        run: |
+          nohup dotnet run --project src/Host/DNationalSystem.Api/DNationalSystem.Api.csproj --configuration Release --no-restore --urls http://127.0.0.1:5080 > /tmp/fsh-api.log 2>&1 &
+          echo $! > /tmp/fsh-api.pid
+
+      - name: Wait for API live endpoint
+        run: |
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:5080/health/live > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/fsh-api.log
+          exit 1
+
+      - name: Verify API root and readiness
+        run: |
+          curl --fail --silent http://127.0.0.1:5080/ > /dev/null
+          curl --fail --silent http://127.0.0.1:5080/health/ready > /dev/null
+
+      - name: Dump API log on failure
+        if: failure()
+        run: cat /tmp/fsh-api.log || true
+
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 30
