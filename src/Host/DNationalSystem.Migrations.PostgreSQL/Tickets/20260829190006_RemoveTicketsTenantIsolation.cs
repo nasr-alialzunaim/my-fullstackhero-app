@@ -10,30 +10,26 @@ namespace DNationalSystem.Migrations.PostgreSQL.Tickets;
 [Migration("20260829190006_RemoveTicketsTenantIsolation")]
 public sealed class RemoveTicketsTenantIsolation : Migration
 {
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.Sql("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM tickets."Tickets" WHERE "TenantId" NOT IN ('', 'root')
-                    UNION ALL SELECT 1 FROM tickets."TicketComments" WHERE "TenantId" NOT IN ('', 'root')
-                ) THEN
-                    RAISE EXCEPTION 'Single-tenant migration refused: tickets contains non-root tenant data.';
-                END IF;
-            END $$;
-            """);
+    protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM tickets."Tickets" WHERE "TenantId" NOT IN ('', 'root')
+                UNION ALL SELECT 1 FROM tickets."TicketComments" WHERE "TenantId" NOT IN ('', 'root')
+            ) THEN
+                RAISE EXCEPTION 'Single-tenant migration refused: tickets contains non-root tenant data.';
+            END IF;
+        END $$;
 
-        migrationBuilder.DropColumn("TenantId", "tickets", "Tickets");
-        migrationBuilder.DropColumn("TenantId", "tickets", "TicketComments");
-        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", "Number", unique: true, filter: "\"IsDeleted\" = FALSE");
-    }
+        ALTER TABLE tickets."Tickets" DROP COLUMN "TenantId";
+        ALTER TABLE tickets."TicketComments" DROP COLUMN "TenantId";
+        CREATE UNIQUE INDEX "IX_Tickets_Number" ON tickets."Tickets" ("Number") WHERE "IsDeleted" = FALSE;
+        """);
 
-    protected override void Down(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.DropIndex("IX_Tickets_Number", "tickets", "Tickets");
-        migrationBuilder.AddColumn<string>("TenantId", "tickets", "Tickets", "text", nullable: false, defaultValue: "root");
-        migrationBuilder.AddColumn<string>("TenantId", "tickets", "TicketComments", "text", nullable: false, defaultValue: "root");
-        migrationBuilder.CreateIndex("IX_Tickets_Number", "tickets", "Tickets", new[] { "Number", "TenantId" }, unique: true, filter: "\"IsDeleted\" = FALSE");
-    }
+    protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
+        DROP INDEX IF EXISTS tickets."IX_Tickets_Number";
+        ALTER TABLE tickets."Tickets" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        ALTER TABLE tickets."TicketComments" ADD COLUMN "TenantId" text NOT NULL DEFAULT 'root';
+        CREATE UNIQUE INDEX "IX_Tickets_Number" ON tickets."Tickets" ("Number", "TenantId") WHERE "IsDeleted" = FALSE;
+        """);
 }
