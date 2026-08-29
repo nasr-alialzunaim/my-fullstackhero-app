@@ -75,17 +75,18 @@ public sealed class UsageSnapshotQueryTests
         // Arrange — two periods for the same tenant; newer period must sort first.
         var (olderYear, olderMonth) = NextPeriod();
         var (newerYear, newerMonth) = NextPeriod();
-        await SeedSnapshotAsync(TestConstants.RootTenantId, olderYear, olderMonth, QuotaResource.ApiCalls, used: 1, limit: 10);
-        await SeedSnapshotAsync(TestConstants.RootTenantId, newerYear, newerMonth, QuotaResource.ApiCalls, used: 2, limit: 10);
+        var olderId = await SeedSnapshotAsync(TestConstants.RootTenantId, olderYear, olderMonth, QuotaResource.ApiCalls, used: 1, limit: 10);
+        var newerId = await SeedSnapshotAsync(TestConstants.RootTenantId, newerYear, newerMonth, QuotaResource.ApiCalls, used: 2, limit: 10);
         using var client = await _auth.CreateRootAdminClientAsync();
 
         // Act — the installation-scoped list is ordered deterministically by period.
         var snaps = await GetSnapshotsAsync(client);
 
         // Assert
-        snaps.Count.ShouldBe(2);
-        var first = snaps[0];
-        (first.PeriodYear, first.PeriodMonth).ShouldBe((newerYear, newerMonth),
+        var relevant = snaps.Where(s => s.Id == olderId || s.Id == newerId).ToList();
+        relevant.Count.ShouldBe(2);
+        relevant[0].Id.ShouldBe(newerId);
+        (relevant[0].PeriodYear, relevant[0].PeriodMonth).ShouldBe((newerYear, newerMonth),
             "OrderByDescending(Year).ThenByDescending(Month) must surface the newest period first");
     }
 
@@ -140,15 +141,15 @@ public sealed class UsageSnapshotQueryTests
     [Fact]
     public async Task GetUsageSnapshots_Should_Return_Empty_When_No_Match()
     {
-        // Arrange — a tenant id that no test ever seeds.
-        var ghostTenant = $"snap-ghost-{Guid.NewGuid():N}";
+        // Arrange — reserve a unique period without seeding a snapshot.
+        var (year, month) = NextPeriod();
         using var client = await _auth.CreateRootAdminClientAsync();
 
         // Act
-        var snaps = await GetSnapshotsAsync(client, tenantId: ghostTenant);
+        var snaps = await GetSnapshotsAsync(client, periodYear: year, periodMonth: month);
 
         // Assert
-        snaps.ShouldBeEmpty("an unmatched tenant filter must yield an empty list, not an error");
+        snaps.ShouldBeEmpty("an unmatched installation period must yield an empty list, not an error");
     }
 
     #endregion
