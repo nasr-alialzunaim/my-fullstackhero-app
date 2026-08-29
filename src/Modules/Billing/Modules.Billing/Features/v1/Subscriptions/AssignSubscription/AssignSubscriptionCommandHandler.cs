@@ -1,9 +1,11 @@
 using FSH.Framework.Shared.Installation;
-using FSH.Modules.Billing.Contracts;
-using FSH.Modules.Billing.Contracts.v1.Subscriptions.AssignSubscription;
+using FSH.Modules.Billing.Contracts.Dtos;
+using FSH.Modules.Billing.Contracts.v1.Subscriptions;
 using FSH.Modules.Billing.Data;
 using FSH.Modules.Billing.Domain;
 using Microsoft.EntityFrameworkCore;
+
+using Mediator;
 
 namespace FSH.Modules.Billing.Features.v1.Subscriptions.AssignSubscription;
 
