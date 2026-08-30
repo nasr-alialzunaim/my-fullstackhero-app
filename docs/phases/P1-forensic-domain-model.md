@@ -1,6 +1,6 @@
 # P1 — Canonical DNA Domain Model and Module Boundaries
 
-**Status:** In progress — design gate  
+**Status:** In progress — P1.3 contracts and P1.4 architecture proof
 **Baseline:** P0 merged at `22178fe12d2084b9c8e1fd1cf897383bc67b3b0a`  
 **Branch:** `feat/p1-forensic-domain-model`  
 **Planning source:** the previously agreed GENis-system design conversation
@@ -147,6 +147,6 @@ P1 may be marked complete only when:
 
 ## Implementation hold
 
-Until P1.1 and P1.2 are approved, do not add forensic migrations, endpoints, pages, scientific
-algorithms, matching logic, or production-data import. Documentation and test-only architecture
-scaffolding are permitted.
+P1.1 and P1.2 are approved for limited architecture scaffolding. Do not add forensic migrations,
+endpoints, pages, scientific algorithms, matching logic, or production-data import until their P1.3
+contracts and invariants are approved.

@@ -1,5 +1,6 @@
 using FSH.Modules.Auditing.Contracts;
 using FSH.Modules.Chat.Contracts;
+using FSH.Modules.Cases.Contracts;
 using FSH.Modules.Identity.Contracts;
 using NetArchTest.Rules;
 using Shouldly;
@@ -17,6 +18,7 @@ public class ContractsPurityTests
     private static readonly Assembly[] ContractsAssemblies =
     [
         typeof(AuditingContractsMarker).Assembly,
+        typeof(CasesContractsMarker).Assembly,
         typeof(ChatContractsMarker).Assembly,
         typeof(IdentityContractsMarker).Assembly
     ];

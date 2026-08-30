@@ -24,6 +24,10 @@
     <Project Path="Modules/Catalog/Modules.Catalog.Contracts/Modules.Catalog.Contracts.csproj" />
     <Project Path="Modules/Catalog/Modules.Catalog/Modules.Catalog.csproj" />
   </Folder>
+  <Folder Name="/Modules/Cases/">
+    <Project Path="Modules/Cases/Modules.Cases.Contracts/Modules.Cases.Contracts.csproj" />
+    <Project Path="Modules/Cases/Modules.Cases/Modules.Cases.csproj" />
+  </Folder>
   <Folder Name="/Modules/Chat/">
     <Project Path="Modules/Chat/Modules.Chat.Contracts/Modules.Chat.Contracts.csproj" />
     <Project Path="Modules/Chat/Modules.Chat/Modules.Chat.csproj" />
@@ -65,6 +69,7 @@
     <Project Path="Tests/Billing.Tests/Billing.Tests.csproj" />
     <Project Path="Tests/Caching.Tests/Caching.Tests.csproj" />
     <Project Path="Tests/Catalog.Tests/Catalog.Tests.csproj" />
+    <Project Path="Tests/Cases.Tests/Cases.Tests.csproj" />
     <Project Path="Tests/Chat.Tests/Chat.Tests.csproj" />
     <Project Path="Tests/Files.Tests/Files.Tests.csproj" />
     <Project Path="Tests/Framework.Tests/Framework.Tests.csproj" />

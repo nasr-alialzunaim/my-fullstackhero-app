@@ -1,13 +1,14 @@
 # P1.1–P1.2 — Canonical DNA Model and Boundary Proposal
 
-**Status:** Proposed for review  
+**Status:** P1.1–P1.2 approved; P1.3–P1.4 proof in progress
 **Phase:** P1 — Canonical Domain Model / Module Boundaries  
 **Confirmed source:** the earlier GENis-system design conversation  
 **Technical baseline:** `22178fe12d2084b9c8e1fd1cf897383bc67b3b0a`
 
 This document separates restored decisions from new design proposals. A row marked **Confirmed** was
 recoverable from the agreed plan. A row marked **Proposed** is an engineering recommendation and must
-not be represented as an earlier user decision.
+not be represented as an earlier user decision. The user approved this P1.1–P1.2 proposal as the basis
+for limited architecture scaffolding; detailed lifecycle and persistence decisions remain unresolved.
 
 ## 1. Confirmed decisions
 
@@ -189,3 +190,17 @@ This proposal is ready for approval when:
 - external identifiers and correction/version rules are agreed;
 - no `TenantId` or internet runtime dependency is introduced;
 - architecture-test rules can be derived directly from the accepted table.
+
+## 7. Approved P1.4 proof slice
+
+The first proof is deliberately limited to the `Cases` boundary:
+
+- a pure `Modules.Cases.Contracts` assembly;
+- an installation-local immutable `CaseId` with no tenant component;
+- a registered `Modules.Cases` runtime boundary with no persistence or endpoints;
+- identical API and DbMigrator composition-root registration;
+- architecture tests forbidding forensic runtime dependencies and `TenantId` exposure;
+- focused identity unit tests.
+
+This proof does not approve case lifecycle states, storage mappings, migrations, permissions, or API
+contracts. Those remain behind the P1.3 decision gate.
