@@ -6,4 +6,8 @@
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="Mediator.Abstractions" />
+	</ItemGroup>
+
 </Project>
