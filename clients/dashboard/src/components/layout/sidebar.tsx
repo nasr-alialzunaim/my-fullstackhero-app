@@ -25,6 +25,8 @@ const NAVIGATION_KEYS: Record<string, string> = {
   Chat: "navigation.chat",
   "My Files": "navigation.myFiles",
   Settings: "navigation.settings",
+  Forensics: "navigation.forensics",
+  Cases: "navigation.cases",
   Operations: "navigation.operations",
   "Live activity": "navigation.liveActivity",
   Subscription: "navigation.subscription",

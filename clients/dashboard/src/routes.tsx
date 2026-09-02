@@ -42,6 +42,7 @@ const ConfirmEmailPage = lazyNamed(
   "ConfirmEmailPage",
 );
 const OverviewPage = lazyNamed(() => import("@/pages/overview"), "OverviewPage");
+const CasesPage = lazyNamed(() => import("@/pages/cases/cases"), "CasesPage");
 const ActivityPage = lazyNamed(() => import("@/pages/activity"), "ActivityPage");
 const InvoicesPage = lazyNamed(() => import("@/pages/invoices"), "InvoicesPage");
 const InvoiceDetailPage = lazyNamed(
@@ -181,6 +182,7 @@ export const router = createBrowserRouter([
         errorElement: <RouteError />,
         children: [
           { index: true, element: withSuspense(<OverviewPage />) },
+          { path: "cases", element: withSuspense(<CasesPage />) },
           { path: "activity", element: withSuspense(<ActivityPage />) },
           { path: "subscription", element: withSuspense(<SubscriptionPage />) },
           { path: "invoices", element: withSuspense(<InvoicesPage />) },

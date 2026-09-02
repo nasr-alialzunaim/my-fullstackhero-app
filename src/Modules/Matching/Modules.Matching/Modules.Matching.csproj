@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Matching</RootNamespace>
+    <AssemblyName>FSH.Modules.Matching</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+    <ProjectReference Include="..\Modules.Matching.Contracts\Modules.Matching.Contracts.csproj" />
+    <ProjectReference Include="..\..\Genetics\Modules.Genetics.Contracts\Modules.Genetics.Contracts.csproj" />
+    <ProjectReference Include="..\..\ScientificAnalysis\Modules.ScientificAnalysis.Contracts\Modules.ScientificAnalysis.Contracts.csproj" />
+    <ProjectReference Include="..\..\StrKits\Modules.StrKits.Contracts\Modules.StrKits.Contracts.csproj" />
+  </ItemGroup>
+</Project>
