@@ -71,6 +71,7 @@ var moduleAssemblies = new Assembly[]
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
     typeof(FSH.Modules.Cases.CasesModule).Assembly,
+    typeof(FSH.Modules.ScientificAnalysis.ScientificAnalysisModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,
