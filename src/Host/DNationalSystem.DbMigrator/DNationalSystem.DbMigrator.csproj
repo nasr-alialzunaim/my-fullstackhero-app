@@ -48,6 +48,10 @@
     <ProjectReference Include="..\..\Modules\Samples\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics\Modules.Genetics.csproj" />
     <ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics.Contracts\Modules.Genetics.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits\Modules.StrKits.csproj" />
+    <ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits.Contracts\Modules.StrKits.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables\Modules.FrequencyTables.csproj" />
+    <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables.Contracts\Modules.FrequencyTables.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis.Contracts\Modules.ScientificAnalysis.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
