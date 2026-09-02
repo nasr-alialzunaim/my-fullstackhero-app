@@ -95,6 +95,6 @@ public sealed class GenisAnalysisProxy(
     private static string Sha256(string value)
     {
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
-        return Convert.ToHexString(bytes).ToLowerInvariant();
+        return Convert.ToHexString(bytes);
     }
 }

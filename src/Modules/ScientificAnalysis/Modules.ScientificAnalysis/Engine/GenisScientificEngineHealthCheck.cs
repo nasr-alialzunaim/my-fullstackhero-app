@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace FSH.Modules.ScientificAnalysis.Engine;

@@ -18,7 +18,7 @@ public sealed class GenisScientificEngineClient(
     {
         EnsureEnabled();
 
-        using var response = await httpClient.GetAsync("/version", cancellationToken)
+        using var response = await httpClient.GetAsync(new Uri("/version", UriKind.Relative), cancellationToken)
             .ConfigureAwait(false);
         string body = await response.Content.ReadAsStringAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -53,7 +53,7 @@ public sealed class GenisScientificEngineClient(
     {
         EnsureEnabled();
 
-        using var response = await httpClient.GetAsync(path, cancellationToken)
+        using var response = await httpClient.GetAsync(new Uri(path, UriKind.Relative), cancellationToken)
             .ConfigureAwait(false);
         string body = await response.Content.ReadAsStringAsync(cancellationToken)
             .ConfigureAwait(false);
