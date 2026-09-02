@@ -3,6 +3,7 @@ using FSH.Modules.Cases.Contracts.Authorization;
 using FSH.Modules.Cases.Contracts.v1.Cases;
 using Mediator;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace FSH.Modules.Cases.Features.v1.Cases.SearchCases;

@@ -9,6 +9,7 @@ using FSH.Modules.Cases.Features.v1.Cases.GetCaseById;
 using FSH.Modules.Cases.Features.v1.Cases.SearchCases;
 using FSH.Modules.Cases.Features.v1.Cases.UpdateCase;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
