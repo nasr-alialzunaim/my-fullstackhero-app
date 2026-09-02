@@ -15,6 +15,7 @@
 	  <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
 	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
 	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
+	  <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" />
 	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
 	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
 	  <ProjectReference Include="..\..\Modules\Notifications\Modules.Notifications\Modules.Notifications.csproj" />
@@ -25,6 +26,7 @@
 	  <Folder Include="Audit\" />
 	  <Folder Include="Billing\" />
 	  <Folder Include="Catalog\" />
+	  <Folder Include="Cases\" />
 	  <Folder Include="Tickets\" />
 	  <Folder Include="Chat\" />
 	  <Folder Include="Notifications\" />

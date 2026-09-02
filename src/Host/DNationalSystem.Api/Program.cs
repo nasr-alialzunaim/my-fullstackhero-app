@@ -39,8 +39,6 @@ if (builder.Environment.IsProduction())
 builder.Services.AddMediator(o =>
 {
     o.ServiceLifetime = ServiceLifetime.Scoped;
-    // Cases is intentionally omitted until P1 approves its first message/handler pair.
-    // Mediator's source generator rejects assemblies that contain no Mediator types.
     o.Assemblies = [
         typeof(GenerateTokenCommand),
         typeof(GenerateTokenCommandHandler),
@@ -52,6 +50,8 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Billing.BillingModule),
         typeof(FSH.Modules.Catalog.Contracts.CatalogContractsMarker),
         typeof(FSH.Modules.Catalog.CatalogModule),
+        typeof(FSH.Modules.Cases.Contracts.CasesContractsMarker),
+        typeof(FSH.Modules.Cases.CasesModule),
         typeof(FSH.Modules.Tickets.Contracts.TicketsContractsMarker),
         typeof(FSH.Modules.Tickets.TicketsModule),
         typeof(FSH.Modules.Files.Contracts.v1.Commands.RequestUploadUrlCommand),
