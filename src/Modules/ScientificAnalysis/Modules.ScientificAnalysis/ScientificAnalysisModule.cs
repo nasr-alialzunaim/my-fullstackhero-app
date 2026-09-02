@@ -2,6 +2,7 @@ using Asp.Versioning;
 using FSH.Framework.Persistence;
 using FSH.Framework.Shared.Constants;
 using FSH.Framework.Web.Modules;
+using FSH.Modules.ScientificAnalysis.Contracts;
 using FSH.Modules.ScientificAnalysis.Contracts.Authorization;
 using FSH.Modules.ScientificAnalysis.Data;
 using FSH.Modules.ScientificAnalysis.Engine;
@@ -41,6 +42,8 @@ public sealed class ScientificAnalysisModule : IModule
         });
 
         builder.Services.AddScoped<GenisAnalysisProxy>();
+        builder.Services.AddScoped<IScientificEngineGateway>(
+            services => services.GetRequiredService<GenisAnalysisProxy>());
 
         builder.Services.AddHealthChecks().AddDbContextCheck<ScientificAnalysisDbContext>(
             name: "db:scientific-analysis",

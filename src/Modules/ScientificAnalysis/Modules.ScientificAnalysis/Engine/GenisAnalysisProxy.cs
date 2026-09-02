@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using FSH.Framework.Core.Context;
+using FSH.Modules.ScientificAnalysis.Contracts;
 using FSH.Modules.ScientificAnalysis.Data;
 using FSH.Modules.ScientificAnalysis.Domain;
 
@@ -10,7 +11,7 @@ namespace FSH.Modules.ScientificAnalysis.Engine;
 public sealed class GenisAnalysisProxy(
     GenisScientificEngineClient client,
     ScientificAnalysisDbContext dbContext,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser) : IScientificEngineGateway
 {
     public async Task<GenisProxyResult> RunAsync(
         string algorithmId,
@@ -90,6 +91,28 @@ public sealed class GenisAnalysisProxy(
             await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+    }
+
+    public async Task<ScientificEngineCallResult> RunGenisAsync(
+        string algorithmId,
+        string enginePath,
+        string requestJson,
+        CancellationToken cancellationToken)
+    {
+        GenisProxyResult result = await RunAsync(
+            algorithmId,
+            enginePath,
+            requestJson,
+            cancellationToken).ConfigureAwait(false);
+
+        return new ScientificEngineCallResult(
+            result.AnalysisRunId,
+            "genis-scientific-engine",
+            result.EngineVersion,
+            result.UpstreamCommit,
+            result.Response.StatusCode,
+            result.Response.ContentType,
+            result.Response.Body);
     }
 
     private static string Sha256(string value)
