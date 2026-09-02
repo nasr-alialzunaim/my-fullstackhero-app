@@ -52,6 +52,8 @@
     <ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits.Contracts\Modules.StrKits.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables\Modules.FrequencyTables.csproj" />
     <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables.Contracts\Modules.FrequencyTables.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Matching\Modules.Matching\Modules.Matching.csproj" />
+    <ProjectReference Include="..\..\Modules\Matching\Modules.Matching.Contracts\Modules.Matching.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis.Contracts\Modules.ScientificAnalysis.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />

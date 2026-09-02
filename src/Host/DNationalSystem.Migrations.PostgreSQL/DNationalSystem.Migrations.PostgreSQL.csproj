@@ -21,6 +21,7 @@
 	  <ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics\Modules.Genetics.csproj" />
 	  <ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits\Modules.StrKits.csproj" />
 	  <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables\Modules.FrequencyTables.csproj" />
+	  <ProjectReference Include="..\..\Modules\Matching\Modules.Matching\Modules.Matching.csproj" />
 	  <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
 	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
 	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
@@ -38,6 +39,7 @@
 	  <Folder Include="Genetics\" />
 	  <Folder Include="StrKits\" />
 	  <Folder Include="FrequencyTables\" />
+	  <Folder Include="Matching\" />
 	  <Folder Include="ScientificAnalysis\" />
 	  <Folder Include="Tickets\" />
 	  <Folder Include="Chat\" />
