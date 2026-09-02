@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<RootNamespace>DNationalSystem.Api</RootNamespace>
@@ -39,6 +39,8 @@
     <ProjectReference Include="..\..\Modules\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
     <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog.Contracts\Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" />
+    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
     <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets.Contracts\Modules.Tickets.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />

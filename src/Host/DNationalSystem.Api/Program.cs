@@ -1,4 +1,4 @@
-﻿using FSH.Framework.Web;
+using FSH.Framework.Web;
 using FSH.Framework.Web.Modules;
 using FSH.Modules.Auditing;
 using FSH.Modules.Identity;
@@ -39,6 +39,8 @@ if (builder.Environment.IsProduction())
 builder.Services.AddMediator(o =>
 {
     o.ServiceLifetime = ServiceLifetime.Scoped;
+    // Cases is intentionally omitted until P1 approves its first message/handler pair.
+    // Mediator's source generator rejects assemblies that contain no Mediator types.
     o.Assemblies = [
         typeof(GenerateTokenCommand),
         typeof(GenerateTokenCommandHandler),
@@ -68,6 +70,7 @@ var moduleAssemblies = new Assembly[]
     typeof(WebhooksModule).Assembly,
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
+    typeof(FSH.Modules.Cases.CasesModule).Assembly,
     typeof(TicketsModule).Assembly,
     typeof(FSH.Modules.Chat.ChatModule).Assembly,
     typeof(FSH.Modules.Notifications.NotificationsModule).Assembly,

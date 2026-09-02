@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>FSH.Modules.Cases</RootNamespace>
+		<AssemblyName>FSH.Modules.Cases</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+		<ProjectReference Include="..\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
+	</ItemGroup>
+
+</Project>
