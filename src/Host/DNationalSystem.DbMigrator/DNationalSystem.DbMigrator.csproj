@@ -42,6 +42,10 @@
     <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog.Contracts\Modules.Catalog.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" />
     <ProjectReference Include="..\..\Modules\Cases\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence\Modules.Evidence.csproj" />
+    <ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence.Contracts\Modules.Evidence.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Samples\Modules.Samples\Modules.Samples.csproj" />
+    <ProjectReference Include="..\..\Modules\Samples\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
     <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis.Contracts\Modules.ScientificAnalysis.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />

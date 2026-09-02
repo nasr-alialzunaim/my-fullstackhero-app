@@ -16,6 +16,8 @@
 	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
 	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
 	  <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" />
+	  <ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence\Modules.Evidence.csproj" />
+	  <ProjectReference Include="..\..\Modules\Samples\Modules.Samples\Modules.Samples.csproj" />
 	  <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
 	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
 	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
@@ -28,6 +30,8 @@
 	  <Folder Include="Billing\" />
 	  <Folder Include="Catalog\" />
 	  <Folder Include="Cases\" />
+	  <Folder Include="Evidence\" />
+	  <Folder Include="Samples\" />
 	  <Folder Include="ScientificAnalysis\" />
 	  <Folder Include="Tickets\" />
 	  <Folder Include="Chat\" />

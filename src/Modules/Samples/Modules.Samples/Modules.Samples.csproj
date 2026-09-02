@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FSH.Modules.Samples</RootNamespace>
+    <AssemblyName>FSH.Modules.Samples</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
+    <ProjectReference Include="..\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
+    <ProjectReference Include="..\..\Evidence\Modules.Evidence.Contracts\Modules.Evidence.Contracts.csproj" />
+  </ItemGroup>
+</Project>
