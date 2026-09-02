@@ -25,6 +25,8 @@ public sealed class InitialGenetics : Migration
                     type: "character varying(128)",
                     maxLength: 128,
                     nullable: true),
+                StrKitId = table.Column<Guid>(type: "uuid", nullable: true),
+                Contributors = table.Column<int>(type: "integer", nullable: true),
                 VersionNumber = table.Column<int>(type: "integer", nullable: false),
                 SupersedesProfileId = table.Column<Guid>(type: "uuid", nullable: true),
                 AnalysisTypeId = table.Column<int>(type: "integer", nullable: true),
@@ -129,6 +131,12 @@ public sealed class InitialGenetics : Migration
             schema: "genetics",
             table: "GeneticProfiles",
             column: "ExternalProfileCode");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_GeneticProfiles_StrKitId",
+            schema: "genetics",
+            table: "GeneticProfiles",
+            column: "StrKitId");
 
         migrationBuilder.CreateIndex(
             name: "IX_GeneticProfiles_SampleId",

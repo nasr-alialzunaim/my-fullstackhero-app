@@ -15,6 +15,7 @@ public sealed class GeneticProfileConfiguration
         builder.Property(x => x.Id).ValueGeneratedNever();
         builder.Property(x => x.ExternalProfileCode).HasMaxLength(128);
         builder.HasIndex(x => x.SampleId);
+        builder.HasIndex(x => x.StrKitId);
         builder.HasIndex(x => x.SupersedesProfileId);
         builder.HasIndex(x => x.ExternalProfileCode);
         builder.HasIndex(x => new { x.SampleId, x.VersionNumber });

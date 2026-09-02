@@ -4,6 +4,7 @@ using FSH.Modules.Genetics.Contracts.v1.Profiles;
 using FSH.Modules.Genetics.Data;
 using FSH.Modules.Genetics.Domain;
 using FSH.Modules.Samples.Contracts.v1.Samples;
+using FSH.Modules.StrKits.Contracts.v1.Kits;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,13 @@ public sealed class CreateGeneticProfileCommandHandler(
         _ = await mediator.Send(
             new GetBiologicalSampleByIdQuery(command.SampleId),
             cancellationToken).ConfigureAwait(false);
+
+        if (command.StrKitId.HasValue)
+        {
+            _ = await mediator.Send(
+                new GetStrKitByIdQuery(command.StrKitId.Value),
+                cancellationToken).ConfigureAwait(false);
+        }
 
         int versionNumber = 1;
 
@@ -51,6 +59,8 @@ public sealed class CreateGeneticProfileCommandHandler(
         GeneticProfile profile = GeneticProfile.Create(
             command.SampleId,
             command.ExternalProfileCode,
+            command.StrKitId,
+            command.Contributors,
             versionNumber,
             command.SupersedesProfileId,
             command.AnalysisTypeId,

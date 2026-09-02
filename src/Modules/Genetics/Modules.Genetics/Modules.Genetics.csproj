@@ -11,5 +11,6 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
     <ProjectReference Include="..\Modules.Genetics.Contracts\Modules.Genetics.Contracts.csproj" />
     <ProjectReference Include="..\..\Samples\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
+    <ProjectReference Include="..\..\StrKits\Modules.StrKits.Contracts\Modules.StrKits.Contracts.csproj" />
   </ItemGroup>
 </Project>

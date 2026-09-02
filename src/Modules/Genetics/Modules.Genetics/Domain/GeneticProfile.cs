@@ -6,6 +6,8 @@ public sealed class GeneticProfile : AggregateRoot<Guid>
 {
     public Guid SampleId { get; private set; }
     public string? ExternalProfileCode { get; private set; }
+    public Guid? StrKitId { get; private set; }
+    public int? Contributors { get; private set; }
     public int VersionNumber { get; private set; }
     public Guid? SupersedesProfileId { get; private set; }
     public int? AnalysisTypeId { get; private set; }
@@ -19,6 +21,8 @@ public sealed class GeneticProfile : AggregateRoot<Guid>
     public static GeneticProfile Create(
         Guid sampleId,
         string? externalProfileCode,
+        Guid? strKitId,
+        int? contributors,
         int versionNumber,
         Guid? supersedesProfileId,
         int? analysisTypeId,
@@ -41,6 +45,8 @@ public sealed class GeneticProfile : AggregateRoot<Guid>
             Id = Guid.CreateVersion7(),
             SampleId = sampleId,
             ExternalProfileCode = Normalize(externalProfileCode),
+            StrKitId = strKitId,
+            Contributors = contributors,
             VersionNumber = versionNumber,
             SupersedesProfileId = supersedesProfileId,
             AnalysisTypeId = analysisTypeId,

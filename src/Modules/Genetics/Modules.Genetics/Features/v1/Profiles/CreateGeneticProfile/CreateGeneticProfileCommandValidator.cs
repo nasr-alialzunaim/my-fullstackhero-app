@@ -10,6 +10,9 @@ public sealed class CreateGeneticProfileCommandValidator
     {
         RuleFor(x => x.SampleId).NotEmpty();
         RuleFor(x => x.ExternalProfileCode).MaximumLength(128);
+        RuleFor(x => x.Contributors)
+            .InclusiveBetween(1, 6)
+            .When(x => x.Contributors.HasValue);
         RuleFor(x => x.Loci).NotNull().NotEmpty();
         RuleFor(x => x.Loci)
             .Must(HaveUniqueMarkers)

@@ -60,6 +60,8 @@ public sealed class SearchGeneticProfilesQueryHandler(GeneticsDbContext dbContex
                 x.Id,
                 x.SampleId,
                 x.ExternalProfileCode,
+                x.StrKitId,
+                x.Contributors,
                 x.VersionNumber,
                 x.SupersedesProfileId,
                 x.AnalysisTypeId,

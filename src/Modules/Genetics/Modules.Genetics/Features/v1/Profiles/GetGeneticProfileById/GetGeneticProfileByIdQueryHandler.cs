@@ -70,6 +70,8 @@ public sealed class GetGeneticProfileByIdQueryHandler(GeneticsDbContext dbContex
             profile.Id,
             profile.SampleId,
             profile.ExternalProfileCode,
+            profile.StrKitId,
+            profile.Contributors,
             profile.VersionNumber,
             profile.SupersedesProfileId,
             profile.AnalysisTypeId,

@@ -16,6 +16,8 @@ public sealed record ProfileLocusInput(
 public sealed record CreateGeneticProfileCommand(
     Guid SampleId,
     string? ExternalProfileCode,
+    Guid? StrKitId,
+    int? Contributors,
     int? AnalysisTypeId,
     bool IsReference,
     Guid? SupersedesProfileId,

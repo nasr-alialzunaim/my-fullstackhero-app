@@ -25,15 +25,18 @@ partial class GeneticsDbContextModelSnapshot : ModelSnapshot
         {
             b.Property<Guid>("Id").HasColumnType("uuid");
             b.Property<int?>("AnalysisTypeId").HasColumnType("integer");
+            b.Property<int?>("Contributors").HasColumnType("integer");
             b.Property<DateTime>("CreatedAtUtc").HasColumnType("timestamp with time zone");
             b.Property<string>("ExternalProfileCode").HasMaxLength(128).HasColumnType("character varying(128)");
             b.Property<bool>("IsReference").HasColumnType("boolean");
+            b.Property<Guid?>("StrKitId").HasColumnType("uuid");
             b.Property<Guid>("SampleId").HasColumnType("uuid");
             b.Property<Guid?>("SupersedesProfileId").HasColumnType("uuid");
             b.Property<int>("VersionNumber").HasColumnType("integer");
             b.HasKey("Id");
             b.HasIndex("ExternalProfileCode");
             b.HasIndex("SampleId");
+            b.HasIndex("StrKitId");
             b.HasIndex("SupersedesProfileId");
             b.HasIndex("SampleId", "VersionNumber");
             b.ToTable("GeneticProfiles", "genetics");
