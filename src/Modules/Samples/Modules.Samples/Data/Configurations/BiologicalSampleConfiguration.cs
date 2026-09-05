@@ -34,6 +34,7 @@ public sealed class BiologicalSampleConfiguration : IEntityTypeConfiguration<Bio
         builder.HasIndex(x => x.SubjectId);
         builder.HasIndex(x => x.ParentSampleId);
         builder.HasIndex(x => x.Status);
+        builder.HasOne<BiologicalSample>().WithMany().HasForeignKey(x => x.ParentSampleId).OnDelete(DeleteBehavior.Restrict);
         builder.Ignore(x => x.DomainEvents);
     }
 }

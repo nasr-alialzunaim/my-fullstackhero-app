@@ -14,10 +14,16 @@ public sealed class ForensicCaseConfiguration : IEntityTypeConfiguration<Forensi
 
 public sealed class CaseAssignmentConfiguration : IEntityTypeConfiguration<CaseAssignment>
 {
-    public void Configure(EntityTypeBuilder<CaseAssignment> builder) { builder.ToTable("CaseAssignments"); builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.Property(x => x.AssignmentRole).HasMaxLength(64); builder.HasIndex(x => new { x.CaseId, x.UserId }); builder.HasIndex(x => x.UserId); }
+    public void Configure(EntityTypeBuilder<CaseAssignment> builder)
+    {
+        builder.ToTable("CaseAssignments"); builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.Property(x => x.AssignmentRole).HasMaxLength(64); builder.HasIndex(x => new { x.CaseId, x.UserId }); builder.HasIndex(x => x.UserId); builder.HasOne<ForensicCase>().WithMany().HasForeignKey(x => x.CaseId).OnDelete(DeleteBehavior.Cascade);
+    }
 }
 
 public sealed class CaseStatusHistoryConfiguration : IEntityTypeConfiguration<CaseStatusHistory>
 {
-    public void Configure(EntityTypeBuilder<CaseStatusHistory> builder) { builder.ToTable("CaseStatusHistory"); builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.Property(x => x.FromStatus).HasConversion<string>().HasMaxLength(32); builder.Property(x => x.ToStatus).HasConversion<string>().HasMaxLength(32); builder.Property(x => x.Reason).HasColumnType("text"); builder.HasIndex(x => new { x.CaseId, x.ChangedAtUtc }); }
+    public void Configure(EntityTypeBuilder<CaseStatusHistory> builder)
+    {
+        builder.ToTable("CaseStatusHistory"); builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.Property(x => x.FromStatus).HasConversion<string>().HasMaxLength(32); builder.Property(x => x.ToStatus).HasConversion<string>().HasMaxLength(32); builder.Property(x => x.Reason).HasColumnType("text"); builder.HasIndex(x => new { x.CaseId, x.ChangedAtUtc }); builder.HasOne<ForensicCase>().WithMany().HasForeignKey(x => x.CaseId).OnDelete(DeleteBehavior.Cascade);
+    }
 }
