@@ -2,9 +2,20 @@ namespace FSH.Modules.Samples.Contracts.Dtos;
 
 public sealed record BiologicalSampleDto(
     Guid Id,
-    Guid EvidenceItemId,
-    Guid? ParentSampleId,
+    string SampleCode,
     string? ExternalSampleCode,
+    string SampleContext,
+    Guid? CaseId,
+    Guid? SubjectId,
+    Guid? ParentSampleId,
+    string? SampleType,
+    string? Matrix,
+    string? CollectionLocation,
     DateTime? CollectedAtUtc,
     string? CollectionNote,
-    DateTime CreatedAtUtc);
+    string? ContainerCode,
+    string? SealNumber,
+    string Status,
+    Guid CreatedByUserId,
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc);
