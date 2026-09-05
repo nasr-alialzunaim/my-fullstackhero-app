@@ -13,8 +13,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Serialize enums as string names (reads still accept names or integers). [Flags] enums (AuditTag, BodyCapture)
-// opt back to numeric via their own NumericEnumConverter since comma-joined flag strings break bitwise consumers. Frontends mirror this as string unions.
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -52,6 +50,8 @@ builder.Services.AddMediator(o =>
         typeof(FSH.Modules.Catalog.CatalogModule),
         typeof(FSH.Modules.Cases.Contracts.CasesContractsMarker),
         typeof(FSH.Modules.Cases.CasesModule),
+        typeof(FSH.Modules.Subjects.Contracts.SubjectsContractsMarker),
+        typeof(FSH.Modules.Subjects.SubjectsModule),
         typeof(FSH.Modules.Evidence.Contracts.EvidenceContractsMarker),
         typeof(FSH.Modules.Evidence.EvidenceModule),
         typeof(FSH.Modules.Samples.Contracts.SamplesContractsMarker),
@@ -83,6 +83,7 @@ var moduleAssemblies = new Assembly[]
     typeof(BillingModule).Assembly,
     typeof(CatalogModule).Assembly,
     typeof(FSH.Modules.Cases.CasesModule).Assembly,
+    typeof(FSH.Modules.Subjects.SubjectsModule).Assembly,
     typeof(FSH.Modules.Evidence.EvidenceModule).Assembly,
     typeof(FSH.Modules.Samples.SamplesModule).Assembly,
     typeof(FSH.Modules.Genetics.GeneticsModule).Assembly,
@@ -106,9 +107,6 @@ builder.AddHeroPlatform(o =>
 });
 
 builder.AddModules(moduleAssemblies);
-
-// Self-heal deployments carrying retired per-module `{module}-outbox-dispatcher` Hangfire recurring jobs
-// (the outbox is now dispatched by OutboxDispatcherHostedService). No-op once the storage is clean.
 builder.Services.AddHostedService<DNationalSystem.Api.OrphanedOutboxRecurringJobCleanupService>();
 
 var app = builder.Build();
