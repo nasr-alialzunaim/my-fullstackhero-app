@@ -46,16 +46,8 @@ public sealed class MatchingRule : AggregateRoot<Guid>
         ArgumentException.ThrowIfNullOrWhiteSpace(categoryRelated);
         ArgumentException.ThrowIfNullOrWhiteSpace(minimumStringency);
         ArgumentException.ThrowIfNullOrWhiteSpace(matchingAlgorithm);
-
-        if (minLocusMatch < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(minLocusMatch));
-        }
-
-        if (mismatchsAllowed < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(mismatchsAllowed));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(minLocusMatch);
+        ArgumentOutOfRangeException.ThrowIfNegative(mismatchsAllowed);
 
         return new MatchingRule
         {
