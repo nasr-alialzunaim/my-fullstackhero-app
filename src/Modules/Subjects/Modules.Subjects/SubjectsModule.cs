@@ -7,6 +7,7 @@ using FSH.Modules.Subjects.Data;
 using FSH.Modules.Subjects.Features.v1.Subjects;
 using FSH.Modules.Subjects.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -25,7 +26,9 @@ public sealed class SubjectsModule : IModule
         builder.Services.AddHeroDbContext<SubjectsDbContext>();
         builder.Services.AddScoped<IDbInitializer, SubjectsDbInitializer>();
         builder.Services.AddScoped<ISubjectSensitiveDataProtector, SubjectSensitiveDataProtector>();
-        builder.Services.AddHealthChecks().AddDbContextCheck<SubjectsDbContext>(name: "db:subjects", failureStatus: HealthStatus.Unhealthy);
+        builder.Services.AddHealthChecks().AddDbContextCheck<SubjectsDbContext>(
+            name: "db:subjects",
+            failureStatus: HealthStatus.Unhealthy);
     }
 
     public void ConfigureMiddleware(IApplicationBuilder app)
@@ -35,8 +38,17 @@ public sealed class SubjectsModule : IModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        var versionSet = endpoints.NewApiVersionSet().HasApiVersion(new ApiVersion(1)).ReportApiVersions().Build();
-        var group = endpoints.MapGroup("api/v{version:apiVersion}/subjects").WithTags("DNA Subjects").WithApiVersionSet(versionSet).RequireAuthorization();
+
+        var versionSet = endpoints.NewApiVersionSet()
+            .HasApiVersion(new ApiVersion(1))
+            .ReportApiVersions()
+            .Build();
+
+        var group = endpoints.MapGroup("api/v{version:apiVersion}/subjects")
+            .WithTags("DNA Subjects")
+            .WithApiVersionSet(versionSet)
+            .RequireAuthorization();
+
         group.MapSubjectEndpoints();
     }
 }

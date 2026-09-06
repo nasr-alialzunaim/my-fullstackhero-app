@@ -4,6 +4,7 @@ namespace FSH.Modules.Subjects.Domain;
 
 public enum SubjectType
 {
+    None = 0,
     Person = 1,
     MissingPerson = 2,
     UnidentifiedRemains = 3,
@@ -12,6 +13,7 @@ public enum SubjectType
 
 public enum SubjectStatus
 {
+    None = 0,
     Active = 1,
     Inactive = 2,
     Archived = 3,
@@ -32,6 +34,11 @@ public sealed class Subject : AggregateRoot<Guid>
     public static Subject Create(string subjectCode, SubjectType subjectType)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(subjectCode);
+        if (subjectType is SubjectType.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(subjectType), "A subject type must be specified.");
+        }
+
         return new Subject
         {
             Id = Guid.CreateVersion7(),
@@ -44,6 +51,11 @@ public sealed class Subject : AggregateRoot<Guid>
 
     public void SetStatus(SubjectStatus status)
     {
+        if (status is SubjectStatus.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(status), "A subject status must be specified.");
+        }
+
         Status = status;
         UpdatedAtUtc = DateTime.UtcNow;
     }
@@ -87,7 +99,17 @@ public sealed class PersonIdentity
         }
 
         PersonIdentity entity = new() { SubjectId = subjectId };
-        entity.Update(nationalIdProtected, nationalIdHash, firstName, middleName, lastName, dateOfBirth, sex, nationalityCode, identityVerified, verifiedByUserId);
+        entity.Update(
+            nationalIdProtected,
+            nationalIdHash,
+            firstName,
+            middleName,
+            lastName,
+            dateOfBirth,
+            sex,
+            nationalityCode,
+            identityVerified,
+            verifiedByUserId);
         return entity;
     }
 
@@ -134,10 +156,21 @@ public sealed class SubjectAlias
 
     public static SubjectAlias Create(Guid subjectId, string aliasType, string aliasValue)
     {
-        if (subjectId == Guid.Empty) throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
+        if (subjectId == Guid.Empty)
+        {
+            throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(aliasType);
         ArgumentException.ThrowIfNullOrWhiteSpace(aliasValue);
-        return new SubjectAlias { Id = Guid.CreateVersion7(), SubjectId = subjectId, AliasType = aliasType.Trim(), AliasValue = aliasValue.Trim(), CreatedAtUtc = DateTime.UtcNow };
+        return new SubjectAlias
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            AliasType = aliasType.Trim(),
+            AliasValue = aliasValue.Trim(),
+            CreatedAtUtc = DateTime.UtcNow,
+        };
     }
 }
 
@@ -156,13 +189,34 @@ public sealed class SubjectExternalIdentifier
     {
     }
 
-    public static SubjectExternalIdentifier Create(Guid subjectId, string identifierType, string valueProtected, string valueHash, string? issuer, bool isPrimary)
+    public static SubjectExternalIdentifier Create(
+        Guid subjectId,
+        string identifierType,
+        string valueProtected,
+        string valueHash,
+        string? issuer,
+        bool isPrimary)
     {
-        if (subjectId == Guid.Empty) throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
+        if (subjectId == Guid.Empty)
+        {
+            throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(identifierType);
         ArgumentException.ThrowIfNullOrWhiteSpace(valueProtected);
         ArgumentException.ThrowIfNullOrWhiteSpace(valueHash);
-        return new SubjectExternalIdentifier { Id = Guid.CreateVersion7(), SubjectId = subjectId, IdentifierType = identifierType.Trim(), ValueProtected = valueProtected.Trim(), ValueHash = valueHash.Trim(), Issuer = string.IsNullOrWhiteSpace(issuer) ? null : issuer.Trim(), IsPrimary = isPrimary, CreatedAtUtc = DateTime.UtcNow };
+
+        return new SubjectExternalIdentifier
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            IdentifierType = identifierType.Trim(),
+            ValueProtected = valueProtected.Trim(),
+            ValueHash = valueHash.Trim(),
+            Issuer = string.IsNullOrWhiteSpace(issuer) ? null : issuer.Trim(),
+            IsPrimary = isPrimary,
+            CreatedAtUtc = DateTime.UtcNow,
+        };
     }
 }
 
@@ -184,14 +238,51 @@ public sealed class SubjectLegalReference
     {
     }
 
-    public static SubjectLegalReference Create(Guid subjectId, string referenceType, string? referenceNumber, string? authority, DateTime? issuedAtUtc, DateTime? expiresAtUtc, string? description, Guid? fileAssetId, Guid createdByUserId)
+    public static SubjectLegalReference Create(
+        Guid subjectId,
+        string referenceType,
+        string? referenceNumber,
+        string? authority,
+        DateTime? issuedAtUtc,
+        DateTime? expiresAtUtc,
+        string? description,
+        Guid? fileAssetId,
+        Guid createdByUserId)
     {
-        if (subjectId == Guid.Empty) throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
-        if (createdByUserId == Guid.Empty) throw new ArgumentException("Creator identity cannot be empty.", nameof(createdByUserId));
+        if (subjectId == Guid.Empty)
+        {
+            throw new ArgumentException("Subject identity cannot be empty.", nameof(subjectId));
+        }
+
+        if (createdByUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Creator identity cannot be empty.", nameof(createdByUserId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(referenceType);
-        if (expiresAtUtc.HasValue && issuedAtUtc.HasValue && expiresAtUtc < issuedAtUtc) throw new ArgumentException("Legal reference expiry cannot precede issue date.", nameof(expiresAtUtc));
-        return new SubjectLegalReference { Id = Guid.CreateVersion7(), SubjectId = subjectId, ReferenceType = referenceType.Trim(), ReferenceNumber = Normalize(referenceNumber), Authority = Normalize(authority), IssuedAtUtc = issuedAtUtc, ExpiresAtUtc = expiresAtUtc, Description = Normalize(description), FileAssetId = fileAssetId, CreatedByUserId = createdByUserId, CreatedAtUtc = DateTime.UtcNow };
+        if (expiresAtUtc.HasValue && issuedAtUtc.HasValue && expiresAtUtc < issuedAtUtc)
+        {
+            throw new ArgumentException(
+                "Legal reference expiry cannot precede issue date.",
+                nameof(expiresAtUtc));
+        }
+
+        return new SubjectLegalReference
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            ReferenceType = referenceType.Trim(),
+            ReferenceNumber = Normalize(referenceNumber),
+            Authority = Normalize(authority),
+            IssuedAtUtc = issuedAtUtc,
+            ExpiresAtUtc = expiresAtUtc,
+            Description = Normalize(description),
+            FileAssetId = fileAssetId,
+            CreatedByUserId = createdByUserId,
+            CreatedAtUtc = DateTime.UtcNow,
+        };
     }
 
-    private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

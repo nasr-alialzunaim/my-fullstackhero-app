@@ -2,8 +2,8 @@ namespace FSH.Modules.Matching.Features.v1.Matching;
 
 internal static class GenisMatchingRuleEvaluator
 {
-    private static readonly IReadOnlyDictionary<string, int> StringencyOrder =
-        new Dictionary<string, int>(StringComparer.Ordinal)
+    private static readonly Dictionary<string, int> StringencyOrder =
+        new(StringComparer.Ordinal)
         {
             ["ImpossibleMatch"] = 0,
             ["HighStringency"] = 1,
@@ -19,6 +19,9 @@ internal static class GenisMatchingRuleEvaluator
         int mismatchsAllowed,
         int minLocusMatch)
     {
+        ArgumentNullException.ThrowIfNull(detailed);
+        ArgumentException.ThrowIfNullOrWhiteSpace(minimumStringency);
+
         int minimum = Rank(minimumStringency);
         int ruleMismatches = 0;
         int qualifiedLoci = 0;
@@ -33,8 +36,6 @@ internal static class GenisMatchingRuleEvaluator
                 continue;
             }
 
-            // Mirrors GENis applyMinLocusMatch: values strictly between
-            // ImpossibleMatch and Mismatch count as qualifying loci.
             if (rank > Rank("ImpossibleMatch") && rank < Rank("Mismatch"))
             {
                 qualifiedLoci++;

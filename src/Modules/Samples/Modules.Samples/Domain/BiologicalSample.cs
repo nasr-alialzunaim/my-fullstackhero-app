@@ -4,6 +4,7 @@ namespace FSH.Modules.Samples.Domain;
 
 public enum SampleContext
 {
+    None = 0,
     CaseSample = 1,
     KnownReference = 2,
     Unknown = 3,
@@ -11,6 +12,7 @@ public enum SampleContext
 
 public enum SampleStatus
 {
+    None = 0,
     Registered = 1,
     InProcessing = 2,
     Stored = 3,
@@ -145,6 +147,11 @@ public sealed class BiologicalSample : AggregateRoot<Guid>
 
     public void SetStatus(SampleStatus status)
     {
+        if (status is SampleStatus.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(status), "A sample status must be specified.");
+        }
+
         Status = status;
         UpdatedAtUtc = DateTime.UtcNow;
     }
@@ -166,6 +173,11 @@ public sealed class BiologicalSample : AggregateRoot<Guid>
         Guid createdByUserId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sampleCode);
+        if (sampleContext is SampleContext.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sampleContext), "A sample context must be specified.");
+        }
+
         if (createdByUserId == Guid.Empty)
         {
             throw new ArgumentException("Creator identity cannot be empty.", nameof(createdByUserId));

@@ -2,6 +2,7 @@ namespace FSH.Modules.Samples.Domain;
 
 public enum SampleCustodyEventType
 {
+    None = 0,
     Registered = 1,
     Received = 2,
     Transferred = 3,
@@ -51,21 +52,44 @@ public sealed class SampleCustodyEvent
         string? previousEventHash,
         string eventHash)
     {
-        if (sampleId == Guid.Empty) throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
-        if (performedByUserId == Guid.Empty) throw new ArgumentException("Performer identity cannot be empty.", nameof(performedByUserId));
+        if (sampleId == Guid.Empty)
+        {
+            throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
+        }
+
+        if (eventType is SampleCustodyEventType.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(eventType), "A custody event type must be specified.");
+        }
+
+        if (performedByUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Performer identity cannot be empty.", nameof(performedByUserId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(eventHash);
         return new SampleCustodyEvent
         {
-            Id = Guid.CreateVersion7(), SampleId = sampleId, EventType = eventType,
-            FromCustodianUserId = fromCustodianUserId, ToCustodianUserId = toCustodianUserId,
-            FromLocation = Normalize(fromLocation), ToLocation = Normalize(toLocation),
-            ContainerCode = Normalize(containerCode), SealNumber = Normalize(sealNumber),
-            Reason = Normalize(reason), Notes = Normalize(notes), PerformedByUserId = performedByUserId,
-            OccurredAtUtc = occurredAtUtc, PreviousEventHash = Normalize(previousEventHash), EventHash = eventHash.Trim(),
+            Id = Guid.CreateVersion7(),
+            SampleId = sampleId,
+            EventType = eventType,
+            FromCustodianUserId = fromCustodianUserId,
+            ToCustodianUserId = toCustodianUserId,
+            FromLocation = Normalize(fromLocation),
+            ToLocation = Normalize(toLocation),
+            ContainerCode = Normalize(containerCode),
+            SealNumber = Normalize(sealNumber),
+            Reason = Normalize(reason),
+            Notes = Normalize(notes),
+            PerformedByUserId = performedByUserId,
+            OccurredAtUtc = occurredAtUtc,
+            PreviousEventHash = Normalize(previousEventHash),
+            EventHash = eventHash.Trim(),
         };
     }
 
-    private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
 
 public sealed class SampleProcessingEvent
@@ -87,24 +111,53 @@ public sealed class SampleProcessingEvent
     }
 
     public static SampleProcessingEvent Create(
-        Guid sampleId, string eventType, string? method, Guid? kitId, string? batchCode,
-        Guid performedByUserId, DateTime? startedAtUtc, DateTime? completedAtUtc,
-        string? resultSummary, string? resultJson)
+        Guid sampleId,
+        string eventType,
+        string? method,
+        Guid? kitId,
+        string? batchCode,
+        Guid performedByUserId,
+        DateTime? startedAtUtc,
+        DateTime? completedAtUtc,
+        string? resultSummary,
+        string? resultJson)
     {
-        if (sampleId == Guid.Empty) throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
-        if (performedByUserId == Guid.Empty) throw new ArgumentException("Performer identity cannot be empty.", nameof(performedByUserId));
+        if (sampleId == Guid.Empty)
+        {
+            throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
+        }
+
+        if (performedByUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Performer identity cannot be empty.", nameof(performedByUserId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
         if (completedAtUtc.HasValue && startedAtUtc.HasValue && completedAtUtc < startedAtUtc)
-            throw new ArgumentException("Processing completion cannot precede its start.", nameof(completedAtUtc));
+        {
+            throw new ArgumentException(
+                "Processing completion cannot precede its start.",
+                nameof(completedAtUtc));
+        }
+
         return new SampleProcessingEvent
         {
-            Id = Guid.CreateVersion7(), SampleId = sampleId, EventType = eventType.Trim(), Method = Normalize(method),
-            KitId = kitId, BatchCode = Normalize(batchCode), PerformedByUserId = performedByUserId,
-            StartedAtUtc = startedAtUtc, CompletedAtUtc = completedAtUtc, ResultSummary = Normalize(resultSummary), ResultJson = Normalize(resultJson),
+            Id = Guid.CreateVersion7(),
+            SampleId = sampleId,
+            EventType = eventType.Trim(),
+            Method = Normalize(method),
+            KitId = kitId,
+            BatchCode = Normalize(batchCode),
+            PerformedByUserId = performedByUserId,
+            StartedAtUtc = startedAtUtc,
+            CompletedAtUtc = completedAtUtc,
+            ResultSummary = Normalize(resultSummary),
+            ResultJson = Normalize(resultJson),
         };
     }
 
-    private static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
 
 public sealed class SampleAttachment
@@ -121,12 +174,38 @@ public sealed class SampleAttachment
     {
     }
 
-    public static SampleAttachment Create(Guid sampleId, Guid fileAssetId, string attachmentType, string? description, Guid createdByUserId)
+    public static SampleAttachment Create(
+        Guid sampleId,
+        Guid fileAssetId,
+        string attachmentType,
+        string? description,
+        Guid createdByUserId)
     {
-        if (sampleId == Guid.Empty) throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
-        if (fileAssetId == Guid.Empty) throw new ArgumentException("File asset identity cannot be empty.", nameof(fileAssetId));
-        if (createdByUserId == Guid.Empty) throw new ArgumentException("Creator identity cannot be empty.", nameof(createdByUserId));
+        if (sampleId == Guid.Empty)
+        {
+            throw new ArgumentException("Sample identity cannot be empty.", nameof(sampleId));
+        }
+
+        if (fileAssetId == Guid.Empty)
+        {
+            throw new ArgumentException("File asset identity cannot be empty.", nameof(fileAssetId));
+        }
+
+        if (createdByUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Creator identity cannot be empty.", nameof(createdByUserId));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(attachmentType);
-        return new SampleAttachment { Id = Guid.CreateVersion7(), SampleId = sampleId, FileAssetId = fileAssetId, AttachmentType = attachmentType.Trim(), Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(), CreatedByUserId = createdByUserId, CreatedAtUtc = DateTime.UtcNow };
+        return new SampleAttachment
+        {
+            Id = Guid.CreateVersion7(),
+            SampleId = sampleId,
+            FileAssetId = fileAssetId,
+            AttachmentType = attachmentType.Trim(),
+            Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+            CreatedByUserId = createdByUserId,
+            CreatedAtUtc = DateTime.UtcNow,
+        };
     }
 }

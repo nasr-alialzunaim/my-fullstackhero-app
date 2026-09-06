@@ -8,6 +8,7 @@ public sealed class FrequencyTableConfiguration : IEntityTypeConfiguration<Frequ
 {
     public void Configure(EntityTypeBuilder<FrequencyTable> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("FrequencyTables");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -24,6 +25,7 @@ public sealed class FrequencyEntryConfiguration : IEntityTypeConfiguration<Frequ
 {
     public void Configure(EntityTypeBuilder<FrequencyEntry> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("FrequencyEntries");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -31,6 +33,9 @@ public sealed class FrequencyEntryConfiguration : IEntityTypeConfiguration<Frequ
         builder.Property(x => x.Allele).IsRequired().HasMaxLength(64);
         builder.HasIndex(x => new { x.FrequencyTableId, x.Marker, x.Allele }).IsUnique();
         builder.HasIndex(x => new { x.FrequencyTableId, x.Marker });
-        builder.HasOne<FrequencyTable>().WithMany().HasForeignKey(x => x.FrequencyTableId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<FrequencyTable>()
+            .WithMany()
+            .HasForeignKey(x => x.FrequencyTableId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

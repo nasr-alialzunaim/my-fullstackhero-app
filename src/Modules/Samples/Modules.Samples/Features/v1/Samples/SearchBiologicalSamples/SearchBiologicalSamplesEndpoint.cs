@@ -13,18 +13,26 @@ public static class SearchBiologicalSamplesEndpoint
     internal static RouteHandlerBuilder MapSearchBiologicalSamplesEndpoint(
         this IEndpointRouteBuilder endpoints)
     {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
         return endpoints.MapGet("",
                 (
-                    Guid? evidenceItemId,
                     string? search,
+                    string? sampleContext,
+                    Guid? caseId,
+                    Guid? subjectId,
+                    string? status,
                     int pageNumber,
                     int pageSize,
                     IMediator mediator,
                     CancellationToken ct) =>
                     mediator.Send(
                         new SearchBiologicalSamplesQuery(
-                            evidenceItemId,
                             search,
+                            sampleContext,
+                            caseId,
+                            subjectId,
+                            status,
                             pageNumber == 0 ? 1 : pageNumber,
                             pageSize == 0 ? 20 : pageSize),
                         ct))

@@ -8,6 +8,7 @@ public sealed class StrKitConfiguration : IEntityTypeConfiguration<StrKit>
 {
     public void Configure(EntityTypeBuilder<StrKit> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("StrKits");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -23,12 +24,16 @@ public sealed class StrKitAliasConfiguration : IEntityTypeConfiguration<StrKitAl
 {
     public void Configure(EntityTypeBuilder<StrKitAlias> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("StrKitAliases");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
         builder.Property(x => x.Alias).IsRequired().HasMaxLength(128);
         builder.HasIndex(x => new { x.StrKitId, x.Alias }).IsUnique();
-        builder.HasOne<StrKit>().WithMany().HasForeignKey(x => x.StrKitId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<StrKit>()
+            .WithMany()
+            .HasForeignKey(x => x.StrKitId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -36,6 +41,7 @@ public sealed class StrKitLocusConfiguration : IEntityTypeConfiguration<StrKitLo
 {
     public void Configure(EntityTypeBuilder<StrKitLocus> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("StrKitLoci");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -44,6 +50,9 @@ public sealed class StrKitLocusConfiguration : IEntityTypeConfiguration<StrKitLo
         builder.Property(x => x.Fluorophore).HasMaxLength(64);
         builder.HasIndex(x => new { x.StrKitId, x.Marker }).IsUnique();
         builder.HasIndex(x => new { x.StrKitId, x.Order }).IsUnique();
-        builder.HasOne<StrKit>().WithMany().HasForeignKey(x => x.StrKitId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<StrKit>()
+            .WithMany()
+            .HasForeignKey(x => x.StrKitId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

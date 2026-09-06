@@ -21,7 +21,9 @@ public sealed class MatchingRule : AggregateRoot<Guid>
     public bool Mitochondrial { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
 
-    private MatchingRule() { }
+    private MatchingRule()
+    {
+    }
 
     public static MatchingRule Create(
         Guid sourceCategoryId,
@@ -36,12 +38,31 @@ public sealed class MatchingRule : AggregateRoot<Guid>
         bool considerForN,
         bool mitochondrial)
     {
+        if (sourceCategoryId == Guid.Empty)
+        {
+            throw new ArgumentException("Source category identity cannot be empty.", nameof(sourceCategoryId));
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(categoryRelated);
+        ArgumentException.ThrowIfNullOrWhiteSpace(minimumStringency);
+        ArgumentException.ThrowIfNullOrWhiteSpace(matchingAlgorithm);
+
+        if (minLocusMatch < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(minLocusMatch));
+        }
+
+        if (mismatchsAllowed < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(mismatchsAllowed));
+        }
+
         return new MatchingRule
         {
             Id = Guid.CreateVersion7(),
             SourceCategoryId = sourceCategoryId,
             Type = type,
-            CategoryRelated = categoryRelated.Trim(),
+            CategoryRelated = categoryRelated.Trim().ToUpperInvariant(),
             MinimumStringency = minimumStringency.Trim(),
             FailOnMatch = failOnMatch,
             ForwardToUpper = forwardToUpper,

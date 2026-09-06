@@ -14,8 +14,11 @@ public sealed class GetGenisFrequencyTableQueryHandler(FrequencyTablesDbContext 
         GetGenisFrequencyTableQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         bool exists = await dbContext.FrequencyTables.AsNoTracking()
-            .AnyAsync(x => x.Id == query.TableId, cancellationToken).ConfigureAwait(false);
+            .AnyAsync(x => x.Id == query.TableId, cancellationToken)
+            .ConfigureAwait(false);
         if (!exists)
         {
             throw new NotFoundException($"Frequency table {query.TableId} not found.");
@@ -23,13 +26,17 @@ public sealed class GetGenisFrequencyTableQueryHandler(FrequencyTablesDbContext 
 
         List<FrequencyEntry> entries = await dbContext.FrequencyEntries.AsNoTracking()
             .Where(x => x.FrequencyTableId == query.TableId)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         return entries
             .GroupBy(x => x.Marker, StringComparer.Ordinal)
             .ToDictionary(
                 group => group.Key,
-                group => group.ToDictionary(x => x.Allele, x => x.Frequency, StringComparer.Ordinal),
+                group => group.ToDictionary(
+                    x => x.Allele,
+                    x => x.Frequency,
+                    StringComparer.Ordinal),
                 StringComparer.Ordinal);
     }
 }

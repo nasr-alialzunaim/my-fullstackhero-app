@@ -10,8 +10,12 @@ namespace FSH.Modules.FrequencyTables.Features.v1.Tables.ToggleFrequencyTableAct
 public sealed class ToggleFrequencyTableActiveCommandHandler(FrequencyTablesDbContext dbContext)
     : ICommandHandler<ToggleFrequencyTableActiveCommand, Guid>
 {
-    public async ValueTask<Guid> Handle(ToggleFrequencyTableActiveCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Guid> Handle(
+        ToggleFrequencyTableActiveCommand command,
+        CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(command);
+
         FrequencyTable table = await dbContext.FrequencyTables
             .FirstOrDefaultAsync(x => x.Id == command.TableId, cancellationToken)
             .ConfigureAwait(false)

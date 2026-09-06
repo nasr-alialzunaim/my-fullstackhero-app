@@ -15,6 +15,8 @@ public sealed class SearchStrKitsQueryHandler(StrKitsDbContext dbContext)
         SearchStrKitsQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         int page = query.PageNumber < 1 ? 1 : query.PageNumber;
         int size = query.PageSize is < 1 or > 200 ? 20 : query.PageSize;
         IQueryable<StrKit> kits = dbContext.StrKits.AsNoTracking();
@@ -42,8 +44,13 @@ public sealed class SearchStrKitsQueryHandler(StrKitsDbContext dbContext)
         return new PagedResponse<StrKitSummaryDto>
         {
             Items = rows.Select(x => new StrKitSummaryDto(
-                x.Id, x.KitCode, x.Name, x.AnalysisTypeId, x.VersionNumber,
-                counts.GetValueOrDefault(x.Id), x.CreatedAtUtc)).ToList(),
+                x.Id,
+                x.KitCode,
+                x.Name,
+                x.AnalysisTypeId,
+                x.VersionNumber,
+                counts.GetValueOrDefault(x.Id),
+                x.CreatedAtUtc)).ToList(),
             PageNumber = page,
             PageSize = size,
             TotalCount = total,
