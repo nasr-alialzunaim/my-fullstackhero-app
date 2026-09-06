@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Web\Web.csproj" />
     <ProjectReference Include="..\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
-    <ProjectReference Include="..\..\Evidence\Modules.Evidence.Contracts\Modules.Evidence.Contracts.csproj" />
+    <ProjectReference Include="..\..\Cases\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
+    <ProjectReference Include="..\..\Subjects\Modules.Subjects.Contracts\Modules.Subjects.Contracts.csproj" />
   </ItemGroup>
 </Project>

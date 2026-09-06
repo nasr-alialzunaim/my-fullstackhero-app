@@ -11,8 +11,12 @@ namespace FSH.Modules.FrequencyTables.Features.v1.Tables.GetFrequencyTableById;
 public sealed class GetFrequencyTableByIdQueryHandler(FrequencyTablesDbContext dbContext)
     : IQueryHandler<GetFrequencyTableByIdQuery, FrequencyTableDto>
 {
-    public async ValueTask<FrequencyTableDto> Handle(GetFrequencyTableByIdQuery query, CancellationToken cancellationToken)
+    public async ValueTask<FrequencyTableDto> Handle(
+        GetFrequencyTableByIdQuery query,
+        CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         FrequencyTable table = await dbContext.FrequencyTables.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == query.TableId, cancellationToken)
             .ConfigureAwait(false)
@@ -20,12 +24,22 @@ public sealed class GetFrequencyTableByIdQueryHandler(FrequencyTablesDbContext d
 
         List<FrequencyEntryDto> entries = await dbContext.FrequencyEntries.AsNoTracking()
             .Where(x => x.FrequencyTableId == table.Id)
-            .OrderBy(x => x.Marker).ThenBy(x => x.Allele)
+            .OrderBy(x => x.Marker)
+            .ThenBy(x => x.Allele)
             .Select(x => new FrequencyEntryDto(x.Id, x.Marker, x.Allele, x.Frequency))
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         return new FrequencyTableDto(
-            table.Id, table.Name, table.Model, table.Theta, table.VersionNumber,
-            table.SupersedesTableId, table.IsActive, table.IsDefault, entries, table.CreatedAtUtc);
+            table.Id,
+            table.Name,
+            table.Model,
+            table.Theta,
+            table.VersionNumber,
+            table.SupersedesTableId,
+            table.IsActive,
+            table.IsDefault,
+            entries,
+            table.CreatedAtUtc);
     }
 }

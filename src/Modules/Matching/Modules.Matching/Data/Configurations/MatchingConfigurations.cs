@@ -8,6 +8,7 @@ public sealed class ProfileCategoryConfiguration : IEntityTypeConfiguration<Prof
 {
     public void Configure(EntityTypeBuilder<ProfileCategory> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("ProfileCategories");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -22,6 +23,7 @@ public sealed class MatchingRuleConfiguration : IEntityTypeConfiguration<Matchin
 {
     public void Configure(EntityTypeBuilder<MatchingRule> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("MatchingRules");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -38,6 +40,7 @@ public sealed class ProfileMatchingConfigurationConfiguration
 {
     public void Configure(EntityTypeBuilder<ProfileMatchingConfiguration> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("ProfileConfigurations");
         builder.HasKey(x => x.GeneticProfileId);
         builder.Property(x => x.GeneticProfileId).ValueGeneratedNever();
@@ -50,6 +53,7 @@ public sealed class AutosomalMatchSearchConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<AutosomalMatchSearch> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("AutosomalMatchSearches");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -63,6 +67,7 @@ public sealed class AutosomalMatchResultConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<AutosomalMatchResult> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("AutosomalMatchResults");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -77,6 +82,7 @@ public sealed class MatchHitConfiguration : IEntityTypeConfiguration<MatchHit>
 {
     public void Configure(EntityTypeBuilder<MatchHit> builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         builder.ToTable("MatchHits");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();

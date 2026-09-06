@@ -11,8 +11,12 @@ namespace FSH.Modules.StrKits.Features.v1.Kits.GetStrKitById;
 public sealed class GetStrKitByIdQueryHandler(StrKitsDbContext dbContext)
     : IQueryHandler<GetStrKitByIdQuery, StrKitDto>
 {
-    public async ValueTask<StrKitDto> Handle(GetStrKitByIdQuery query, CancellationToken cancellationToken)
+    public async ValueTask<StrKitDto> Handle(
+        GetStrKitByIdQuery query,
+        CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         StrKit kit = await dbContext.StrKits.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == query.KitId, cancellationToken)
             .ConfigureAwait(false)
@@ -29,13 +33,29 @@ public sealed class GetStrKitByIdQueryHandler(StrKitsDbContext dbContext)
             .Where(x => x.StrKitId == kit.Id)
             .OrderBy(x => x.Order)
             .Select(x => new StrKitLocusDto(
-                x.Id, x.Marker, x.Chromosome, x.MinimumAllelesQty, x.MaximumAllelesQty,
-                x.Fluorophore, x.Order, x.Required, x.AlleleRangeMin, x.AlleleRangeMax))
+                x.Id,
+                x.Marker,
+                x.Chromosome,
+                x.MinimumAllelesQty,
+                x.MaximumAllelesQty,
+                x.Fluorophore,
+                x.Order,
+                x.Required,
+                x.AlleleRangeMin,
+                x.AlleleRangeMax))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return new StrKitDto(
-            kit.Id, kit.KitCode, kit.Name, kit.AnalysisTypeId, kit.RepresentativeParameter,
-            kit.VersionNumber, kit.SupersedesKitId, aliases, loci, kit.CreatedAtUtc);
+            kit.Id,
+            kit.KitCode,
+            kit.Name,
+            kit.AnalysisTypeId,
+            kit.RepresentativeParameter,
+            kit.VersionNumber,
+            kit.SupersedesKitId,
+            aliases,
+            loci,
+            kit.CreatedAtUtc);
     }
 }

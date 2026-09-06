@@ -14,6 +14,9 @@ public sealed class SamplesDbContext : BaseDbContext
     }
 
     public DbSet<BiologicalSample> BiologicalSamples => Set<BiologicalSample>();
+    public DbSet<SampleCustodyEvent> SampleCustodyEvents => Set<SampleCustodyEvent>();
+    public DbSet<SampleProcessingEvent> SampleProcessingEvents => Set<SampleProcessingEvent>();
+    public DbSet<SampleAttachment> SampleAttachments => Set<SampleAttachment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

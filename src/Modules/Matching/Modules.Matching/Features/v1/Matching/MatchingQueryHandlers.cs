@@ -15,11 +15,20 @@ public sealed class ListProfileCategoriesQueryHandler(MatchingDbContext dbContex
         ListProfileCategoriesQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         return await dbContext.ProfileCategories.AsNoTracking()
             .OrderBy(x => x.Code)
             .Select(x => new ProfileCategoryDto(
-                x.Id, x.Code, x.Name, x.AnalysisTypeId, x.IsReference, x.Mitochondrial, x.CreatedAtUtc))
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+                x.Id,
+                x.Code,
+                x.Name,
+                x.AnalysisTypeId,
+                x.IsReference,
+                x.Mitochondrial,
+                x.CreatedAtUtc))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 }
 
@@ -30,6 +39,8 @@ public sealed class ListMatchingRulesQueryHandler(MatchingDbContext dbContext)
         ListMatchingRulesQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         IQueryable<MatchingRule> rules = dbContext.MatchingRules.AsNoTracking();
         if (query.SourceCategoryId.HasValue)
         {
@@ -39,10 +50,21 @@ public sealed class ListMatchingRulesQueryHandler(MatchingDbContext dbContext)
         return await rules.OrderBy(x => x.SourceCategoryId)
             .ThenBy(x => x.CategoryRelated)
             .Select(x => new MatchingRuleDto(
-                x.Id, x.SourceCategoryId, x.Type, x.CategoryRelated, x.MinimumStringency,
-                x.FailOnMatch, x.ForwardToUpper, x.MatchingAlgorithm, x.MinLocusMatch,
-                x.MismatchsAllowed, x.ConsiderForN, x.Mitochondrial, x.CreatedAtUtc))
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+                x.Id,
+                x.SourceCategoryId,
+                x.Type,
+                x.CategoryRelated,
+                x.MinimumStringency,
+                x.FailOnMatch,
+                x.ForwardToUpper,
+                x.MatchingAlgorithm,
+                x.MinLocusMatch,
+                x.MismatchsAllowed,
+                x.ConsiderForN,
+                x.Mitochondrial,
+                x.CreatedAtUtc))
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 }
 
@@ -53,15 +75,22 @@ public sealed class GetProfileMatchingConfigurationQueryHandler(MatchingDbContex
         GetProfileMatchingConfigurationQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         ProfileMatchingConfiguration? config = await dbContext.ProfileConfigurations.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.GeneticProfileId == query.GeneticProfileId, cancellationToken)
+            .FirstOrDefaultAsync(
+                x => x.GeneticProfileId == query.GeneticProfileId,
+                cancellationToken)
             .ConfigureAwait(false);
 
         return config is null
             ? null
             : new ProfileMatchingConfigurationDto(
-                config.GeneticProfileId, config.CategoryId, config.Matchable,
-                config.VictimProfileId, config.UpdatedAtUtc);
+                config.GeneticProfileId,
+                config.CategoryId,
+                config.Matchable,
+                config.VictimProfileId,
+                config.UpdatedAtUtc);
     }
 }
 
@@ -72,6 +101,8 @@ public sealed class GetAutosomalMatchSearchQueryHandler(MatchingDbContext dbCont
         GetAutosomalMatchSearchQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         AutosomalMatchSearch search = await dbContext.AutosomalMatchSearches.AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == query.SearchId, cancellationToken)
             .ConfigureAwait(false)
@@ -80,12 +111,14 @@ public sealed class GetAutosomalMatchSearchQueryHandler(MatchingDbContext dbCont
         List<AutosomalMatchResult> results = await dbContext.AutosomalMatchResults.AsNoTracking()
             .Where(x => x.MatchSearchId == search.Id)
             .OrderBy(x => x.Rank)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         List<MatchHit> hits = await dbContext.MatchHits.AsNoTracking()
             .Where(x => x.MatchSearchId == search.Id)
             .OrderBy(x => x.CreatedAtUtc)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         return MatchingMapper.ToSearchDto(search, results, hits);
     }
@@ -98,6 +131,10 @@ internal static class MatchingMapper
         IReadOnlyList<AutosomalMatchResult> results,
         IReadOnlyList<MatchHit> hits)
     {
+        ArgumentNullException.ThrowIfNull(search);
+        ArgumentNullException.ThrowIfNull(results);
+        ArgumentNullException.ThrowIfNull(hits);
+
         return new AutosomalMatchSearchDto(
             search.Id,
             search.QueryProfileId,
@@ -108,12 +145,29 @@ internal static class MatchingMapper
             search.Mixture,
             search.CreatedAtUtc,
             results.Select(x => new AutosomalMatchResultDto(
-                x.Id, x.MatchSearchId, x.CandidateProfileId, x.Rank, x.RawOverall,
-                x.RawMismatches, x.SharedMarkers, x.LeftPonderation, x.RightPonderation,
-                x.RuleMismatches, x.RuleQualifiedLoci, x.RuleQualified, x.DetailedJson)).ToList(),
+                x.Id,
+                x.MatchSearchId,
+                x.CandidateProfileId,
+                x.Rank,
+                x.RawOverall,
+                x.RawMismatches,
+                x.SharedMarkers,
+                x.LeftPonderation,
+                x.RightPonderation,
+                x.RuleMismatches,
+                x.RuleQualifiedLoci,
+                x.RuleQualified,
+                x.DetailedJson)).ToList(),
             hits.Select(x => new MatchHitDto(
-                x.Id, x.MatchSearchId, x.MatchResultId, x.QueryProfileId,
-                x.CandidateProfileId, x.Status, x.ReviewNote, x.ReviewedByUserId,
-                x.CreatedAtUtc, x.ReviewedAtUtc)).ToList());
+                x.Id,
+                x.MatchSearchId,
+                x.MatchResultId,
+                x.QueryProfileId,
+                x.CandidateProfileId,
+                x.Status,
+                x.ReviewNote,
+                x.ReviewedByUserId,
+                x.CreatedAtUtc,
+                x.ReviewedAtUtc)).ToList());
     }
 }

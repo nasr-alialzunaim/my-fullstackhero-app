@@ -19,12 +19,15 @@ namespace FSH.Modules.Matching.Features.v1.Matching;
 public sealed class CreateProfileCategoryCommandHandler(MatchingDbContext dbContext)
     : ICommandHandler<CreateProfileCategoryCommand, Guid>
 {
-    public async ValueTask<Guid> Handle(CreateProfileCategoryCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Guid> Handle(
+        CreateProfileCategoryCommand command,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
-        string code = command.Code.Trim();
+        string code = command.Code.Trim().ToUpperInvariant();
         if (await dbContext.ProfileCategories.AnyAsync(
-            x => x.Code.ToUpper() == code.ToUpper(), cancellationToken).ConfigureAwait(false))
+            x => x.Code == code,
+            cancellationToken).ConfigureAwait(false))
         {
             throw new CustomException(
                 $"Profile category '{code}' already exists.",
@@ -33,7 +36,11 @@ public sealed class CreateProfileCategoryCommandHandler(MatchingDbContext dbCont
         }
 
         ProfileCategory category = ProfileCategory.Create(
-            command.Code, command.Name, command.AnalysisTypeId, command.IsReference, command.Mitochondrial);
+            code,
+            command.Name,
+            command.AnalysisTypeId,
+            command.IsReference,
+            command.Mitochondrial);
         dbContext.ProfileCategories.Add(category);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return category.Id;
@@ -43,7 +50,9 @@ public sealed class CreateProfileCategoryCommandHandler(MatchingDbContext dbCont
 public sealed class CreateMatchingRuleCommandHandler(MatchingDbContext dbContext)
     : ICommandHandler<CreateMatchingRuleCommand, Guid>
 {
-    public async ValueTask<Guid> Handle(CreateMatchingRuleCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Guid> Handle(
+        CreateMatchingRuleCommand command,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(command);
 
@@ -52,19 +61,20 @@ public sealed class CreateMatchingRuleCommandHandler(MatchingDbContext dbContext
             .ConfigureAwait(false)
             ?? throw new NotFoundException($"Source category {command.SourceCategoryId} not found.");
 
+        string relatedCode = command.CategoryRelated.Trim().ToUpperInvariant();
         bool relatedExists = await dbContext.ProfileCategories.AsNoTracking()
-            .AnyAsync(x => x.Code == command.CategoryRelated, cancellationToken)
+            .AnyAsync(x => x.Code == relatedCode, cancellationToken)
             .ConfigureAwait(false);
 
         if (!relatedExists)
         {
-            throw new NotFoundException($"Related category '{command.CategoryRelated}' not found.");
+            throw new NotFoundException($"Related category '{relatedCode}' not found.");
         }
 
         MatchingRule rule = MatchingRule.Create(
             command.SourceCategoryId,
             command.Type,
-            command.CategoryRelated,
+            relatedCode,
             command.MinimumStringency,
             command.FailOnMatch,
             command.ForwardToUpper,
@@ -217,7 +227,7 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
                 candidateConfigurations.Select(x => x.GeneticProfileId).ToArray()),
             cancellationToken).ConfigureAwait(false);
 
-        var allVictimIds = candidateConfigurations
+        Guid[] allVictimIds = candidateConfigurations
             .Select(x => x.VictimProfileId)
             .Append(queryConfiguration.VictimProfileId)
             .Where(x => x.HasValue)
@@ -231,7 +241,7 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
                 new GetGeneticProfilesByIdsQuery(allVictimIds),
                 cancellationToken).ConfigureAwait(false);
 
-        var victimById = victimProfiles.ToDictionary(x => x.Id);
+        Dictionary<Guid, GeneticProfileDto> victimById = victimProfiles.ToDictionary(x => x.Id);
 
         object? alleleRanges = null;
         if (queryProfile.StrKitId.HasValue)
@@ -240,11 +250,15 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
                 new GetStrKitByIdQuery(queryProfile.StrKitId.Value),
                 cancellationToken).ConfigureAwait(false);
 
-            var ranges = kit.Loci
+            Dictionary<string, object> ranges = kit.Loci
                 .Where(x => x.AlleleRangeMin.HasValue && x.AlleleRangeMax.HasValue)
                 .ToDictionary(
                     x => x.Marker,
-                    x => new { min = x.AlleleRangeMin!.Value, max = x.AlleleRangeMax!.Value },
+                    x => (object)new
+                    {
+                        min = x.AlleleRangeMin!.Value,
+                        max = x.AlleleRangeMax!.Value,
+                    },
                     StringComparer.Ordinal);
 
             if (ranges.Count > 0)
@@ -306,7 +320,7 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
         using JsonDocument response = JsonDocument.Parse(call.Body);
         JsonElement ranked = response.RootElement.GetProperty("ranked");
 
-        var parsed = new List<ParsedAutosomalResult>(ranked.GetArrayLength());
+        List<ParsedAutosomalResult> parsed = new(ranked.GetArrayLength());
         foreach (JsonElement item in ranked.EnumerateArray())
         {
             Guid candidateId = Guid.Parse(item.GetProperty("candidateId").GetString()!);
@@ -317,7 +331,7 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
             double rightPonderation = item.GetProperty("rightPonderation").GetDouble();
 
             JsonElement detailedElement = item.GetProperty("detailed");
-            var detailed = detailedElement.EnumerateObject()
+            Dictionary<string, string> detailed = detailedElement.EnumerateObject()
                 .ToDictionary(
                     property => property.Name,
                     property => property.Value.GetString()!,
@@ -355,8 +369,8 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
 
         dbContext.AutosomalMatchSearches.Add(search);
 
-        var results = new List<AutosomalMatchResult>(parsed.Count);
-        var hits = new List<MatchHit>();
+        List<AutosomalMatchResult> results = new(parsed.Count);
+        List<MatchHit> hits = [];
 
         foreach (ParsedAutosomalResult item in parsed)
         {
@@ -395,7 +409,7 @@ public sealed class RunAutosomalDatabaseSearchCommandHandler(
 
     private static Dictionary<string, string[]> ToGenotypification(GeneticProfileDto profile)
     {
-        var genotype = profile.Loci
+        Dictionary<string, string[]> genotype = profile.Loci
             .Where(x => x.Alleles.Count > 0)
             .ToDictionary(
                 x => x.Marker,

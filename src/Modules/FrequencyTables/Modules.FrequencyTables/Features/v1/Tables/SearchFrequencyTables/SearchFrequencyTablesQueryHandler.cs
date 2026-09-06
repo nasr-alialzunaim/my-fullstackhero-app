@@ -15,6 +15,8 @@ public sealed class SearchFrequencyTablesQueryHandler(FrequencyTablesDbContext d
         SearchFrequencyTablesQuery query,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
         int page = query.PageNumber < 1 ? 1 : query.PageNumber;
         int size = query.PageSize is < 1 or > 200 ? 20 : query.PageSize;
         IQueryable<FrequencyTable> tables = dbContext.FrequencyTables.AsNoTracking();
@@ -52,8 +54,16 @@ public sealed class SearchFrequencyTablesQueryHandler(FrequencyTablesDbContext d
             {
                 var stat = stats.FirstOrDefault(s => s.Id == x.Id);
                 return new FrequencyTableSummaryDto(
-                    x.Id, x.Name, x.Model, x.Theta, x.VersionNumber, x.IsActive, x.IsDefault,
-                    stat?.MarkerCount ?? 0, stat?.EntryCount ?? 0, x.CreatedAtUtc);
+                    x.Id,
+                    x.Name,
+                    x.Model,
+                    x.Theta,
+                    x.VersionNumber,
+                    x.IsActive,
+                    x.IsDefault,
+                    stat?.MarkerCount ?? 0,
+                    stat?.EntryCount ?? 0,
+                    x.CreatedAtUtc);
             }).ToList(),
             PageNumber = page,
             PageSize = size,

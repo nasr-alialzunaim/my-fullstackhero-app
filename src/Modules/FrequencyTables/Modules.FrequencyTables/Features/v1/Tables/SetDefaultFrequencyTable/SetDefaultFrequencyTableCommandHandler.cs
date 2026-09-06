@@ -10,8 +10,12 @@ namespace FSH.Modules.FrequencyTables.Features.v1.Tables.SetDefaultFrequencyTabl
 public sealed class SetDefaultFrequencyTableCommandHandler(FrequencyTablesDbContext dbContext)
     : ICommandHandler<SetDefaultFrequencyTableCommand, Guid>
 {
-    public async ValueTask<Guid> Handle(SetDefaultFrequencyTableCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Guid> Handle(
+        SetDefaultFrequencyTableCommand command,
+        CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(command);
+
         FrequencyTable target = await dbContext.FrequencyTables
             .FirstOrDefaultAsync(x => x.Id == command.TableId, cancellationToken)
             .ConfigureAwait(false)
@@ -24,7 +28,8 @@ public sealed class SetDefaultFrequencyTableCommandHandler(FrequencyTablesDbCont
 
         List<FrequencyTable> currentDefaults = await dbContext.FrequencyTables
             .Where(x => x.IsDefault && x.Id != target.Id)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         foreach (FrequencyTable current in currentDefaults)
         {

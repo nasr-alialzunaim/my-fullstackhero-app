@@ -11,7 +11,9 @@ public sealed class ProfileCategory : AggregateRoot<Guid>
     public bool Mitochondrial { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
 
-    private ProfileCategory() { }
+    private ProfileCategory()
+    {
+    }
 
     public static ProfileCategory Create(
         string code,
@@ -26,7 +28,7 @@ public sealed class ProfileCategory : AggregateRoot<Guid>
         return new ProfileCategory
         {
             Id = Guid.CreateVersion7(),
-            Code = code.Trim(),
+            Code = code.Trim().ToUpperInvariant(),
             Name = name.Trim(),
             AnalysisTypeId = analysisTypeId,
             IsReference = isReference,
