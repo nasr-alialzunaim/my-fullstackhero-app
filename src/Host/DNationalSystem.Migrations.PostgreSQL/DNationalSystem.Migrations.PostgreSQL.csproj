@@ -1,39 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<RootNamespace>DNationalSystem.Migrations.PostgreSQL</RootNamespace>
-		<AssemblyName>DNationalSystem.Migrations.PostgreSQL</AssemblyName>
-		<IsPackable>false</IsPackable>
-		<!-- Suppress analyzer warnings for EF Core auto-generated migration files -->
-		<NoWarn>$(NoWarn);CA1062;CA1861</NoWarn>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
-	  <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
-	  <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
-	  <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
-	  <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
-	  <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
-	  <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
-	  <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
-	  <ProjectReference Include="..\..\Modules\Notifications\Modules.Notifications\Modules.Notifications.csproj" />
-	  <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Audit\" />
-	  <Folder Include="Billing\" />
-	  <Folder Include="Catalog\" />
-	  <Folder Include="Tickets\" />
-	  <Folder Include="Chat\" />
-	  <Folder Include="Notifications\" />
-	  <Folder Include="Files\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-	  <PackageReference Include="SSH.NET" />
-	</ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><RootNamespace>DNationalSystem.Migrations.PostgreSQL</RootNamespace><AssemblyName>DNationalSystem.Migrations.PostgreSQL</AssemblyName><IsPackable>false</IsPackable><NoWarn>$(NoWarn);CA1062;CA1861</NoWarn></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" /><ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" /><ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" /><ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" /><ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
+    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" /><ProjectReference Include="..\..\Modules\Subjects\Modules.Subjects\Modules.Subjects.csproj" /><ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence\Modules.Evidence.csproj" /><ProjectReference Include="..\..\Modules\Samples\Modules.Samples\Modules.Samples.csproj" /><ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics\Modules.Genetics.csproj" /><ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits\Modules.StrKits.csproj" /><ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables\Modules.FrequencyTables.csproj" /><ProjectReference Include="..\..\Modules\Matching\Modules.Matching\Modules.Matching.csproj" /><ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" />
+    <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" /><ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" /><ProjectReference Include="..\..\Modules\Notifications\Modules.Notifications\Modules.Notifications.csproj" /><ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />
+  </ItemGroup>
+  <ItemGroup><Folder Include="Audit\" /><Folder Include="Billing\" /><Folder Include="Catalog\" /><Folder Include="Cases\" /><Folder Include="Subjects\" /><Folder Include="Evidence\" /><Folder Include="Samples\" /><Folder Include="Genetics\" /><Folder Include="StrKits\" /><Folder Include="FrequencyTables\" /><Folder Include="Matching\" /><Folder Include="ScientificAnalysis\" /><Folder Include="Tickets\" /><Folder Include="Chat\" /><Folder Include="Notifications\" /><Folder Include="Files\" /></ItemGroup>
+  <ItemGroup><PackageReference Include="Microsoft.AspNetCore.OpenApi" /><PackageReference Include="SSH.NET" /></ItemGroup>
 </Project>

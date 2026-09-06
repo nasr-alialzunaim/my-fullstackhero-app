@@ -6,4 +6,13 @@
 		<NoWarn>$(NoWarn);S2094</NoWarn>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="Mediator.Abstractions" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\BuildingBlocks\Shared\Shared.csproj" />
+	</ItemGroup>
+
 </Project>

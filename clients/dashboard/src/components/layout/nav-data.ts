@@ -1,6 +1,7 @@
 import {
   Activity,
   CreditCard,
+  Dna,
   FolderOpen,
   FolderTree,
   HeartPulse,
@@ -66,6 +67,14 @@ export const topNavBottom: NavSpec[] = [
 
 // Section accordion. Single-select — only one section open at a time.
 export const sections: NavSection[] = [
+  {
+    id: "forensics",
+    caption: "Forensics",
+    icon: Dna,
+    items: [
+      { to: "/cases", label: "Cases", icon: FolderOpen, perm: "Permissions.Cases.View" },
+    ],
+  },
   {
     id: "operations",
     caption: "Operations",

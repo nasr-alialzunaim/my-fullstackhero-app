@@ -29,7 +29,9 @@
     "health": "Health",
     "auditTrail": "Audit trail",
     "sessions": "Sessions",
-    "trash": "Trash"
+    "trash": "Trash",
+    "forensics": "Forensics",
+    "cases": "Cases"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -268,5 +270,37 @@
   "errors": {
     "validationFailed": "One or more validation errors occurred.",
     "unexpected": "An unexpected error occurred. Please try again later."
+  },
+  "cases": {
+    "title": "Cases",
+    "unit": "case",
+    "description": "Investigative and identification contexts that anchor evidence, samples, genetic profiles, matches, and scientific analysis.",
+    "newCase": "New case",
+    "searchPlaceholder": "Search by case number, title, or description…",
+    "noResults": "No cases found",
+    "empty": "No cases yet",
+    "noResultsDescription": "Nothing matches “{{term}}”. Try another search or clear it.",
+    "emptyDescription": "Create the first case to start the forensic workflow.",
+    "clearSearch": "Clear search",
+    "found": "{{count}} case(s) found",
+    "case": "Case",
+    "number": "Case number",
+    "created": "Created",
+    "edit": "Edit case",
+    "add": "Add a case",
+    "editDescription": "Update the case reference and descriptive details.",
+    "addDescription": "Create the top-level case record. Evidence and samples will be added in the next workflow slices.",
+    "titleField": "Title",
+    "descriptionField": "Description",
+    "descriptionHint": "Optional concise context for authorized users.",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "create": "Create case",
+    "save": "Save changes",
+    "createdToast": "Case created",
+    "updatedToast": "Case updated",
+    "createFailed": "Could not create case",
+    "updateFailed": "Could not update case",
+    "loadFailed": "Could not load cases"
   }
 }

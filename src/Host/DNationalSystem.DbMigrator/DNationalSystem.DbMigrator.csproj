@@ -1,63 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>DNationalSystem.DbMigrator</RootNamespace>
-    <AssemblyName>DNationalSystem.DbMigrator</AssemblyName>
-    <IsPackable>false</IsPackable>
-
-    <!-- Container configuration — published as a one-shot job image used as
-         the migrate step in a Kubernetes Job / Helm pre-install hook / Aspire
-         dependency. Same base image as the API for parity. Image is built via
-         `dotnet publish /t:PublishContainer` — no PublishProfile needed (the
-         legacy "DefaultContainer" profile auto-populates ContainerImageTag
-         from $(Version), colliding with ContainerImageTags). -->
-    <ContainerUser>1654</ContainerUser>
-    <ContainerFamily>noble</ContainerFamily>
-    <ContainerRepository>fsh-db-migrator</ContainerRepository>
-
-    <!-- This is an internal operator-facing CLI — no localization, all
-         operator messages are literal strings. CA1303 (use resource tables
-         for user-facing strings) is the wrong rule for this project. -->
-    <NoWarn>$(NoWarn);CA1303</NoWarn>
+    <OutputType>Exe</OutputType><RootNamespace>DNationalSystem.DbMigrator</RootNamespace><AssemblyName>DNationalSystem.DbMigrator</AssemblyName><IsPackable>false</IsPackable><ContainerUser>1654</ContainerUser><ContainerFamily>noble</ContainerFamily><ContainerRepository>fsh-db-migrator</ContainerRepository><NoWarn>$(NoWarn);CA1303</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Mediator.Abstractions" />
-    <PackageReference Include="Mediator.SourceGenerator">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="SSH.NET" />
+    <PackageReference Include="Mediator.Abstractions" /><PackageReference Include="Mediator.SourceGenerator"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageReference><PackageReference Include="Microsoft.AspNetCore.OpenApi" /><PackageReference Include="SSH.NET" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\BuildingBlocks\Web\Web.csproj" />
-    <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" />
-    <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" />
-    <ProjectReference Include="..\..\Modules\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" />
-    <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog.Contracts\Modules.Catalog.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" />
-    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" />
-    <ProjectReference Include="..\..\Modules\Chat\Modules.Chat.Contracts\Modules.Chat.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" />
-    <ProjectReference Include="..\..\Modules\Files\Modules.Files.Contracts\Modules.Files.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing\Modules.Auditing.csproj" /><ProjectReference Include="..\..\Modules\Auditing\Modules.Auditing.Contracts\Modules.Auditing.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Billing\Modules.Billing\Modules.Billing.csproj" /><ProjectReference Include="..\..\Modules\Billing\Modules.Billing.Contracts\Modules.Billing.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog\Modules.Catalog.csproj" /><ProjectReference Include="..\..\Modules\Catalog\Modules.Catalog.Contracts\Modules.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Cases\Modules.Cases\Modules.Cases.csproj" /><ProjectReference Include="..\..\Modules\Cases\Modules.Cases.Contracts\Modules.Cases.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Subjects\Modules.Subjects\Modules.Subjects.csproj" /><ProjectReference Include="..\..\Modules\Subjects\Modules.Subjects.Contracts\Modules.Subjects.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence\Modules.Evidence.csproj" /><ProjectReference Include="..\..\Modules\Evidence\Modules.Evidence.Contracts\Modules.Evidence.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Samples\Modules.Samples\Modules.Samples.csproj" /><ProjectReference Include="..\..\Modules\Samples\Modules.Samples.Contracts\Modules.Samples.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics\Modules.Genetics.csproj" /><ProjectReference Include="..\..\Modules\Genetics\Modules.Genetics.Contracts\Modules.Genetics.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits\Modules.StrKits.csproj" /><ProjectReference Include="..\..\Modules\StrKits\Modules.StrKits.Contracts\Modules.StrKits.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables\Modules.FrequencyTables.csproj" /><ProjectReference Include="..\..\Modules\FrequencyTables\Modules.FrequencyTables.Contracts\Modules.FrequencyTables.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Matching\Modules.Matching\Modules.Matching.csproj" /><ProjectReference Include="..\..\Modules\Matching\Modules.Matching.Contracts\Modules.Matching.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis\Modules.ScientificAnalysis.csproj" /><ProjectReference Include="..\..\Modules\ScientificAnalysis\Modules.ScientificAnalysis.Contracts\Modules.ScientificAnalysis.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Chat\Modules.Chat\Modules.Chat.csproj" /><ProjectReference Include="..\..\Modules\Chat\Modules.Chat.Contracts\Modules.Chat.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Files\Modules.Files\Modules.Files.csproj" /><ProjectReference Include="..\..\Modules\Files\Modules.Files.Contracts\Modules.Files.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Identity\Modules.Identity\Modules.Identity.csproj" />
-    <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" />
-    <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets.Contracts\Modules.Tickets.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets\Modules.Tickets.csproj" /><ProjectReference Include="..\..\Modules\Tickets\Modules.Tickets.Contracts\Modules.Tickets.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Webhooks\Modules.Webhooks\Modules.Webhooks.csproj" />
     <ProjectReference Include="..\DNationalSystem.Migrations.PostgreSQL\DNationalSystem.Migrations.PostgreSQL.csproj" />
   </ItemGroup>
-
-  <!-- Share configuration with the API so connection strings + tenant options
-       stay in lock-step. Production deployments override via env vars. -->
-  <ItemGroup>
-    <None Include="..\DNationalSystem.Api\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\DNationalSystem.Api\appsettings.Development.json" Link="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
+  <ItemGroup><None Include="..\DNationalSystem.Api\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" /><None Include="..\DNationalSystem.Api\appsettings.Development.json" Link="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>
